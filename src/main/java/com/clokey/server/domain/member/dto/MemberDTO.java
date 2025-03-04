@@ -124,4 +124,13 @@ public class MemberDTO {
         Boolean isFollowed;
         Boolean isMe;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class checkMyselfResult {
+        Boolean isMe;
+    }
+
 }

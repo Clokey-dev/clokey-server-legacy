@@ -30,6 +30,12 @@ public class GetUserConverter {
                 .build();
     }
 
+    public static MemberDTO.checkMyselfResult toCheckMyselfResult(Boolean isMe){
+        return MemberDTO.checkMyselfResult.builder()
+                .isMe(isMe)
+                .build();
+    }
+
     public static List<MemberDTO.GetUserClothResult> toGetUserClothResultDTO(List<Cloth> cloths) {
         return cloths.stream()
                 .map(cloth -> {

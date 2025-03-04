@@ -210,4 +210,9 @@ public class MemberServiceImpl implements MemberService {
         return GetUserConverter.toGetFollowPeopleResultDTO(new ArrayList<>(), pageable, new ArrayList<>(), new ArrayList<>());
     }
 
+    @Override
+    public MemberDTO.checkMyselfResult checkMyself(String myClokeyId, String checkClokeyId) {
+        return GetUserConverter.toCheckMyselfResult(myClokeyId.equals(checkClokeyId));
+    }
+
 }

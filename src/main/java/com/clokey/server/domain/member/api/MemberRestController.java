@@ -95,4 +95,12 @@ public class MemberRestController {
         MemberDTO.GetFollowMemberResult response = memberService.getFollowPeople(member.getId(), clokeyId, page, isFollowing);
         return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
     }
+
+    @Operation(summary = "본인 확인 API", description = "clokeyId를 기반으로 본인인지 확인.")
+    @GetMapping("users/check-myself")
+    public BaseResponse<MemberDTO.checkMyselfResult> checkMyself(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                 @Parameter(name = "clokeyId", description = "본인인지 확인하고 싶은 clokeyId") @IdValid String clokeyId) {
+        MemberDTO.checkMyselfResult response = memberService.checkMyself(member.getClokeyId(),clokeyId);
+        return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
+    }
 }

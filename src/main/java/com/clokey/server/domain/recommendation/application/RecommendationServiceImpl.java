@@ -366,31 +366,47 @@ public class RecommendationServiceImpl implements RecommendationService {
         LocalDate today = LocalDate.now();
         LocalDate oneYearAgo = today.minusYears(1);
 
+        //자신의 1년전 기록을 탐색합니다.
         if (historyRepositoryService.checkHistoryExistOfDate(oneYearAgo, memberId)) {
-            Long historyOneYearAgoId = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberId).getId();
-            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgoId).stream()
+            History historyOneYearAgo = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberId);
+            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgo.getId()).stream()
                     .map(HistoryImage::getImageUrl)
                     .toList();
-            return RecommendationConverter.toLastYearHistoryResult(historyOneYearAgoId, historyUrls, member, true);
+            return RecommendationConverter.toLastYearHistoryResult(historyOneYearAgo.getId(), historyOneYearAgo.getHistoryDate(), historyUrls, member, true);
         }
 
         List<Long> followingMembers = followRepositoryService.findFollowingByFollowedId(memberId).stream()
+                .filter(member1 -> member1.getVisibility().equals(Visibility.PUBLIC))
                 .map(Member::getId)
-                .toList();
+                .collect(Collectors.toList());
 
         List<Boolean> membersHaveHistoryOneYearAgo = historyRepositoryService.existsByHistoryDateAndMemberIds(oneYearAgo, followingMembers);
 
         Long memberPicked = getRandomMemberWithHistory(followingMembers, membersHaveHistoryOneYearAgo);
 
+        // 팔로우 하는 사람들의 1년전 오늘을 확인합니다.
         if (memberPicked != null) {
-            Long historyOneYearAgoId = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberPicked).getId();
-            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgoId).stream()
+            History historyOneYearAgo = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberPicked);
+            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgo.getId()).stream()
                     .map(HistoryImage::getImageUrl)
                     .toList();
-            return RecommendationConverter.toLastYearHistoryResult(historyOneYearAgoId, historyUrls, member, false);
+            return RecommendationConverter.toLastYearHistoryResult(historyOneYearAgo.getId(),historyOneYearAgo.getHistoryDate(), historyUrls, memberRepositoryService.findMemberById(memberPicked), false);
         }
 
-        return RecommendationConverter.toLastYearHistoryResult(null, null, member, true);
+        // 나와 팔로우 하는 사람들의 랜덤 게시물을 반환합니다.
+        List<Long> members = new ArrayList<>(followingMembers);
+        members.add(memberId);
+        List<History> histories = historyRepositoryService.findHistoriesByMemberIdsAndDateRange(members,oneYearAgo,today);
+        if(histories != null && !histories.isEmpty()){
+            History randomHistory = histories.get(new Random().nextInt(histories.size()));
+            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(randomHistory.getId()).stream()
+                    .map(HistoryImage::getImageUrl)
+                    .toList();
+            return RecommendationConverter.toLastYearHistoryResult(randomHistory.getId(),randomHistory.getHistoryDate(),historyUrls,randomHistory.getMember(), randomHistory.getMember().equals(member));
+        }
+
+
+        return RecommendationConverter.toLastYearHistoryResult(null, null, null, member, true);
     }
 
     private Long getRandomMemberWithHistory(List<Long> followingMembers, List<Boolean> membersHaveHistoryOneYearAgo) {

@@ -20,4 +20,5 @@ public interface MemberService {
 
     MemberDTO.GetFollowMemberResult getFollowPeople(Long memberId, String clokeyId, Integer page, Boolean isFollow);
 
+    MemberDTO.checkMyselfResult checkMyself(String myClokeyId, String checkClokeyId);
 }

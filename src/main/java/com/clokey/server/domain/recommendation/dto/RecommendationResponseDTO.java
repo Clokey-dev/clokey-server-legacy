@@ -145,6 +145,7 @@ public class RecommendationResponseDTO {
         Boolean isMine;
         Long historyId;
         String nickName;
+        LocalDate date;
         List<String> imageUrls;
     }
 }

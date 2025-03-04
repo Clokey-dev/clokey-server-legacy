@@ -198,7 +198,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     private void checkFollowing(Long followingId, Long followedId) {
-        if (followRepositoryService.existsByFollowing_IdAndFollowed_Id(followingId, followedId)) {
+        if (!followRepositoryService.existsByFollowing_IdAndFollowed_Id(followingId, followedId)) {
             throw new NotificationException(ErrorStatus.NOTIFICATION_NOT_FOLLOWING);
         }
     }
