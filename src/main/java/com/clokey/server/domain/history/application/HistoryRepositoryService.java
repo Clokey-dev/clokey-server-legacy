@@ -45,4 +45,6 @@ public interface HistoryRepositoryService {
     Long countHistoryByMember(Member member);
 
     List<History> findHistoriesByMemberIds(List<Long> memberIds);
+
+    List<History> findHistoriesByMemberIdsAndDateRange(List<Long> memberIds, LocalDate from, LocalDate to);
 }

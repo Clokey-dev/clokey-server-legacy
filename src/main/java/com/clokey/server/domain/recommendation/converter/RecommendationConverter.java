@@ -154,9 +154,10 @@ public class RecommendationConverter {
                 .build();
     }
 
-    public static RecommendationResponseDTO.LastYearHistoryResult toLastYearHistoryResult(Long historyId, List<String> historyImageUrls, Member member, Boolean isMine) {
+    public static RecommendationResponseDTO.LastYearHistoryResult toLastYearHistoryResult(Long historyId, LocalDate date, List<String> historyImageUrls, Member member, Boolean isMine) {
         return RecommendationResponseDTO.LastYearHistoryResult.builder()
                 .historyId(historyId)
+                .date(date)
                 .nickName(member.getNickname())
                 .imageUrls(historyImageUrls)
                 .isMine(isMine)
