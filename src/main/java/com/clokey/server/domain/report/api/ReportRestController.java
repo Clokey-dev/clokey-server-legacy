@@ -42,7 +42,7 @@ public class ReportRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_201", description = "기록을 성공적으로 신고했습니다."),
     })
     public BaseResponse<ReportResponseDTO.historyReportResult> reportHistory(@Parameter(name = "user", hidden = true) @AuthUser Member member,
-                                                                                                 @RequestPart(value = "reportHistoryRequest") @Valid ReportRequestDTO.HistoryReportRequest historyReportRequest) {
+                                                                                                 @RequestBody @Valid ReportRequestDTO.HistoryReportRequest historyReportRequest) {
 
         ReportResponseDTO.historyReportResult result = reportService.getHistoryReportResult(historyReportRequest,member.getId());
 

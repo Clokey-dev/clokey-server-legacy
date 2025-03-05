@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class HistoryReportRepositoryServiceImpl implements HistoryReportRepositoryService {
 
-    HistoryReportRepository historyReportRepository;
+    private final HistoryReportRepository historyReportRepository;
 
     @Override
     public Long save(HistoryReport historyReport) {

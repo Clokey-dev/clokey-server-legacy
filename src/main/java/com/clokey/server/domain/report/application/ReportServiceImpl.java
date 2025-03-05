@@ -17,9 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService{
 
-    HistoryReportRepositoryService historyReportRepositoryService;
-    HistoryRepositoryService historyRepositoryService;
-    MemberRepositoryService memberRepositoryService;
+    private final HistoryReportRepositoryService historyReportRepositoryService;
+    private final HistoryRepositoryService historyRepositoryService;
+    private final MemberRepositoryService memberRepositoryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,7 +40,7 @@ public class ReportServiceImpl implements ReportService{
         HistoryReport historyReport = HistoryReport.builder()
                 .historyReportType(historyReportRequest.getHistoryReportType())
                 .reportStatus(ReportStatus.UNCHECKED)
-                .content(reportedHistory.getContent())
+                .content(historyReportRequest.getContent())
                 .history(reportedHistory)
                 .member(memberRepositoryService.findMemberById(memberId))
                 .build();
