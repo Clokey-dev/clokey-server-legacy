@@ -4,6 +4,7 @@ import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.BaseEntity;
 import com.clokey.server.domain.model.entity.enums.CommentReportType;
+import com.clokey.server.domain.model.entity.enums.ReportStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +23,10 @@ public class CommentReport extends BaseEntity {
     @Column(nullable = false)
     private CommentReportType commentReportType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(15) DEFAULT 'UNCHECKED'", nullable = false)
+    private ReportStatus reportStatus;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id", nullable = false)
     private Comment comment;
@@ -29,4 +34,7 @@ public class CommentReport extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @Column(length = 200)
+    private String content;
 }
