@@ -3,7 +3,10 @@ package com.clokey.server.domain.model.entity.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Getter
@@ -19,4 +22,13 @@ public enum CommentReportType {
     private String title;
     private List<String> contents;
 
+    public static List<Map<String, Object>> getAllReportTypes() {
+        return Arrays.stream(values())
+                .map(reportType -> Map.of(
+                        "name", reportType.name(),
+                        "title", reportType.getTitle(),
+                        "contents", reportType.getContents()
+                ))
+                .collect(Collectors.toList());
+    }
 }
