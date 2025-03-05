@@ -26,7 +26,7 @@ public class ReportServiceImpl implements ReportService{
 
     @Override
     @Transactional(readOnly = true)
-    public ReportResponseDTO.getHistoryReportInfoResult getHistoryReportInfo(Long historyId) {
+    public ReportResponseDTO.HistoryReportInfoResult getHistoryReportInfo(Long historyId) {
         History history = historyRepositoryService.findById(historyId);
         Member historyWriter = history.getMember();
         return ReportConverter.getHistoryReportInfoResult(historyWriter.getClokeyId(),
@@ -37,7 +37,7 @@ public class ReportServiceImpl implements ReportService{
 
     @Override
     @Transactional
-    public ReportResponseDTO.historyReportResult getHistoryReportResult(ReportRequestDTO.HistoryReportRequest historyReportRequest, Long memberId) {
+    public ReportResponseDTO.HistoryReportResult getHistoryReportResult(ReportRequestDTO.HistoryReportRequest historyReportRequest, Long memberId) {
         History reportedHistory = historyRepositoryService.findById(historyReportRequest.getHistoryId());
 
         HistoryReport historyReport = HistoryReport.builder()
@@ -54,7 +54,7 @@ public class ReportServiceImpl implements ReportService{
     }
 
     @Override
-    public ReportResponseDTO.getCommentReportInfoResult getCommentReportInfo(Long commentId) {
+    public ReportResponseDTO.CommentReportInfoResult getCommentReportInfo(Long commentId) {
         Comment comment = commentRepositoryService.findById(commentId);
         Member commentWriter = comment.getMember();
         return ReportConverter.getCommentReportInfoResult(commentWriter.getClokeyId(),

@@ -14,31 +14,31 @@ public class ReportResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class getHistoryReportInfoResult {
+    public static class HistoryReportInfoResult {
         private String clokeyId;
         private String nickName;
         private String userProfile;
         private String  historyContent;
-        private List<reportType> reportTypes;
+        private List<ReportTypeResult> ReportTypeResults;
     }
 
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class getCommentReportInfoResult {
+    public static class CommentReportInfoResult {
         private String clokeyId;
         private String nickName;
         private String userProfile;
         private String  commentContent;
-        private List<reportType> reportTypes;
+        private List<ReportTypeResult> ReportTypeResults;
     }
 
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class reportType {
+    public static class ReportTypeResult {
         private String reportType;
         private String Title;
         private List<String> reportContents;
@@ -48,9 +48,16 @@ public class ReportResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class historyReportResult {
+    public static class HistoryReportResult {
         private Long historyReportId;
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CommentReportResult {
+        private Long commentReportId;
+    }
 
 }

@@ -30,9 +30,9 @@ public class ReportRestController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_200", description = "기록 신고의 정보가 성공적으로 조회되었습니다."),
     })
-    public BaseResponse<ReportResponseDTO.getHistoryReportInfoResult> getHistoryReportInformation(@RequestParam(value = "historyId") @HistoryExist Long historyId) {
+    public BaseResponse<ReportResponseDTO.HistoryReportInfoResult> getHistoryReportInformation(@RequestParam(value = "historyId") @HistoryExist Long historyId) {
 
-        ReportResponseDTO.getHistoryReportInfoResult result = reportService.getHistoryReportInfo(historyId);
+        ReportResponseDTO.HistoryReportInfoResult result = reportService.getHistoryReportInfo(historyId);
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_HISTORY_VIEW_SUCCESS, result);
     }
@@ -42,10 +42,10 @@ public class ReportRestController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_201", description = "기록을 성공적으로 신고했습니다."),
     })
-    public BaseResponse<ReportResponseDTO.historyReportResult> reportHistory(@Parameter(name = "user", hidden = true) @AuthUser Member member,
-                                                                                                 @RequestBody @Valid ReportRequestDTO.HistoryReportRequest historyReportRequest) {
+    public BaseResponse<ReportResponseDTO.HistoryReportResult> reportHistory(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                             @RequestBody @Valid ReportRequestDTO.HistoryReportRequest historyReportRequest) {
 
-        ReportResponseDTO.historyReportResult result = reportService.getHistoryReportResult(historyReportRequest,member.getId());
+        ReportResponseDTO.HistoryReportResult result = reportService.getHistoryReportResult(historyReportRequest,member.getId());
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_HISTORY_SUCCESS, result);
     }
@@ -55,9 +55,9 @@ public class ReportRestController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_200", description = "댓글 신고의 정보가 성공적으로 조회되었습니다."),
     })
-    public BaseResponse<ReportResponseDTO.getCommentReportInfoResult> getCommentReportInformation(@RequestParam(value = "commentId") @CommentExist Long commentId) {
+    public BaseResponse<ReportResponseDTO.CommentReportInfoResult> getCommentReportInformation(@RequestParam(value = "commentId") @CommentExist Long commentId) {
 
-        ReportResponseDTO.getCommentReportInfoResult result = reportService.getCommentReportInfo(commentId);
+        ReportResponseDTO.CommentReportInfoResult result = reportService.getCommentReportInfo(commentId);
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_COMMENT_VIEW_SUCCESS, result);
     }
