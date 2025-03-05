@@ -32,6 +32,8 @@ public enum ErrorStatus implements BaseErrorCode {
     NO_PERMISSION_TO_ACCESS_USER(HttpStatus.BAD_REQUEST,"MEMBER_4008", "유저에 대한 접근 권한이 없습니다."),
     INVALID_TERM_ID(HttpStatus.BAD_REQUEST,"MEMBER_4009","잘못된 약관 ID입니다."),
     NO_SUCH_FOLLOWER(HttpStatus.NOT_FOUND,"MEMBER_4010","존재하지 않는 팔로워 ID입니다."),
+    CANNOT_BLOCK_MYSELF(HttpStatus.BAD_REQUEST,"MEMBER_4011","자신을 차단할 수 없습니다."),
+    ALREADY_BLOCKED(HttpStatus.BAD_REQUEST,"MEMBER_4012","이미 차단한 사용자입니다."),
 
     //옷 에러
     NO_SUCH_CLOTH(HttpStatus.NOT_FOUND,"CLOTH_4041","존재하지 않는 옷 ID입니다."),
@@ -130,6 +132,7 @@ public enum ErrorStatus implements BaseErrorCode {
     //홈 에러
     NO_SUCH_SECTION(HttpStatus.NOT_FOUND,"HOME_4041","해당 섹션이 존재하지 않습니다."),
     OUT_OF_RANGE_TEMP(HttpStatus.BAD_REQUEST,"HOME_4002","온도 범위를 벗어났습니다.")
+
     ;
 
 

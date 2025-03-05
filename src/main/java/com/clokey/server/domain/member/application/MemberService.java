@@ -5,6 +5,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.dto.MemberDTO;
 
+import java.util.List;
+
 public interface MemberService {
     void follow(String clokeyId, Member currentUser);
 
@@ -19,5 +21,9 @@ public interface MemberService {
     void clokeyIdUsingCheck(String clokeyId, Member currentUser);
 
     MemberDTO.GetFollowMemberResult getFollowPeople(Long memberId, String clokeyId, Integer page, Boolean isFollow);
+
+    void blockMember(String clokeyId, Member currentUser);
+
+    MemberDTO.GetBlockMemberResult getBlockedMembers(Member currentUser, Integer page);
 
 }

@@ -1,5 +1,8 @@
 package com.clokey.server.domain.member.application;
 
+import com.clokey.server.domain.member.domain.entity.Block;
+import com.clokey.server.domain.member.domain.repository.BlockRepository;
+import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -10,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +32,7 @@ import com.clokey.server.domain.search.application.SearchRepositoryService;
 import com.clokey.server.domain.search.exception.SearchException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.infra.s3.S3ImageService;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +42,7 @@ public class MemberServiceImpl implements MemberService {
     private final FollowRepositoryService followRepositoryService;
     private final HistoryRepositoryService historyRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
+    private final BlockRepositoryService blockRepositoryService;
 
     private final S3ImageService s3ImageService; // ✅ S3 업로드 서비스 추가
     private final SearchRepositoryService searchRepositoryService;
@@ -209,5 +215,54 @@ public class MemberServiceImpl implements MemberService {
         }
         return GetUserConverter.toGetFollowPeopleResultDTO(new ArrayList<>(), pageable, new ArrayList<>(), new ArrayList<>());
     }
+
+
+    //회원 차단 로직
+    @Override
+    @Transactional
+    public void blockMember(String clokeyId, Member currentUser) {
+        Member blocker = currentUser;
+        Member blocked = memberRepositoryService.findMemberByClokeyId(clokeyId);
+
+        // 본인을 차단할 수 없음
+        if (blocker.getId().equals(blocked.getId())) {
+            throw new MemberException(ErrorStatus.CANNOT_BLOCK_MYSELF);
+        }
+
+        // 이미 차단한 경우 차단 해제 (토글 방식 유지)
+        if (blockRepositoryService.existsByBlockerAndBlocked(blocker.getId(), blocked.getId())) {
+            Block block = blockRepositoryService.findByBlockerAndBlocked(blocker.getId(), blocked.getId());
+            blockRepositoryService.delete(block);
+            return; // 차단 해제 후 종료
+        }
+
+        // 팔로우 관계 제거
+        if(followRepositoryService.existsByFollowing_IdAndFollowed_Id(blocker.getId(), blocked.getId())){
+            Follow follow = followRepositoryService.findByFollowing_IdAndFollowed_Id(blocker.getId(), blocked.getId()).orElseThrow(() -> new MemberException(ErrorStatus.NO_SUCH_FOLLOWER));
+            followRepositoryService.delete(follow);
+        }
+        if(followRepositoryService.existsByFollowing_IdAndFollowed_Id(blocked.getId(), blocker.getId())){
+            Follow follow = followRepositoryService.findByFollowing_IdAndFollowed_Id(blocked.getId(), blocker.getId()).orElseThrow(() -> new MemberException(ErrorStatus.NO_SUCH_FOLLOWER));
+            followRepositoryService.delete(follow);
+        }
+
+        // 차단 정보 추가
+        Block block = Block.builder().blocker(blocker).blocked(blocked).build();
+        blockRepositoryService.save(block);
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public MemberDTO.GetBlockMemberResult getBlockedMembers(Member currentUser, Integer page) {
+        Pageable pageable = PageRequest.of(page - 1, 10);
+
+            List<Member> members = blockRepositoryService.findAllByBlocker(currentUser.getId(), pageable);
+            List<Boolean> isBlocked = blockRepositoryService.checkBlockedStatus(currentUser.getId(), members);
+            List<Boolean> isMySelf = members.stream().map(member -> member.getId().equals(currentUser.getId())).toList();
+            return GetUserConverter.toGetBlockPeopleResultDTO(members, pageable, isBlocked, isMySelf);
+    }
+
 
 }

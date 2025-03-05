@@ -95,4 +95,22 @@ public class MemberRestController {
         MemberDTO.GetFollowMemberResult response = memberService.getFollowPeople(member.getId(), clokeyId, page, isFollowing);
         return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
     }
+
+    @Operation(summary = "회원차단/해제 API", description = "특정 회원을 차단하는 api입니다.")
+    @GetMapping("users/block/{clokey_id}")
+    public BaseResponse<Void> blockMember(@Parameter(name = "user", hidden = true) @AuthUser Member currentUser, @IdValid @NotBlank @PathVariable("clokey_id") String clokeyId) {
+
+        memberService.blockMember(clokeyId, currentUser);
+
+        return BaseResponse.onSuccess(SuccessStatus.MEMBER_ACTION_EDITED, null);
+    }
+
+    @Operation(summary = "차단 목록 조회 API", description = "차단 목록을 조회하는 api입니다.")
+    @GetMapping("users/block")
+    public BaseResponse<MemberDTO.GetBlockMemberResult> getBlockMembers(@Parameter(name = "user", hidden = true) @AuthUser Member member, @RequestParam(value = "page", defaultValue = "1") Integer page) {
+
+        MemberDTO.GetBlockMemberResult response = memberService.getBlockedMembers(member, page);
+        return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
+    }
+
 }

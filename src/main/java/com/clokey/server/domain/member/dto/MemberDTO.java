@@ -124,4 +124,28 @@ public class MemberDTO {
         Boolean isFollowed;
         Boolean isMe;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GetBlockMemberResult {
+        List<BlockMemberResult> members;
+        private int totalPage;
+        private long totalElements;
+        private Boolean isFirst;
+        private Boolean isLast;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BlockMemberResult {
+        String nickname;
+        String clokeyId;
+        String profileImage;
+        Boolean isBlocked;
+        Boolean isMe;
+    }
 }
