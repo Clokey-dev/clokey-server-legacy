@@ -26,6 +26,18 @@ public class ReportResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class getCommentReportInfoResult {
+        private String clokeyId;
+        private String nickName;
+        private String userProfile;
+        private String  commentContent;
+        private List<reportType> reportTypes;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class reportType {
         private String reportType;
         private String Title;

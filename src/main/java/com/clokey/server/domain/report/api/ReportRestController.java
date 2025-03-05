@@ -1,5 +1,6 @@
 package com.clokey.server.domain.report.api;
 
+import com.clokey.server.domain.history.exception.annotation.CommentExist;
 import com.clokey.server.domain.history.exception.annotation.HistoryExist;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.exception.annotation.AuthUser;
@@ -47,5 +48,17 @@ public class ReportRestController {
         ReportResponseDTO.historyReportResult result = reportService.getHistoryReportResult(historyReportRequest,member.getId());
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_HISTORY_SUCCESS, result);
+    }
+
+    @GetMapping("/comment")
+    @Operation(summary = "댓글 신고 정보 조회 API", description = "댓글 신고 관련 정보를 조회할 수 있는 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_200", description = "댓글 신고의 정보가 성공적으로 조회되었습니다."),
+    })
+    public BaseResponse<ReportResponseDTO.getCommentReportInfoResult> getCommentReportInformation(@RequestParam(value = "commentId") @CommentExist Long commentId) {
+
+        ReportResponseDTO.getCommentReportInfoResult result = reportService.getCommentReportInfo(commentId);
+
+        return BaseResponse.onSuccess(SuccessStatus.REPORT_COMMENT_VIEW_SUCCESS, result);
     }
 }

@@ -1,6 +1,8 @@
 package com.clokey.server.domain.report.application;
 
+import com.clokey.server.domain.history.application.CommentRepositoryService;
 import com.clokey.server.domain.history.application.HistoryRepositoryService;
+import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.domain.entity.Member;
@@ -20,6 +22,7 @@ public class ReportServiceImpl implements ReportService{
     private final HistoryReportRepositoryService historyReportRepositoryService;
     private final HistoryRepositoryService historyRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
+    private final CommentRepositoryService commentRepositoryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,6 +51,16 @@ public class ReportServiceImpl implements ReportService{
         Long id = historyReportRepositoryService.save(historyReport);
 
         return ReportConverter.historyReportResult(id);
+    }
+
+    @Override
+    public ReportResponseDTO.getCommentReportInfoResult getCommentReportInfo(Long commentId) {
+        Comment comment = commentRepositoryService.findById(commentId);
+        Member commentWriter = comment.getMember();
+        return ReportConverter.getCommentReportInfoResult(commentWriter.getClokeyId(),
+                commentWriter.getNickname(),
+                commentWriter.getProfileImageUrl(),
+                comment.getContent());
     }
 
 

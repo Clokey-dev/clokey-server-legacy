@@ -33,6 +33,17 @@ public class ReportConverter {
                 .collect(Collectors.toList());
     }
 
+    public static ReportResponseDTO.getCommentReportInfoResult getCommentReportInfoResult(String clokeyId, String nickName, String userProfile, String commentContent) {
+        return ReportResponseDTO.getCommentReportInfoResult.builder()
+                .clokeyId(clokeyId)
+                .nickName(nickName)
+                .userProfile(userProfile)
+                .commentContent(commentContent)
+                .reportTypes(convertToCommentReportTypesList())
+                .build();
+    }
+
+
     public static ReportResponseDTO.getHistoryReportInfoResult getHistoryReportInfoResult(String clokeyId, String nickName, String userProfile, String historyContent) {
         return ReportResponseDTO.getHistoryReportInfoResult.builder()
                 .clokeyId(clokeyId)
