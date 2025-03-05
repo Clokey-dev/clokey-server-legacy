@@ -61,4 +61,17 @@ public class ReportRestController {
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_COMMENT_VIEW_SUCCESS, result);
     }
+
+    @PostMapping("/comment")
+    @Operation(summary = "댓글 신고 API", description = "댓글을 신고할 수 있는 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_201", description = "댓글을 성공적으로 신고했습니다."),
+    })
+    public BaseResponse<ReportResponseDTO.CommentReportResult> reportComment(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                             @RequestBody @Valid ReportRequestDTO.CommentReportRequest commentReportRequest) {
+
+        ReportResponseDTO.CommentReportResult result = reportService.getCommentReportResult(commentReportRequest, member.getId());
+
+        return BaseResponse.onSuccess(SuccessStatus.REPORT_COMMENT_SUCCESS, result);
+    }
 }

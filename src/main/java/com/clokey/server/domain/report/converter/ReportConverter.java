@@ -52,9 +52,15 @@ public class ReportConverter {
                 .build();
     }
 
-    public static ReportResponseDTO.HistoryReportResult historyReportResult(Long historyReportId){
+    public static ReportResponseDTO.HistoryReportResult tohistoryReportResult(Long historyReportId){
         return ReportResponseDTO.HistoryReportResult.builder()
                 .historyReportId(historyReportId)
+                .build();
+    }
+
+    public static ReportResponseDTO.CommentReportResult toCommentReportResult(Long commentReportId){
+        return ReportResponseDTO.CommentReportResult.builder()
+                .commentReportId(commentReportId)
                 .build();
     }
 }

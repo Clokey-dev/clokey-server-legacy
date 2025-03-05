@@ -8,6 +8,7 @@ import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.ReportStatus;
 import com.clokey.server.domain.report.converter.ReportConverter;
+import com.clokey.server.domain.report.domain.entity.CommentReport;
 import com.clokey.server.domain.report.domain.entity.HistoryReport;
 import com.clokey.server.domain.report.dto.ReportRequestDTO;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
@@ -23,6 +24,7 @@ public class ReportServiceImpl implements ReportService{
     private final HistoryRepositoryService historyRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final CommentRepositoryService commentRepositoryService;
+    private final CommentReportRepositoryService commentReportRepositoryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,12 +50,13 @@ public class ReportServiceImpl implements ReportService{
                 .member(memberRepositoryService.findMemberById(memberId))
                 .build();
 
-        Long id = historyReportRepositoryService.save(historyReport);
+        Long historyReportId = historyReportRepositoryService.save(historyReport);
 
-        return ReportConverter.historyReportResult(id);
+        return ReportConverter.tohistoryReportResult(historyReportId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReportResponseDTO.CommentReportInfoResult getCommentReportInfo(Long commentId) {
         Comment comment = commentRepositoryService.findById(commentId);
         Member commentWriter = comment.getMember();
@@ -61,6 +64,23 @@ public class ReportServiceImpl implements ReportService{
                 commentWriter.getNickname(),
                 commentWriter.getProfileImageUrl(),
                 comment.getContent());
+    }
+
+    @Override
+    @Transactional
+    public ReportResponseDTO.CommentReportResult getCommentReportResult(ReportRequestDTO.CommentReportRequest commentReportRequest, Long memberId) {
+        Comment reportedComment = commentRepositoryService.findById(commentReportRequest.getCommentId());
+
+        CommentReport commentReport = CommentReport.builder()
+                .commentReportType(commentReportRequest.getCommentReportType())
+                .reportStatus(ReportStatus.UNCHECKED)
+                .content(commentReportRequest.getContent())
+                .comment(reportedComment)
+                .member(memberRepositoryService.findMemberById(memberId))
+                .build();
+
+        Long commentReportId = commentReportRepositoryService.save(commentReport);
+        return ReportConverter.toCommentReportResult(commentReportId);
     }
 
 

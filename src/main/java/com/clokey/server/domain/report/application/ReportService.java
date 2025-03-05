@@ -11,5 +11,5 @@ public interface ReportService {
 
     ReportResponseDTO.CommentReportInfoResult getCommentReportInfo(Long commentId);
 
-
+    ReportResponseDTO.CommentReportResult getCommentReportResult(ReportRequestDTO.CommentReportRequest commentReportRequest, Long memberId);
 }
