@@ -238,7 +238,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 getHistoryImageUrlByHashtagNameAtLast(frequentCategory),
                 member.getId(),
                 "님이 자주 착용한 카테고리",
-                frequentCategory
+                "#"+frequentCategory
         ));
 
         return recommendList;
