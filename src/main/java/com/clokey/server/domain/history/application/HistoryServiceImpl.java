@@ -422,7 +422,7 @@ public class HistoryServiceImpl implements HistoryService {
         hashtagToAdd.forEach(hashtag -> hashtagHistoryRepositoryService.addHashtagHistory(hashtag, history));
         hashtagToDelete.forEach(hashtag -> hashtagHistoryRepositoryService.deleteHashtagHistory(hashtag, history));
     }
-    
+
     @Override
     public HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page) {
         Page<History> histories = historyRepositoryService.findHistoriesByMemberIdAndMemberLike(memberId, PageRequest.of(page, 12));
