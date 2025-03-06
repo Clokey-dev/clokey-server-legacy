@@ -1,13 +1,12 @@
 package com.clokey.server.domain.history.converter;
 
+import com.clokey.server.domain.folder.domain.entity.Folder;
+import com.clokey.server.domain.folder.dto.FolderResponseDTO;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -44,6 +43,23 @@ public class HistoryConverter {
                 .totalElements(page.getTotalElements())
                 .isFirst(page.isFirst())
                 .isLast(page.isLast())
+                .build();
+    }
+
+    public static HistoryResponseDTO.HistoryPreviewListResult toHistoryPreviewListResult(Page<History> histories, Map<Long, String> folderImageMap) {
+        List<HistoryResponseDTO.HistoryPreview> historyPreviews = histories.getContent().stream()
+                .map(history -> new HistoryResponseDTO.HistoryPreview(
+                        history.getId(),
+                        folderImageMap.get(history.getId())
+                ))
+                .collect(Collectors.toList());
+
+        return HistoryResponseDTO.HistoryPreviewListResult.builder()
+                .historyPreviews(historyPreviews)
+                .totalPage(histories.getTotalPages())
+                .totalElements((int) histories.getTotalElements())
+                .isFirst(histories.isFirst())
+                .isLast(histories.isLast())
                 .build();
     }
 

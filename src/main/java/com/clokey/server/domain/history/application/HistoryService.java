@@ -30,4 +30,6 @@ public interface HistoryService {
     HistoryResponseDTO.CheckMyHistoryResult checkIfHistoryIsMine(Long historyId, Long memberId);
 
     HistoryResponseDTO.LikedUserResults getLikedUser(Long memberId, Long historyId);
+
+    HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page);
 }
