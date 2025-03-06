@@ -1,9 +1,6 @@
 package com.clokey.server.domain.member.domain.entity;
 
 import com.clokey.server.domain.model.entity.BaseEntity;
-import com.clokey.server.domain.model.entity.enums.HistoryReport;
-import com.clokey.server.domain.model.entity.enums.ProfileReport;
-import com.clokey.server.domain.model.entity.enums.ReportType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -13,8 +10,8 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "report")
-public class Report extends BaseEntity {
+@Table(name = "profile_report")
+public class ProfileReport extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,19 +26,15 @@ public class Report extends BaseEntity {
     private Member reported;  // 신고된 대상
 
     @Enumerated(EnumType.STRING)
-    private ReportType reportType;
-
-    @Enumerated(EnumType.STRING)
-    private ProfileReport profileReportContent;
-
-    @Enumerated(EnumType.STRING)
-    private HistoryReport historyReportContent;
+    private com.clokey.server.domain.model.entity.enums.ProfileReport type;  // 신고 타입
 
     @Column
-    private String otherContent;
+    private String otherType;
 
+    @Column(length = 200)
     private String reason;  // 신고 사유
 
+    @Column
     private LocalDateTime reportedAt = LocalDateTime.now();  // 신고 시간
 
 }

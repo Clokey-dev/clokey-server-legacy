@@ -113,12 +113,13 @@ public class MemberRestController {
         return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
     }
 
-    @Operation(summary = "차단 목록 조회 API", description = "차단 목록을 조회하는 api입니다.")
-    @GetMapping("users/block")
-    public BaseResponse<MemberDTO.GetBlockMemberResult> getBlockMembers(@Parameter(name = "user", hidden = true) @AuthUser Member member, @RequestParam(value = "page", defaultValue = "1") Integer page) {
+    @Operation(summary = "계정 신고 API", description = "다른 회원을 신고하는 api입니다.")
+    @PostMapping("users/report/{clokey_id}")
+    public BaseResponse<Void> reportMembers(@Parameter(name = "user", hidden = true) @AuthUser Member member, @IdValid @NotBlank @PathVariable("clokey_id") String clokeyId, @RequestBody @Valid MemberDTO.ReportRQ request) {
 
-        MemberDTO.GetBlockMemberResult response = memberService.getBlockedMembers(member, page);
-        return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
+        memberService.reportMember(clokeyId, member, request);
+
+        return BaseResponse.onSuccess(SuccessStatus.MEMBER_CREATED, null);
     }
 
 }

@@ -26,4 +26,5 @@ public interface MemberService {
 
     MemberDTO.GetBlockMemberResult getBlockedMembers(Member currentUser, Integer page);
 
+    void reportMember(String clokeyId, Member currentUser, MemberDTO.ReportRQ request);
 }
