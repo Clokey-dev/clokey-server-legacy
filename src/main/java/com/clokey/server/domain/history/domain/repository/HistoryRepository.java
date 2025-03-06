@@ -84,4 +84,15 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
             @Param("from") LocalDate from,
             @Param("to") LocalDate to);
 
+    @Query("""
+                SELECT h FROM History h
+                JOIN MemberLike ml ON h.id = ml.history.id
+                WHERE ml.member.id = :memberId
+                AND (
+                    h.visibility = 'PUBLIC'
+                    OR (h.member.id = :memberId AND h.visibility = 'PRIVATE')
+                )
+                ORDER BY ml.createdAt DESC
+            """)
+    Page<History> findLikedHistories(@Param("memberId") Long memberId, Pageable pageable);
 }
