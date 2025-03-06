@@ -13,7 +13,7 @@ import com.clokey.server.domain.member.dto.MemberDTO;
 
 public class GetUserConverter {
 
-    public static MemberDTO.GetUserRP toGetUserResponseDTO(Member member, Long recordCount, Long followerCount, Long followingCount, Boolean isFollowing
+    public static MemberDTO.GetUserRP toGetUserResponseDTO(Member member, Long recordCount, Long followerCount, Long followingCount, Boolean isFollowing, Boolean isBlocking
             , List<Cloth> cloths) {
         return MemberDTO.GetUserRP.builder()
                 .clokeyId(member.getClokeyId())
@@ -26,6 +26,7 @@ public class GetUserConverter {
                 .profileBackImageUrl(member.getProfileBackImageUrl())
                 .visibility(member.getVisibility().toString())
                 .isFollowing(isFollowing)
+                .isBlocking(isBlocking)
                 .clothResults(toGetUserClothResultDTO(cloths))
                 .build();
     }

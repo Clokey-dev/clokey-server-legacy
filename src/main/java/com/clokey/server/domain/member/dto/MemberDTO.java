@@ -29,6 +29,7 @@ public class MemberDTO {
         String visibility;
         List<GetUserClothResult> clothResults;
         Boolean isFollowing;
+        Boolean isBlocking;
     }
 
     @Builder

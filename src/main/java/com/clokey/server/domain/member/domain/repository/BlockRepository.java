@@ -24,5 +24,8 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
             "THEN true ELSE false END FROM Member m WHERE m IN :members")
     List<Object[]> findBlockStatus(@Param("blockedId") Long blockedId, @Param("members") List<Member> members);
 
+    @Query("SELECT COUNT(b) > 0 FROM Block b WHERE b.blocker = :currentUser AND b.blocked = :targetUser")
+    boolean isBlocking(@Param("currentUser") Member currentUser, @Param("targetUser") Member targetUser);
+
 }
 

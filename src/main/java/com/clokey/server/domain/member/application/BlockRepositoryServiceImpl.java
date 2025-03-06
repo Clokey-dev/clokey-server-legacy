@@ -51,4 +51,9 @@ public class BlockRepositoryServiceImpl implements BlockRepositoryService {
                 .toList();
     }
 
+    @Override
+    public boolean isBlocking(Member currentUser, Member targetUser) {
+        return blockRepository.isBlocking(currentUser, targetUser);
+    }
+
 }

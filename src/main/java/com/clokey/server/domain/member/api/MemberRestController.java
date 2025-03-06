@@ -113,4 +113,12 @@ public class MemberRestController {
         return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
     }
 
+    @Operation(summary = "차단 목록 조회 API", description = "차단 목록을 조회하는 api입니다.")
+    @GetMapping("users/block")
+    public BaseResponse<MemberDTO.GetBlockMemberResult> getBlockMembers(@Parameter(name = "user", hidden = true) @AuthUser Member member, @RequestParam(value = "page", defaultValue = "1") Integer page) {
+
+        MemberDTO.GetBlockMemberResult response = memberService.getBlockedMembers(member, page);
+        return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
+    }
+
 }

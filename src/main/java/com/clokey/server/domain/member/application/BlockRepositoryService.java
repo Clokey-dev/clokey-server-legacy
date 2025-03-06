@@ -22,4 +22,5 @@ public interface BlockRepositoryService {
 
     List<Boolean> checkBlockedStatus(Long blockerId, List<Member> members);
 
+    boolean isBlocking(Member currentUser, Member targetUser);
 }

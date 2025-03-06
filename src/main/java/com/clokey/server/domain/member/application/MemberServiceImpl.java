@@ -93,15 +93,18 @@ public class MemberServiceImpl implements MemberService {
     public MemberDTO.GetUserRP getUser(String clokeyId, Member currentUser) {
         Member member;
         Boolean isFollowing;
+        Boolean isBlocking;
         List<Cloth> topCloths;
 
         if (clokeyId == null) {
             member = currentUser;
             isFollowing = null;
+            isBlocking = null;
             topCloths = clothRepositoryService.getTop3Cloths(member);
         } else {
             member = memberRepositoryService.findMemberByClokeyId(clokeyId);
             isFollowing = followRepositoryService.isFollowing(currentUser, member);
+            isBlocking = blockRepositoryService.isBlocking(currentUser, member);
             if (member.getVisibility().equals(Visibility.PUBLIC)) {
                 topCloths = clothRepositoryService.getTop3PublicCloths(member);
             } else {
@@ -114,7 +117,7 @@ public class MemberServiceImpl implements MemberService {
         Long followerCount = followRepositoryService.countFollowersByMember(member);
         Long followingCount = followRepositoryService.countFollowingByMember(member);
 
-        return GetUserConverter.toGetUserResponseDTO(member, recordCount, followerCount, followingCount, isFollowing, topCloths);
+        return GetUserConverter.toGetUserResponseDTO(member, recordCount, followerCount, followingCount, isFollowing, isBlocking, topCloths);
     }
 
 
