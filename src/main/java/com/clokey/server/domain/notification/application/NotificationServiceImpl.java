@@ -207,7 +207,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public NotificationResponseDTO.HistoryCommentNotificationResult sendHistoryCommentNotification(Long historyId, Long commentId, Long memberId) {
 
-
         checkMyComment(commentId, memberId);
         checkHistoryComment(commentId, historyId);
 
