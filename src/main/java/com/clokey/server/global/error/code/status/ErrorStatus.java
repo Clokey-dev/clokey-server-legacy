@@ -78,6 +78,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_MY_COMMENT(HttpStatus.BAD_REQUEST,"HISTORY_4015","사용자의 댓글이 아닙니다"),
     NO_HISTORY_FOR_DATE(HttpStatus.BAD_REQUEST,"HISTORY_4016","해당 날짜에 기록이 없습니다"),
     NO_CLOTH_FOR_HISTORY(HttpStatus.BAD_REQUEST,"HISTORY_4017","기록에는 반드시 옷을 등록해야합니다."),
+    TOO_MANY_HASHTAGS(HttpStatus.BAD_REQUEST,"HISTORY_4018","해시태그는 20개 이하로 등록 가능합니다."),
 
     //해시태그 에러
     NO_SUCH_HASHTAG_NAME(HttpStatus.BAD_REQUEST,"HASHTAG_4001","해당 이름의 해시태그가 존재하지 않습니다"),

@@ -26,7 +26,7 @@ public class HistoryRequestDTO {
         @UniqueClothes
         List<Long> clothes;
 
-        @UniqueHashtags
+        @HashtagCondition
         List<String> hashtags;
 
         Visibility visibility;
