@@ -1,9 +1,7 @@
 package com.clokey.server.domain.member.application;
 
 import com.clokey.server.domain.member.domain.entity.Block;
-import com.clokey.server.domain.member.domain.entity.ProfileReport;
-import com.clokey.server.domain.member.domain.repository.BlockRepository;
-import com.clokey.server.domain.member.domain.repository.MemberRepository;
+import com.clokey.server.domain.report.application.ProfileReportRepositoryService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,11 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +30,6 @@ import com.clokey.server.domain.search.application.SearchRepositoryService;
 import com.clokey.server.domain.search.exception.SearchException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.infra.s3.S3ImageService;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -270,24 +265,30 @@ public class MemberServiceImpl implements MemberService {
             return GetUserConverter.toGetBlockPeopleResultDTO(members, pageable, isBlocked, isMySelf);
     }
 
+
+
+//    @Override
+//    @Transactional
+//    public void reportMember(String clokeyId, Member currentUser, MemberDTO.ReportRQ request) {
+//        Member target = memberRepositoryService.findMemberByClokeyId(clokeyId);
+//
+//        if (currentUser.getId().equals(target.getId())) {
+//            throw new MemberException(ErrorStatus.CANNOT_REPORT_MYSELF);
+//        }
+//
+//        ProfileReport report = ProfileReport.builder().
+//                reporter(currentUser).
+//                reported(target).
+//                type(request.getType()).
+//                content(request.getReason()).
+//
+//
+//                profileReportRepositoryService.save(report);
+//    }
+
     @Override
-    @Transactional
-    public void reportMember(String clokeyId, Member currentUser, MemberDTO.ReportRQ request) {
-        Member target = memberRepositoryService.findMemberByClokeyId(clokeyId);
-
-        if (currentUser.getId().equals(target.getId())) {
-            throw new MemberException(ErrorStatus.CANNOT_REPORT_MYSELF);
-        }
-
-        ProfileReport report = ProfileReport.builder().
-                reporter(currentUser).
-                reported(target).
-                type(request.getType()).
-                otherType(request.getOtherType()).
-                reason(request.getReason()).
-                reportedAt(LocalDateTime.now()).build();
-
-        profileReportRepositoryService.save(report);
+    public MemberDTO.checkMyselfResult checkMyself(String myClokeyId, String checkClokeyId) {
+        return GetUserConverter.toCheckMyselfResult(myClokeyId.equals(checkClokeyId));
     }
 
 }

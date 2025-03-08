@@ -1,14 +1,16 @@
 package com.clokey.server.domain.model.entity.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public enum ProfileReport {
-    FAKE,
-    SPAM,
-    INAPPROPRIATE
+@AllArgsConstructor
+@Getter
+public enum CommentReportType {
 
     SWEARING_AND_CURSING("욕설 및 비방이 포함되어 있습니다.", List.of("심한 욕설, 인격 모독, 명예훼손 발언 포함", "상대를 조롱하거나 비하하는 내용")),
     DISCRIMINATORY_AND_HATEFUL("혐오 및 차별적 표현입니다", List.of("성별, 인종, 장애, 종교 등을 이유로 한 차별적 발언", "특정 그룹을 혐오하거나 배척하는 표현")),

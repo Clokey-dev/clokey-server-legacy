@@ -115,7 +115,10 @@ public class HistoryConverter {
         return HistoryResponseDTO.HistoryCommentResult.builder()
                 .comments(toCommentResultList(comments, replies))
                 .totalPage(comments.getTotalPages())
-                .totalElements(comments.getNumberOfElements())
+                .totalElements(comments.getNumberOfElements()
+                        + replies.stream()
+                        .mapToInt(List::size)
+                        .sum())
                 .isFirst(comments.isFirst())
                 .isLast(comments.isLast())
                 .build();

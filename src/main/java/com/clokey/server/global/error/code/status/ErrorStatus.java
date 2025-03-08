@@ -131,8 +131,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //홈 에러
     NO_SUCH_SECTION(HttpStatus.NOT_FOUND,"HOME_4041","해당 섹션이 존재하지 않습니다."),
-    OUT_OF_RANGE_TEMP(HttpStatus.BAD_REQUEST,"HOME_4002","온도 범위를 벗어났습니다.")
+    OUT_OF_RANGE_TEMP(HttpStatus.BAD_REQUEST,"HOME_4002","온도 범위를 벗어났습니다."),
 
+    //신고 에러
+    REPORT_OUT_OF_RANGE(HttpStatus.BAD_REQUEST,"REPORT_4001","신고 내용이 %d자 까지만 가능합니다.")
     ;
 
 

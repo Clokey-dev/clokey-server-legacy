@@ -113,13 +113,20 @@ public class MemberRestController {
         return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
     }
 
-    @Operation(summary = "계정 신고 API", description = "다른 회원을 신고하는 api입니다.")
-    @PostMapping("users/report/{clokey_id}")
-    public BaseResponse<Void> reportMembers(@Parameter(name = "user", hidden = true) @AuthUser Member member, @IdValid @NotBlank @PathVariable("clokey_id") String clokeyId, @RequestBody @Valid MemberDTO.ReportRQ request) {
+//    @Operation(summary = "계정 신고 API", description = "다른 회원을 신고하는 api입니다.")
+//    @PostMapping("users/report/{clokey_id}")
+//    public BaseResponse<Void> reportMembers(@Parameter(name = "user", hidden = true) @AuthUser Member member, @IdValid @NotBlank @PathVariable("clokey_id") String clokeyId, @RequestBody @Valid MemberDTO.ReportRQ request) {
+//
+//        memberService.reportMember(clokeyId, member, request);
+//
+//        return BaseResponse.onSuccess(SuccessStatus.MEMBER_CREATED, null);
+//    }
 
-        memberService.reportMember(clokeyId, member, request);
-
-        return BaseResponse.onSuccess(SuccessStatus.MEMBER_CREATED, null);
+    @Operation(summary = "본인 확인 API", description = "clokeyId를 기반으로 본인인지 확인.")
+    @GetMapping("users/check-myself")
+    public BaseResponse<MemberDTO.checkMyselfResult> checkMyself(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                 @Parameter(name = "clokeyId", description = "본인인지 확인하고 싶은 clokeyId") @IdValid String clokeyId) {
+        MemberDTO.checkMyselfResult response = memberService.checkMyself(member.getClokeyId(),clokeyId);
+        return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
     }
-
 }

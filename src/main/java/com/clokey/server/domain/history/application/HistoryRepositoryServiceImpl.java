@@ -107,4 +107,9 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     public List<History> findHistoriesByMemberIds(List<Long> memberIds) {
         return historyRepository.findHistoryByMemberIdIn(memberIds);
     }
+
+    @Override
+    public List<History> findHistoriesByMemberIdsAndDateRange(List<Long> memberIds, LocalDate from, LocalDate to) {
+        return historyRepository.findHistoriesByMemberIdsAndDateRange(memberIds, from, to);
+    }
 }

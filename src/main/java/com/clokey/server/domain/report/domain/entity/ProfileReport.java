@@ -1,9 +1,11 @@
-package com.clokey.server.domain.member.domain.entity;
+package com.clokey.server.domain.report.domain.entity;
 
+import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.BaseEntity;
+import com.clokey.server.domain.model.entity.enums.ProfileReportType;
+import com.clokey.server.domain.model.entity.enums.ReportStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -26,15 +28,14 @@ public class ProfileReport extends BaseEntity {
     private Member reported;  // 신고된 대상
 
     @Enumerated(EnumType.STRING)
-    private com.clokey.server.domain.model.entity.enums.ProfileReport type;  // 신고 타입
-
-    @Column
-    private String otherType;
+    @Column(nullable = false)
+    private ProfileReportType profileReportType;  // 신고 타입
 
     @Column(length = 200)
-    private String reason;  // 신고 사유
+    private String content;
 
-    @Column
-    private LocalDateTime reportedAt = LocalDateTime.now();  // 신고 시간
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(15) DEFAULT 'UNCHECKED'", nullable = false)
+    private ReportStatus reportStatus;
 
 }
