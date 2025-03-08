@@ -38,6 +38,17 @@ public class ReportResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class ProfileReportInfoResult {
+        private String clokeyId;
+        private String nickName;
+        private String userProfile;
+        private List<ReportTypeResult> ReportTypeResults;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ReportTypeResult {
         private String reportType;
         private String Title;
@@ -58,6 +69,14 @@ public class ReportResponseDTO {
     @AllArgsConstructor
     public static class CommentReportResult {
         private Long commentReportId;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProfileReportResult {
+        private Long profileReportId;
     }
 
 }

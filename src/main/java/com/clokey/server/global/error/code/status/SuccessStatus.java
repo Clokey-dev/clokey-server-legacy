@@ -93,7 +93,11 @@ public enum SuccessStatus implements BaseCode {
     REPORT_HISTORY_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200", "기록 신고의 정보가 성공적으로 조회되었습니다."),
     REPORT_HISTORY_SUCCESS(HttpStatus.OK, "REPORT_201", "기록을 성공적으로 신고했습니다."),
     REPORT_COMMENT_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200", "댓글 신고의 정보가 성공적으로 조회되었습니다."),
-    REPORT_COMMENT_SUCCESS(HttpStatus.OK, "REPORT_201", "댓글을 성공적으로 신고했습니다.");
+    REPORT_COMMENT_SUCCESS(HttpStatus.OK, "REPORT_201", "댓글을 성공적으로 신고했습니다."),
+    REPORT_PROFILE_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200", "계정 신고의 정보가 성공적으로 조회되었습니다."),
+    REPORT_PROFILE_SUCCESS(HttpStatus.OK, "REPORT_201", "계정을 성공적으로 신고했습니다."),
+
+    ;
 
     private final HttpStatus httpStatus;
     private final String code;
