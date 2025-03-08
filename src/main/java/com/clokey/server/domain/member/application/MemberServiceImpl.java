@@ -265,27 +265,6 @@ public class MemberServiceImpl implements MemberService {
             return GetUserConverter.toGetBlockPeopleResultDTO(members, pageable, isBlocked, isMySelf);
     }
 
-
-
-//    @Override
-//    @Transactional
-//    public void reportMember(String clokeyId, Member currentUser, MemberDTO.ReportRQ request) {
-//        Member target = memberRepositoryService.findMemberByClokeyId(clokeyId);
-//
-//        if (currentUser.getId().equals(target.getId())) {
-//            throw new MemberException(ErrorStatus.CANNOT_REPORT_MYSELF);
-//        }
-//
-//        ProfileReport report = ProfileReport.builder().
-//                reporter(currentUser).
-//                reported(target).
-//                type(request.getType()).
-//                content(request.getReason()).
-//
-//
-//                profileReportRepositoryService.save(report);
-//    }
-
     @Override
     public MemberDTO.checkMyselfResult checkMyself(String myClokeyId, String checkClokeyId) {
         return GetUserConverter.toCheckMyselfResult(myClokeyId.equals(checkClokeyId));
