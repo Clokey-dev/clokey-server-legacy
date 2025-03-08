@@ -12,4 +12,8 @@ public interface ReportService {
     ReportResponseDTO.CommentReportInfoResult getCommentReportInfo(Long commentId);
 
     ReportResponseDTO.CommentReportResult getCommentReportResult(ReportRequestDTO.CommentReportRequest commentReportRequest, Long memberId);
+
+    ReportResponseDTO.ProfileReportInfoResult getProfileReportInfo(String clokeyId);
+
+    ReportResponseDTO.ProfileReportResult getProfileReportResult(ReportRequestDTO.ProfileReportRequest profileReportRequest, Long memberId);
 }

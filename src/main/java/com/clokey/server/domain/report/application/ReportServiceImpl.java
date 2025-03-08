@@ -6,6 +6,7 @@ import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.domain.entity.Member;
+import com.clokey.server.domain.report.domain.entity.ProfileReport;
 import com.clokey.server.domain.model.entity.enums.ReportStatus;
 import com.clokey.server.domain.report.converter.ReportConverter;
 import com.clokey.server.domain.report.domain.entity.CommentReport;
@@ -25,6 +26,7 @@ public class ReportServiceImpl implements ReportService{
     private final MemberRepositoryService memberRepositoryService;
     private final CommentRepositoryService commentRepositoryService;
     private final CommentReportRepositoryService commentReportRepositoryService;
+    private final ProfileReportRepositoryService profileReportRepositoryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -83,5 +85,37 @@ public class ReportServiceImpl implements ReportService{
         return ReportConverter.toCommentReportResult(commentReportId);
     }
 
+
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReportResponseDTO.ProfileReportInfoResult getProfileReportInfo(String clokeyId) {
+        Member reported = memberRepositoryService.findMemberByClokeyId(clokeyId);
+        return ReportConverter.getProfileReportInfoResult(clokeyId,
+                reported.getNickname(),
+                reported.getProfileImageUrl());
+    }
+
+
+    @Override
+    @Transactional
+    public ReportResponseDTO.ProfileReportResult getProfileReportResult(ReportRequestDTO.ProfileReportRequest profileReportRequest, Long memberId) {
+        Member reporter = memberRepositoryService.findMemberById(memberId);
+        Member reported = memberRepositoryService.findMemberByClokeyId(profileReportRequest.getClokeyId());
+
+        ProfileReport profileReport = ProfileReport.builder()
+                .profileReportType(profileReportRequest.getProfileReportType())
+                .reportStatus(ReportStatus.UNCHECKED)
+                .content(profileReportRequest.getContent())
+                .reporter(reporter)
+                .reported(reported)
+                .build();
+
+        Long profileReportId = profileReportRepositoryService.save(profileReport);
+
+        return ReportConverter.toProfileReportResult(profileReportId);
+    }
 
 }

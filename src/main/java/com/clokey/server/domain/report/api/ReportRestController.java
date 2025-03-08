@@ -4,6 +4,7 @@ import com.clokey.server.domain.history.exception.annotation.CommentExist;
 import com.clokey.server.domain.history.exception.annotation.HistoryExist;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.exception.annotation.AuthUser;
+import com.clokey.server.domain.member.exception.annotation.IdValid;
 import com.clokey.server.domain.report.application.ReportService;
 import com.clokey.server.domain.report.dto.ReportRequestDTO;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
@@ -73,5 +74,30 @@ public class ReportRestController {
         ReportResponseDTO.CommentReportResult result = reportService.getCommentReportResult(commentReportRequest, member.getId());
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_COMMENT_SUCCESS, result);
+    }
+
+    @GetMapping("/profile")
+    @Operation(summary = "계정 신고 정보 조회 API", description = "계정 신고 관련 정보를 조회할 수 있는 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_200", description = "계정 신고의 정보가 성공적으로 조회되었습니다."),
+    })
+    public BaseResponse<ReportResponseDTO.ProfileReportInfoResult> getProfileReportInformation(@RequestParam(value = "clokeyId") @IdValid String clokeyId) {
+
+        ReportResponseDTO.ProfileReportInfoResult result = reportService.getProfileReportInfo(clokeyId);
+
+        return BaseResponse.onSuccess(SuccessStatus.REPORT_PROFILE_VIEW_SUCCESS, result);
+    }
+
+    @PostMapping("/profile")
+    @Operation(summary = "계정 신고 API", description = "계정을 신고할 수 있는 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_201", description = "계정을 성공적으로 신고했습니다."),
+    })
+    public BaseResponse<ReportResponseDTO.ProfileReportResult> reportProfile(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                             @RequestBody @Valid ReportRequestDTO.ProfileReportRequest profileReportRequest) {
+
+        ReportResponseDTO.ProfileReportResult result = reportService.getProfileReportResult(profileReportRequest, member.getId());
+
+        return BaseResponse.onSuccess(SuccessStatus.REPORT_PROFILE_SUCCESS, result);
     }
 }
