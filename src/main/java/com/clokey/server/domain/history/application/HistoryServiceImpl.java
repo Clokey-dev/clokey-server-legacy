@@ -429,5 +429,11 @@ public class HistoryServiceImpl implements HistoryService {
         hashtagToDelete.forEach(hashtag -> hashtagHistoryRepositoryService.deleteHashtagHistory(hashtag, history));
     }
 
-
+    @Override
+    @Transactional(readOnly = true)
+    public HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page) {
+        Page<History> histories = historyRepositoryService.findHistoriesByMemberIdAndMemberLike(memberId, PageRequest.of(page, 12));
+        Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
+        return HistoryConverter.toHistoryPreviewListResult(histories, historyImageMap);
+    }
 }
