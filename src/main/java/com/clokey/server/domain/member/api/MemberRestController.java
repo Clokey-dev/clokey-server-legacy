@@ -97,7 +97,7 @@ public class MemberRestController {
     }
 
     @Operation(summary = "회원차단/해제 API", description = "특정 회원을 차단하는 api입니다.")
-    @GetMapping("users/block/{clokey_id}")
+    @PatchMapping("users/block/{clokey_id}")
     public BaseResponse<Void> blockMember(@Parameter(name = "user", hidden = true) @AuthUser Member currentUser, @IdValid @NotBlank @PathVariable("clokey_id") String clokeyId) {
 
         memberService.blockMember(clokeyId, currentUser);

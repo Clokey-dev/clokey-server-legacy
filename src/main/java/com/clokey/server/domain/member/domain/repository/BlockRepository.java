@@ -20,7 +20,7 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
     @Query("SELECT b.blocked FROM Block b WHERE b.blocker.id = :blockerId")
     List<Member> findAllByBlocker(@Param("blockerId") Long blockerId, Pageable pageable);
 
-    @Query("SELECT m, CASE WHEN EXISTS (SELECT 1 FROM Block b WHERE b.blocker = m AND b.blocked.id = :blockedId) " +
+    @Query("SELECT m, CASE WHEN EXISTS (SELECT 1 FROM Block b WHERE b.blocked = m AND b.blocker.id = :blockedId) " +
             "THEN true ELSE false END FROM Member m WHERE m IN :members")
     List<Object[]> findBlockStatus(@Param("blockedId") Long blockedId, @Param("members") List<Member> members);
 
