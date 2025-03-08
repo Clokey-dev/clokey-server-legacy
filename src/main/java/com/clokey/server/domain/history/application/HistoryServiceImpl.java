@@ -34,6 +34,8 @@ import com.clokey.server.domain.search.exception.SearchException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.error.exception.GeneralException;
 
+import static com.clokey.server.domain.history.exception.validator.HashtagConditionValidator.MAXIMUM_HASHTAGS;
+
 @Service
 @RequiredArgsConstructor
 public class HistoryServiceImpl implements HistoryService {
@@ -418,6 +420,10 @@ public class HistoryServiceImpl implements HistoryService {
         List<Hashtag> hashtagToDelete = hashtagRepositoryService.findHashtagsByNames(savedHashtags.stream()
                 .filter(hashtagNames -> !updatedHashtags.contains(hashtagNames))
                 .toList());
+
+        if(savedHashtags.size()+hashtagToAdd.size()-hashtagToAdd.size() > MAXIMUM_HASHTAGS){
+            throw new HistoryException(ErrorStatus.TOO_MANY_HASHTAGS);
+        }
 
         hashtagToAdd.forEach(hashtag -> hashtagHistoryRepositoryService.addHashtagHistory(hashtag, history));
         hashtagToDelete.forEach(hashtag -> hashtagHistoryRepositoryService.deleteHashtagHistory(hashtag, history));
