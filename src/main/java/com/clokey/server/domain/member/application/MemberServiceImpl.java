@@ -1,7 +1,6 @@
 package com.clokey.server.domain.member.application;
 
 import com.clokey.server.domain.member.domain.entity.Block;
-import com.clokey.server.domain.report.application.ProfileReportRepositoryService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
