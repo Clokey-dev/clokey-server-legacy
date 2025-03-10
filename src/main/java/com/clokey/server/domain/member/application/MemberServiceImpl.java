@@ -40,7 +40,6 @@ public class MemberServiceImpl implements MemberService {
     private final HistoryRepositoryService historyRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
     private final BlockRepositoryService blockRepositoryService;
-    private final ProfileReportRepositoryService profileReportRepositoryService;
 
     private final S3ImageService s3ImageService; // ✅ S3 업로드 서비스 추가
     private final SearchRepositoryService searchRepositoryService;
@@ -260,9 +259,7 @@ public class MemberServiceImpl implements MemberService {
         Pageable pageable = PageRequest.of(page - 1, 10);
 
             List<Member> members = blockRepositoryService.findAllByBlocker(currentUser.getId(), pageable);
-            List<Boolean> isBlocked = blockRepositoryService.checkBlockedStatus(currentUser.getId(), members);
-            List<Boolean> isMySelf = members.stream().map(member -> member.getId().equals(currentUser.getId())).toList();
-            return GetUserConverter.toGetBlockPeopleResultDTO(members, pageable, isBlocked, isMySelf);
+            return GetUserConverter.toGetBlockPeopleResultDTO(members, pageable);
     }
 
     @Override
