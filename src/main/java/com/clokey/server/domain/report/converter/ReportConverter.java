@@ -8,6 +8,7 @@ import com.clokey.server.domain.report.domain.entity.HistoryReport;
 import com.clokey.server.domain.report.domain.entity.ProfileReport;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -166,6 +167,52 @@ public class ReportConverter {
                 .reportType(commentReportType.name())
                 .Title(commentReportType.getTitle())
                 .reportContents(commentReportType.getContents())
+                .build();
+    }
+
+    public static ReportResponseDTO.AdminReportViewResults toAllAdminReportViewResults(List<ProfileReport> profileReports, List<CommentReport> commentReports, List<HistoryReport> historyReports){
+        List<ReportResponseDTO.AdminReportViewResult> results = new ArrayList<>();
+
+        results.addAll(profileReports.stream()
+                .map(profileReport -> {
+                    return ReportResponseDTO.AdminReportViewResult.builder()
+                            .id(profileReport.getId())
+                            .reportedInstanceId(profileReport.getReported().getId())
+                            .reporterClokeyId(profileReport.getReporter().getClokeyId())
+                            .reportStatus(profileReport.getReportStatus())
+                            .content(profileReport.getContent())
+                            .reportTypeResult(toProfileReportTypeResult(profileReport.getProfileReportType()))
+                            .build();
+                })
+                .toList());
+
+        results.addAll(historyReports.stream()
+                .map(historyReport -> {
+                    return ReportResponseDTO.AdminReportViewResult.builder()
+                            .id(historyReport.getId())
+                            .reportedInstanceId(historyReport.getHistory().getId())
+                            .reporterClokeyId(historyReport.getMember().getClokeyId())
+                            .reportStatus(historyReport.getReportStatus())
+                            .content(historyReport.getContent())
+                            .reportTypeResult(toHistoryReportTypeResult(historyReport.getHistoryReportType()))
+                            .build();
+                })
+                .toList());
+
+        results.addAll(commentReports.stream()
+                .map(commentReport -> {
+                    return ReportResponseDTO.AdminReportViewResult.builder()
+                            .id(commentReport.getId())
+                            .reportedInstanceId(commentReport.getComment().getId())
+                            .reporterClokeyId(commentReport.getMember().getClokeyId())
+                            .reportStatus(commentReport.getReportStatus())
+                            .content(commentReport.getContent())
+                            .reportTypeResult(toCommentReportTypeResult(commentReport.getCommentReportType()))
+                            .build();
+                })
+                .toList());
+        return ReportResponseDTO.AdminReportViewResults.builder()
+                .results(results)
                 .build();
     }
 }

@@ -132,7 +132,7 @@ public class ReportServiceImpl implements ReportService{
         BooleanBuilder builder = new BooleanBuilder();
 
         if (reportType == null) {
-            return getAllReports(builder, reportStatus, reporterId, reportedInstanceId);
+            return getAllReports(reportStatus, reporterId, reportedInstanceId);
         }
 
         // reportType이 지정되었을 경우, 해당 타입에 맞는 필터링
@@ -200,23 +200,37 @@ public class ReportServiceImpl implements ReportService{
         return getReportResponse(builder, ReportType.COMMENT);
     }
 
-    private ReportResponseDTO.AdminReportViewResults getAllReports(BooleanBuilder builder,
-                                                                   ReportStatus reportStatus,
+    private ReportResponseDTO.AdminReportViewResults getAllReports(ReportStatus reportStatus,
                                                                    Long reporterId,
                                                                    Long reportedInstanceId) {
-        // 모든 리포트 타입을 조회하기 위해 필터링 적용
+
+        BooleanBuilder profilePredicate = new BooleanBuilder();
+        BooleanBuilder historyPredicate = new BooleanBuilder();
+        BooleanBuilder commentPredicate = new BooleanBuilder();
+
         if (reportStatus != null) {
-            builder.and(QProfileReport.profileReport.status.eq(reportStatus));
+            profilePredicate.and(QProfileReport.profileReport.reportStatus.eq(reportStatus));
+            historyPredicate.and(QHistoryReport.historyReport.reportStatus.eq(reportStatus));
+            commentPredicate.and(QCommentReport.commentReport.reportStatus.eq(reportStatus));
         }
         if (reporterId != null) {
-            builder.and(QProfileReport.profileReport.reporterId.eq(reporterId));
+            Member reporter = memberRepositoryService.findMemberById(reporterId);
+            profilePredicate.and(QProfileReport.profileReport.reporter.eq(reporter));
+            historyPredicate.and(QHistoryReport.historyReport.member.eq(reporter));
+            commentPredicate.and(QCommentReport.commentReport.member.eq(reporter));
         }
         if (reportedInstanceId != null) {
-            builder.and(QProfileReport.profileReport.reportedInstanceId.eq(reportedInstanceId));
+            profilePredicate.and(QProfileReport.profileReport.reported.eq(memberRepositoryService.findMemberById(reportedInstanceId)));
+            historyPredicate.and(QHistoryReport.historyReport.history.eq(historyRepositoryService.findById(reportedInstanceId)));
+            commentPredicate.and(QCommentReport.commentReport.comment.eq(commentRepositoryService.findById(reportedInstanceId)));
         }
 
+        List<ProfileReport> profileReports = profileReportRepositoryService.findAllByPredicate(profilePredicate);
+        List<HistoryReport> historyReports = historyReportRepositoryService.findAllByPredicate(historyPredicate);
+        List<CommentReport> commentReports = commentReportRepositoryService.findAllByPredicate(commentPredicate);
+
         // 모든 리포트 데이터 조회
-        return getReportResponse(builder, null);
+        return ReportConverter.toAllAdminReportViewResults(profileReports,commentReports,historyReports);
     }
 
 
@@ -260,6 +274,6 @@ public class ReportServiceImpl implements ReportService{
                 throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
             }
         }
-    }
-
 }
+
+
