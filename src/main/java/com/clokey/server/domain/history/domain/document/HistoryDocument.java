@@ -14,8 +14,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(indexName = "history")
-@Mapping(mappingPath = "static/elastic-mapping-history.json")
-@Setting(settingPath = "static/elastic-setting-history.json")
 public class HistoryDocument {
 
     @Id
