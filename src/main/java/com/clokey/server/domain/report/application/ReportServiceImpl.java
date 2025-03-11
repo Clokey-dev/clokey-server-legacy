@@ -7,18 +7,21 @@ import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.ReportType;
-import com.clokey.server.domain.report.domain.entity.ProfileReport;
+import com.clokey.server.domain.report.domain.entity.*;
 import com.clokey.server.domain.model.entity.enums.ReportStatus;
 import com.clokey.server.domain.report.converter.ReportConverter;
-import com.clokey.server.domain.report.domain.entity.CommentReport;
-import com.clokey.server.domain.report.domain.entity.HistoryReport;
 import com.clokey.server.domain.report.dto.ReportRequestDTO;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
 import com.clokey.server.domain.report.exception.ReportException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -123,33 +126,140 @@ public class ReportServiceImpl implements ReportService{
 
     @Override
     public ReportResponseDTO.AdminReportViewResults getAdminReportViewResults(ReportStatus reportStatus, ReportType reportType, Long reporterId, Long reportedInstanceId) {
+
         validateReportTypeAndReportedInstanceId(reportType,reportedInstanceId);
-        return null;
-    }
 
-    private void validateReportTypeAndReportedInstanceId(ReportType reportType, Long reportedInstanceId){
+        BooleanBuilder builder = new BooleanBuilder();
 
-        //ReportedInstanced 이 null이면 검증의 대상이 아니게 됩니다.
-        if(reportedInstanceId == null){
-            return;
+        if (reportType == null) {
+            return getAllReports(builder, reportStatus, reporterId, reportedInstanceId);
         }
 
-        if(reportType == null){
-            throw new ReportException(ErrorStatus.REPORT_INSTANCE_ID_WITHOUT_REPORT_TYPE);
-        }
+        // reportType이 지정되었을 경우, 해당 타입에 맞는 필터링
+        switch (reportType) {
+            case PROFILE:
+                return getFilteredReportsForProfile(builder, reportStatus, reporterId, reportedInstanceId);
 
-        if(reportType.equals(ReportType.PROFILE) && !memberRepositoryService.memberExist(reportedInstanceId)){
-            throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
-        }
+            case HISTORY:
+                return getFilteredReportsForHistory(builder, reportStatus, reporterId, reportedInstanceId);
 
-        if(reportType.equals(ReportType.HISTORY) && !historyRepositoryService.existsById(reportedInstanceId)){
-            throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
-        }
+            case COMMENT:
+                return getFilteredReportsForComment(builder, reportStatus, reporterId, reportedInstanceId);
 
-        if(reportType.equals(ReportType.COMMENT) && !commentReportRepositoryService.existsById(reportedInstanceId)){
-            throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
+            default:
+                throw new ReportException(ErrorStatus.INVALID_REPORT_TYPE);
         }
     }
+    private ReportResponseDTO.AdminReportViewResults getFilteredReportsForProfile(BooleanBuilder builder,
+                                                                                  ReportStatus reportStatus,
+                                                                                  Long reporterId,
+                                                                                  Long reportedInstanceId) {
+        if (reportStatus != null) {
+            builder.and(QProfileReport.profileReport.reportStatus.eq(reportStatus));
+        }
+        if (reporterId != null) {
+            builder.and(QProfileReport.profileReport.reporter.id.eq(reporterId));
+        }
+        if (reportedInstanceId != null) {
+            builder.and(QProfileReport.profileReport.reported.id.eq(reportedInstanceId));
+        }
 
+        return getReportResponse(builder, ReportType.PROFILE);
+    }
+
+    private ReportResponseDTO.AdminReportViewResults getFilteredReportsForHistory(BooleanBuilder builder,
+                                                                                  ReportStatus reportStatus,
+                                                                                  Long reporterId,
+                                                                                  Long reportedInstanceId) {
+        if (reportStatus != null) {
+            builder.and(QHistoryReport.historyReport.reportStatus.eq(reportStatus));
+        }
+        if (reporterId != null) {
+            builder.and(QHistoryReport.historyReport.member.id.eq(reporterId));
+        }
+        if (reportedInstanceId != null) {
+            builder.and(QHistoryReport.historyReport.history.id.eq(reportedInstanceId));
+        }
+
+        return getReportResponse(builder, ReportType.HISTORY);
+    }
+
+    private ReportResponseDTO.AdminReportViewResults getFilteredReportsForComment(BooleanBuilder builder,
+                                                                                  ReportStatus reportStatus,
+                                                                                  Long reporterId,
+                                                                                  Long reportedInstanceId) {
+        if (reportStatus != null) {
+            builder.and(QCommentReport.commentReport.reportStatus.eq(reportStatus));
+        }
+        if (reporterId != null) {
+            builder.and(QCommentReport.commentReport.member.id.eq(reporterId));
+        }
+        if (reportedInstanceId != null) {
+            builder.and(QCommentReport.commentReport.comment.id.eq(reportedInstanceId)); /
+        }
+        return getReportResponse(builder, ReportType.COMMENT);
+    }
+
+    private ReportResponseDTO.AdminReportViewResults getAllReports(BooleanBuilder builder,
+                                                                   ReportStatus reportStatus,
+                                                                   Long reporterId,
+                                                                   Long reportedInstanceId) {
+        // 모든 리포트 타입을 조회하기 위해 필터링 적용
+        if (reportStatus != null) {
+            builder.and(QProfileReport.profileReport.status.eq(reportStatus));
+        }
+        if (reporterId != null) {
+            builder.and(QProfileReport.profileReport.reporterId.eq(reporterId));
+        }
+        if (reportedInstanceId != null) {
+            builder.and(QProfileReport.profileReport.reportedInstanceId.eq(reportedInstanceId));
+        }
+
+        // 모든 리포트 데이터 조회
+        return getReportResponse(builder, null);
+    }
+
+
+    private ReportResponseDTO.AdminReportViewResults getReportResponse(BooleanBuilder builder, ReportType reportType) {
+
+        switch (reportType) {
+            case PROFILE:
+                List<ProfileReport> profileReports = profileReportRepositoryService.findAllByPredicate(builder);
+                return ReportConverter.toAdminProfileReportViewResults(profileReports);
+            case HISTORY:
+                List<HistoryReport> historyReports = historyReportRepositoryService.findAllByPredicate(builder);
+                return ReportConverter.toAdminHistoryReportViewResults(historyReports);
+            case COMMENT:
+                List<CommentReport> commentReports = commentReportRepositoryService.findAllByPredicate(builder);
+                return ReportConverter.toAdminCommentReportViewResults(commentReports);
+            default:
+                throw new ReportException(ErrorStatus.INVALID_REPORT_TYPE);
+        }
+    }
+
+        private void validateReportTypeAndReportedInstanceId (ReportType reportType, Long reportedInstanceId){
+
+            //ReportedInstanced 이 null이면 검증의 대상이 아니게 됩니다.
+            if (reportedInstanceId == null) {
+                return;
+            }
+
+            if (reportType == null) {
+                throw new ReportException(ErrorStatus.REPORT_INSTANCE_ID_WITHOUT_REPORT_TYPE);
+            }
+
+            if (reportType.equals(ReportType.PROFILE) && !memberRepositoryService.memberExist(reportedInstanceId)) {
+                throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
+            }
+
+            if (reportType.equals(ReportType.HISTORY) && !historyRepositoryService.existsById(reportedInstanceId)) {
+                throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
+            }
+
+            if (reportType.equals(ReportType.COMMENT) && !commentReportRepositoryService.existsById(reportedInstanceId)) {
+                throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
+            }
+        }
+    }
 
 }

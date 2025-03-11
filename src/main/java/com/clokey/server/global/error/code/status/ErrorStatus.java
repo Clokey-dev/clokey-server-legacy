@@ -137,7 +137,8 @@ public enum ErrorStatus implements BaseErrorCode {
     //신고 에러
     REPORT_OUT_OF_RANGE(HttpStatus.BAD_REQUEST,"REPORT_4001","신고 내용이 %d자 까지만 가능합니다."),
     REPORT_INSTANCE_ID_WITHOUT_REPORT_TYPE(HttpStatus.BAD_REQUEST,"REPORT_4002","Report Type을 선택하지 않고 Report Instance의 Id를 조회할 수 없습니다."),
-    NO_SUCH_REPORT_INSTANCE_ID(HttpStatus.BAD_REQUEST,"REPORT_4003","조건에 해당하는 Report Instance의 Id가 존재하지 않습니다.")
+    NO_SUCH_REPORT_INSTANCE_ID(HttpStatus.BAD_REQUEST,"REPORT_4003","조건에 해당하는 Report Instance의 Id가 존재하지 않습니다."),
+    INVALID_REPORT_TYPE(HttpStatus.BAD_REQUEST,"REPORT_4004","존재하지 않는 Report Type 입니다")
     ;
 
 

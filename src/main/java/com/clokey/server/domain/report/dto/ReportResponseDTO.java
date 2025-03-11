@@ -98,14 +98,16 @@ public class ReportResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class AdminReportViewResult {
+    public static class AdminReportViewResult {
         private Long id;
         private String reporterClokeyId;
         private Long reportedInstanceId;
-        private List<ReportTypeResult> reportTypeResults;
+        private ReportTypeResult reportTypeResult;
         private String content;
         private ReportStatus reportStatus;
     }
+
+
 
 }
 
