@@ -195,7 +195,7 @@ public class ReportServiceImpl implements ReportService{
             builder.and(QCommentReport.commentReport.member.id.eq(reporterId));
         }
         if (reportedInstanceId != null) {
-            builder.and(QCommentReport.commentReport.comment.id.eq(reportedInstanceId)); /
+            builder.and(QCommentReport.commentReport.comment.id.eq(reportedInstanceId));
         }
         return getReportResponse(builder, ReportType.COMMENT);
     }
