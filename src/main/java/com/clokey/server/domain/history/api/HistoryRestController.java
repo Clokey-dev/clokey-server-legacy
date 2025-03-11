@@ -218,5 +218,20 @@ public class HistoryRestController {
         return BaseResponse.onSuccess(SuccessStatus.HISTORY_DELETED, null);
     }
 
+    @GetMapping("/liked")
+    @Operation(summary = "내가 좋아요 한 기록 전체 조회 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "HISTORY_200", description = "OK, 성공적으로 조회되었습니다.")
+    })
+    @Parameters({
+            @Parameter(name = "page", description = "페이징 관련 query parameter. 1부터 시작합니다.")
+    })
+    public BaseResponse<HistoryResponseDTO.HistoryPreviewListResult> getLikedHistories(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                             @RequestParam(value = "page") @Valid @CheckPage int page) {
+        HistoryResponseDTO.HistoryPreviewListResult result = historyService.getLikedHistories(member.getId(), page - 1);
+
+        return BaseResponse.onSuccess(SuccessStatus.HISTORY_SUCCESS, result);
+    }
+
 
 }

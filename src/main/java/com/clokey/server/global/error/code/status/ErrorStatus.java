@@ -32,6 +32,8 @@ public enum ErrorStatus implements BaseErrorCode {
     NO_PERMISSION_TO_ACCESS_USER(HttpStatus.BAD_REQUEST,"MEMBER_4008", "유저에 대한 접근 권한이 없습니다."),
     INVALID_TERM_ID(HttpStatus.BAD_REQUEST,"MEMBER_4009","잘못된 약관 ID입니다."),
     NO_SUCH_FOLLOWER(HttpStatus.NOT_FOUND,"MEMBER_4010","존재하지 않는 팔로워 ID입니다."),
+    CANNOT_BLOCK_MYSELF(HttpStatus.BAD_REQUEST,"MEMBER_4011","자신을 차단할 수 없습니다."),
+    CANNOT_REPORT_MYSELF(HttpStatus.BAD_REQUEST,"MEMBER_4012","자신을 신고할 수 없습니다."),
 
     //옷 에러
     NO_SUCH_CLOTH(HttpStatus.NOT_FOUND,"CLOTH_4041","존재하지 않는 옷 ID입니다."),
@@ -78,6 +80,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_MY_COMMENT(HttpStatus.BAD_REQUEST,"HISTORY_4015","사용자의 댓글이 아닙니다"),
     NO_HISTORY_FOR_DATE(HttpStatus.BAD_REQUEST,"HISTORY_4016","해당 날짜에 기록이 없습니다"),
     NO_CLOTH_FOR_HISTORY(HttpStatus.BAD_REQUEST,"HISTORY_4017","기록에는 반드시 옷을 등록해야합니다."),
+    TOO_MANY_HASHTAGS(HttpStatus.BAD_REQUEST,"HISTORY_4018","해시태그는 20개 이하로 등록 가능합니다."),
 
     //해시태그 에러
     NO_SUCH_HASHTAG_NAME(HttpStatus.BAD_REQUEST,"HASHTAG_4001","해당 이름의 해시태그가 존재하지 않습니다"),
@@ -129,7 +132,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //홈 에러
     NO_SUCH_SECTION(HttpStatus.NOT_FOUND,"HOME_4041","해당 섹션이 존재하지 않습니다."),
-    OUT_OF_RANGE_TEMP(HttpStatus.BAD_REQUEST,"HOME_4002","온도 범위를 벗어났습니다.")
+    OUT_OF_RANGE_TEMP(HttpStatus.BAD_REQUEST,"HOME_4002","온도 범위를 벗어났습니다."),
+
+    //신고 에러
+    REPORT_OUT_OF_RANGE(HttpStatus.BAD_REQUEST,"REPORT_4001","신고 내용이 %d자 까지만 가능합니다.")
     ;
 
 

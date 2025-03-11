@@ -55,6 +55,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final ObjectMapper objectMapper;
+    private static final String REDIS_PREFIX_RECOMMEND_CLOTH = "rc:";
     private static final String REDIS_PREFIX_RECOMMEND = "re:";
     private static final String REDIS_PREFIX_CLOSET = "cl:";
     private static final String REDIS_PREFIX_CALENDAR = "ca:";
@@ -63,25 +64,49 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Override
     @Transactional(readOnly = true)
     public RecommendationResponseDTO.DailyClothesResult getRecommendClothes(Long memberId, Integer nowTemp, Integer minTemp, Integer maxTemp) {
-        List<Cloth> suitableClothes = clothRepositoryService.findBySuitableClothFilters(memberId, nowTemp, minTemp, maxTemp);
+        String cacheKeyRecommend = REDIS_PREFIX_RECOMMEND_CLOTH + memberId;
 
-        Cloth top = findClothByCategory(suitableClothes, 1L);
-        Cloth bottom = findClothByCategory(suitableClothes, 2L);
-        Cloth outer = findClothByCategory(suitableClothes, 3L);
+        List<Long> cachedClothIds = getFromRedis(cacheKeyRecommend, Long.class);
+
+        if (cachedClothIds != null && !cachedClothIds.isEmpty()) {
+            List<Cloth> cachedClothes = clothRepositoryService.findAllById(cachedClothIds);
+            if(cachedClothes.size()==3) {
+                List<RecommendationResponseDTO.DailyClothResult> cachedResults = cachedClothes.stream()
+                        .map(RecommendationConverter::toDailyClothResult)
+                        .collect(Collectors.toList());
+
+                return new RecommendationResponseDTO.DailyClothesResult(cachedResults);
+            }
+            redisTemplate.delete(cacheKeyRecommend);
+        }
+
+        List<Cloth> suitableClothes = clothRepositoryService.findBySuitableClothFilters(memberId, nowTemp, minTemp, maxTemp);
+        Set<Cloth> selectedClothes = new HashSet<>();
+
+        Cloth top = findClothByCategory(suitableClothes, 1L, selectedClothes);
+        Cloth bottom = findClothByCategory(suitableClothes, 2L, selectedClothes);
+        Cloth outer = findClothByCategory(suitableClothes, 3L, selectedClothes);
 
         if (top == null) {
-            top = findClothByCategory(suitableClothes, 4L);
+            top = findClothByCategory(suitableClothes, 4L, selectedClothes);
         }
         if (bottom == null) {
-            bottom = findClothByCategory(suitableClothes, 4L);
+            bottom = findClothByCategory(suitableClothes, 4L, selectedClothes);
         }
         if (outer == null) {
-            outer = findClothByCategory(suitableClothes, 4L);
+            outer = findClothByCategory(suitableClothes, 4L, selectedClothes);
         }
 
         if (top == null && bottom == null && outer == null) {
             return new RecommendationResponseDTO.DailyClothesResult(List.of());
         }
+
+        List<Long> clothIds = Stream.of(top, bottom, outer)
+                .filter(Objects::nonNull)
+                .map(Cloth::getId)
+                .collect(Collectors.toList());
+
+        saveToRedis(cacheKeyRecommend, clothIds, Duration.ofHours(3));
 
         List<RecommendationResponseDTO.DailyClothResult> recommendedClothes = Stream.of(top, bottom, outer)
                 .filter(Objects::nonNull)
@@ -91,10 +116,16 @@ public class RecommendationServiceImpl implements RecommendationService {
         return new RecommendationResponseDTO.DailyClothesResult(recommendedClothes);
     }
 
-    private Cloth findClothByCategory(List<Cloth> clothes, Long parentCategoryId) {
+    private Cloth findClothByCategory(List<Cloth> clothes, Long parentCategoryId, Set<Cloth> selectedClothes) {
         return clothes.stream()
-                .filter(c -> c.getCategory().getParent() != null && c.getCategory().getParent().getId().equals(parentCategoryId))
+                .filter(c -> c.getCategory().getParent() != null
+                        && c.getCategory().getParent().getId().equals(parentCategoryId)
+                        && !selectedClothes.contains(c))
                 .findFirst()
+                .map(c -> {
+                    selectedClothes.add(c);
+                    return c;
+                })
                 .orElse(null);
     }
 
@@ -207,7 +238,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 getHistoryImageUrlByHashtagNameAtLast(frequentCategory),
                 member.getId(),
                 "님이 자주 착용한 카테고리",
-                frequentCategory
+                "#"+frequentCategory
         ));
 
         return recommendList;

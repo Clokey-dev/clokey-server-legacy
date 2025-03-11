@@ -86,7 +86,17 @@ public enum SuccessStatus implements BaseCode {
     //Elastic Search 인덱스 생성 및 동기화 성공
     CLOTH_SYNC_CREATED(HttpStatus.CREATED, "SEARCH_201", "옷 검색 인덱스가 성공적으로 생성되었습니다."),
     HISTORY_SYNC_CREATED(HttpStatus.CREATED, "SEARCH_201", "기록 검색 인덱스가 성공적으로 생성되었습니다."),
-    MEMBER_SYNC_CREATED(HttpStatus.CREATED, "SEARCH_201", "유저 검색 인덱스가 성공적으로 생성되었습니다.")
+    MEMBER_SYNC_CREATED(HttpStatus.CREATED, "SEARCH_201", "유저 검색 인덱스가 성공적으로 생성되었습니다."),
+
+
+    //신고 성공
+    REPORT_HISTORY_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200", "기록 신고의 정보가 성공적으로 조회되었습니다."),
+    REPORT_HISTORY_SUCCESS(HttpStatus.OK, "REPORT_201", "기록을 성공적으로 신고했습니다."),
+    REPORT_COMMENT_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200", "댓글 신고의 정보가 성공적으로 조회되었습니다."),
+    REPORT_COMMENT_SUCCESS(HttpStatus.OK, "REPORT_201", "댓글을 성공적으로 신고했습니다."),
+    REPORT_PROFILE_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200", "계정 신고의 정보가 성공적으로 조회되었습니다."),
+    REPORT_PROFILE_SUCCESS(HttpStatus.OK, "REPORT_201", "계정을 성공적으로 신고했습니다."),
+
     ;
 
     private final HttpStatus httpStatus;

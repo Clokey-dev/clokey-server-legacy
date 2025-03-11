@@ -3,6 +3,8 @@ package com.clokey.server.domain.member.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.clokey.server.domain.model.entity.enums.ProfileReportType;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +31,7 @@ public class MemberDTO {
         String visibility;
         List<GetUserClothResult> clothResults;
         Boolean isFollowing;
+        Boolean isBlocking;
     }
 
     @Builder
@@ -124,6 +127,46 @@ public class MemberDTO {
         Boolean isFollowed;
         Boolean isMe;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GetBlockMemberResult {
+        List<BlockMemberResult> members;
+        private int totalPage;
+        private long totalElements;
+        private Boolean isFirst;
+        private Boolean isLast;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BlockMemberResult {
+        String nickname;
+        String clokeyId;
+        String profileImage;
+        Boolean isBlocked;
+        Boolean isMe;
+    }
+
+//    @Builder
+//    @Getter
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    public static class ReportRQ{
+//        ProfileReportType type;
+//        String otherType;
+//        @EssentialFieldNotNull
+//        String reason;
+//
+//        @AssertTrue(message = "type 또는 otherType 중 하나만 존재해야 합니다.")
+//        private boolean isValid() {
+//            return (type == null) != (otherType == null);  // XOR 연산: 하나만 존재해야 함
+//        }
+//    }
 
     @Builder
     @Getter

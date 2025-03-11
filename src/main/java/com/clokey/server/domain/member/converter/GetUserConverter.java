@@ -13,7 +13,7 @@ import com.clokey.server.domain.member.dto.MemberDTO;
 
 public class GetUserConverter {
 
-    public static MemberDTO.GetUserRP toGetUserResponseDTO(Member member, Long recordCount, Long followerCount, Long followingCount, Boolean isFollowing
+    public static MemberDTO.GetUserRP toGetUserResponseDTO(Member member, Long recordCount, Long followerCount, Long followingCount, Boolean isFollowing, Boolean isBlocking
             , List<Cloth> cloths) {
         return MemberDTO.GetUserRP.builder()
                 .clokeyId(member.getClokeyId())
@@ -26,6 +26,7 @@ public class GetUserConverter {
                 .profileBackImageUrl(member.getProfileBackImageUrl())
                 .visibility(member.getVisibility().toString())
                 .isFollowing(isFollowing)
+                .isBlocking(isBlocking)
                 .clothResults(toGetUserClothResultDTO(cloths))
                 .build();
     }
@@ -77,6 +78,32 @@ public class GetUserConverter {
                 .clokeyId(member.getClokeyId())
                 .nickname(member.getNickname())
                 .isFollowed(isFollowing)
+                .isMe(isMySelf)
+                .build();
+    }
+
+    public static MemberDTO.GetBlockMemberResult toGetBlockPeopleResultDTO(
+            List<Member> members, Pageable pageable, List<Boolean> isBlock, List<Boolean> isMySelf) {
+
+        List<MemberDTO.BlockMemberResult> memberResults = IntStream.range(0, members.size())
+                .mapToObj(i -> convertToBlockProfilePreviewResult(members.get(i), isBlock.get(i), isMySelf.get(i)))
+                .collect(Collectors.toList());
+
+        return MemberDTO.GetBlockMemberResult.builder()
+                .members(memberResults)
+                .totalPage(pageable.getPageNumber() + 1)
+                .totalElements(memberResults.size())
+                .isFirst(pageable.getPageNumber() == 0)
+                .isLast(memberResults.size() < pageable.getPageSize())
+                .build();
+    }
+
+    private static MemberDTO.BlockMemberResult convertToBlockProfilePreviewResult(Member member, Boolean isBlock, Boolean isMySelf) {
+        return MemberDTO.BlockMemberResult.builder()
+                .profileImage(member.getProfileImageUrl())
+                .clokeyId(member.getClokeyId())
+                .nickname(member.getNickname())
+                .isBlocked(isBlock)
                 .isMe(isMySelf)
                 .build();
     }

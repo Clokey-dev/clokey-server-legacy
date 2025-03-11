@@ -33,9 +33,13 @@ public interface HistoryService {
 
     HistoryResponseDTO.LikedUserResults getLikedUser(Long memberId, Long historyId);
 
+
     @Async
     void asyncUpdatedHistoryFromES(History history);
 
     @Async
     void asyncDeletedHistoryFromES(Long historyId);
+
+    HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page);
+
 }

@@ -10,15 +10,17 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.history.exception.annotation.UniqueHashtags;
+import com.clokey.server.domain.history.exception.annotation.HashtagCondition;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 
 @Component
 @RequiredArgsConstructor
-public class UniqueHashtagsValidator implements ConstraintValidator<UniqueHashtags, List<String>> {
+public class HashtagConditionValidator implements ConstraintValidator<HashtagCondition, List<String>> {
+
+    public static final int MAXIMUM_HASHTAGS = 20;
 
     @Override
-    public void initialize(UniqueHashtags constraintAnnotation) {
+    public void initialize(HashtagCondition constraintAnnotation) {
         ConstraintValidator.super.initialize(constraintAnnotation);
     }
 
@@ -29,15 +31,22 @@ public class UniqueHashtagsValidator implements ConstraintValidator<UniqueHashta
             return true; // 비어있는 경우는 유효하다고 판단
         }
 
-        Set<String> uniqueHashtags = new HashSet<>(hashtags); // Set에 리스트를 추가
-        boolean isValid = uniqueHashtags.size() == hashtags.size();
-
-        if (!isValid) {
+        if (hashtags.size() > MAXIMUM_HASHTAGS){
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(ErrorStatus.DUPLICATE_HASHTAGS.toString()).addConstraintViolation();
+            context.buildConstraintViolationWithTemplate(ErrorStatus.TOO_MANY_HASHTAGS.toString()).addConstraintViolation();
+
+            return false;
         }
 
-        return isValid;
+        Set<String> uniqueHashtags = new HashSet<>(hashtags);
+        if (uniqueHashtags.size() != hashtags.size()) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(ErrorStatus.DUPLICATE_HASHTAGS.toString()).addConstraintViolation();
+
+            return false;
+        }
+
+        return true;
 
     }
 }

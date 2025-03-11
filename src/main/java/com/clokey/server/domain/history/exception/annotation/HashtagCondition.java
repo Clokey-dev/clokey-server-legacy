@@ -4,15 +4,15 @@ import java.lang.annotation.*;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
-import com.clokey.server.domain.history.exception.validator.UniqueHashtagsValidator;
+import com.clokey.server.domain.history.exception.validator.HashtagConditionValidator;
 
 @Documented
-@Constraint(validatedBy = UniqueHashtagsValidator.class)
+@Constraint(validatedBy = HashtagConditionValidator.class)
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface UniqueHashtags {
+public @interface HashtagCondition {
 
-    String message() default "중복된 해시태그가 존재합니다.";
+    String message() default "해시태그 등록 조건을 위배했습니다.";
 
     Class<?>[] groups() default {};
 

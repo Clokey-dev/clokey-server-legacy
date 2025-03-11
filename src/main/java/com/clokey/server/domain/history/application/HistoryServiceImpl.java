@@ -34,6 +34,8 @@ import com.clokey.server.domain.search.exception.SearchException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.error.exception.GeneralException;
 
+import static com.clokey.server.domain.history.exception.validator.HashtagConditionValidator.MAXIMUM_HASHTAGS;
+
 @Service
 @RequiredArgsConstructor
 public class HistoryServiceImpl implements HistoryService {
@@ -410,11 +412,17 @@ public class HistoryServiceImpl implements HistoryService {
                 .filter(hashtagNames -> !updatedHashtags.contains(hashtagNames))
                 .toList());
 
+        if(savedHashtags.size()+hashtagToAdd.size()-hashtagToAdd.size() > MAXIMUM_HASHTAGS){
+            throw new HistoryException(ErrorStatus.TOO_MANY_HASHTAGS);
+        }
+
         hashtagToAdd.forEach(hashtag -> hashtagHistoryRepositoryService.addHashtagHistory(hashtag, history));
         hashtagToDelete.forEach(hashtag -> hashtagHistoryRepositoryService.deleteHashtagHistory(hashtag, history));
     }
 
+    
     // 비동기 방식으로 Elasticsearch 수정 요청
+    @Override
     public void asyncUpdatedHistoryFromES(History history) {
         try {
             searchRepositoryService.updateHistoryDataToElasticsearch(history);
@@ -425,6 +433,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     // 비동기 방식으로 Elasticsearch 삭제 요청
+    @Override
     public void asyncDeletedHistoryFromES(Long historyId) {
         try {
             searchRepositoryService.deleteHistoryByIdFromElasticsearch(historyId);
@@ -434,5 +443,11 @@ public class HistoryServiceImpl implements HistoryService {
         }
     }
 
-
+    @Override
+    @Transactional(readOnly = true)
+    public HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page) {
+        Page<History> histories = historyRepositoryService.findHistoriesByMemberIdAndMemberLike(memberId, PageRequest.of(page, 12));
+        Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
+        return HistoryConverter.toHistoryPreviewListResult(histories, historyImageMap);
+    }
 }

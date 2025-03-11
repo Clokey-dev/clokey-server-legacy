@@ -47,4 +47,6 @@ public interface HistoryRepositoryService {
     List<History> findHistoriesByMemberIds(List<Long> memberIds);
 
     List<History> findHistoriesByMemberIdsAndDateRange(List<Long> memberIds, LocalDate from, LocalDate to);
+
+    Page<History> findHistoriesByMemberIdAndMemberLike(Long memberId, Pageable pageable);
 }
