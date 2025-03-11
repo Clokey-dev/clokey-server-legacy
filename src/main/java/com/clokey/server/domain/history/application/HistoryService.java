@@ -1,5 +1,7 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.history.domain.entity.History;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -30,4 +32,10 @@ public interface HistoryService {
     HistoryResponseDTO.CheckMyHistoryResult checkIfHistoryIsMine(Long historyId, Long memberId);
 
     HistoryResponseDTO.LikedUserResults getLikedUser(Long memberId, Long historyId);
+
+    @Async
+    void asyncUpdatedHistoryFromES(History history);
+
+    @Async
+    void asyncDeletedHistoryFromES(Long historyId);
 }
