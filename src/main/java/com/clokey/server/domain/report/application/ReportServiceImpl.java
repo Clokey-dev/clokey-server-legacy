@@ -6,6 +6,7 @@ import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.domain.entity.Member;
+import com.clokey.server.domain.model.entity.enums.ReportType;
 import com.clokey.server.domain.report.domain.entity.ProfileReport;
 import com.clokey.server.domain.model.entity.enums.ReportStatus;
 import com.clokey.server.domain.report.converter.ReportConverter;
@@ -13,6 +14,8 @@ import com.clokey.server.domain.report.domain.entity.CommentReport;
 import com.clokey.server.domain.report.domain.entity.HistoryReport;
 import com.clokey.server.domain.report.dto.ReportRequestDTO;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
+import com.clokey.server.domain.report.exception.ReportException;
+import com.clokey.server.global.error.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,5 +120,36 @@ public class ReportServiceImpl implements ReportService{
 
         return ReportConverter.toProfileReportResult(profileReportId);
     }
+
+    @Override
+    public ReportResponseDTO.AdminReportViewResults getAdminReportViewResults(ReportStatus reportStatus, ReportType reportType, Long reporterId, Long reportedInstanceId) {
+        validateReportTypeAndReportedInstanceId(reportType,reportedInstanceId);
+        return null;
+    }
+
+    private void validateReportTypeAndReportedInstanceId(ReportType reportType, Long reportedInstanceId){
+
+        //ReportedInstanced 이 null이면 검증의 대상이 아니게 됩니다.
+        if(reportedInstanceId == null){
+            return;
+        }
+
+        if(reportType == null){
+            throw new ReportException(ErrorStatus.REPORT_INSTANCE_ID_WITHOUT_REPORT_TYPE);
+        }
+
+        if(reportType.equals(ReportType.PROFILE) && !memberRepositoryService.memberExist(reportedInstanceId)){
+            throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
+        }
+
+        if(reportType.equals(ReportType.HISTORY) && !historyRepositoryService.existsById(reportedInstanceId)){
+            throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
+        }
+
+        if(reportType.equals(ReportType.COMMENT) && !commentReportRepositoryService.existsById(reportedInstanceId)){
+            throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
+        }
+    }
+
 
 }

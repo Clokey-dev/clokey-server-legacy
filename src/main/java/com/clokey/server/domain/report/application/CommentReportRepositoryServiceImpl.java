@@ -16,4 +16,9 @@ public class CommentReportRepositoryServiceImpl implements CommentReportReposito
     public Long save(CommentReport commentReport) {
         return commentReportRepository.save(commentReport).getId();
     }
+
+    @Override
+    public Boolean existsById(Long commentId) {
+        return commentReportRepository.existsById(commentId);
+    }
 }

@@ -5,6 +5,8 @@ import com.clokey.server.domain.history.exception.annotation.HistoryExist;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.exception.annotation.AuthUser;
 import com.clokey.server.domain.member.exception.annotation.IdValid;
+import com.clokey.server.domain.model.entity.enums.ReportStatus;
+import com.clokey.server.domain.model.entity.enums.ReportType;
 import com.clokey.server.domain.report.application.ReportService;
 import com.clokey.server.domain.report.dto.ReportRequestDTO;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
@@ -100,4 +102,21 @@ public class ReportRestController {
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_PROFILE_SUCCESS, result);
     }
+
+    @PostMapping("/admin")
+    @Operation(summary = "관리자용 신고 조회 API", description = "다양한 조건으로 신고 사항을 조회할 수 있는 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_200", description = "관리자용 신고 기록이 성공적으로 조회되었습니다."),
+    })
+    public BaseResponse<ReportResponseDTO.AdminReportViewResults> getReportSummary(
+            @RequestParam(required = false) ReportStatus reportStatus,
+            @RequestParam(required = false) ReportType reportType,
+            @RequestParam(required = false) Long reporterId,
+            @RequestParam(required = false) Long reportedInstanceId) {
+
+        ReportResponseDTO.AdminReportViewResults result = reportService.getAdminReportViewResults(reportStatus,reportType,reporterId,reportedInstanceId);
+
+        return BaseResponse.onSuccess(SuccessStatus.REPORT_PROFILE_SUCCESS, result);
+    }
+
 }
