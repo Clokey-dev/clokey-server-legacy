@@ -45,6 +45,8 @@ public class MemberServiceImpl implements MemberService {
     private final S3ImageService s3ImageService; // ✅ S3 업로드 서비스 추가
     private final SearchRepositoryService searchRepositoryService;
 
+    private static final String FAILED_ES_UPDATE_SYNC_USER_KEY = "failed_es_update_sync_user";
+
     @Override
     @Transactional(readOnly = true)
     public MemberDTO.FollowRP followCheck(String clokeyId, Member currentUser) {
@@ -152,14 +154,20 @@ public class MemberServiceImpl implements MemberService {
         Member updatedMember = memberRepositoryService.saveMember(member);
 
         // ES 동기화
-        try {
-            searchRepositoryService.updateMemberDataToElasticsearch(updatedMember);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
+        asyncUpdatedMemberFromES(updatedMember);
 
         // 응답 생성
         return ProfileConverter.toProfileRPDTO(updatedMember);
+    }
+
+    // 비동기 방식으로 Elasticsearch 수정 요청
+    public void asyncUpdatedMemberFromES(Member member) {
+        try {
+            searchRepositoryService.updateMemberDataToElasticsearch(member);
+        } catch (IOException e) {
+            searchRepositoryService.saveFailedUpdateES(member,FAILED_ES_UPDATE_SYNC_USER_KEY); // 실패한 Member 저장 후 재시도 가능하도록 처리
+            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
+        }
     }
 
     @Override

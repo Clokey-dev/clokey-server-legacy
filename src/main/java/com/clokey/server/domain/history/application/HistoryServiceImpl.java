@@ -55,6 +55,9 @@ public class HistoryServiceImpl implements HistoryService {
     private final HistoryAccessibleValidator historyAccessibleValidator;
     private final SearchRepositoryService searchRepositoryService;
 
+    private static final String FAILED_ES_UPDATE_SYNC_HISTORY_KEY = "failed_es_update_sync_history";
+    private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
+
     @Override
     @Transactional
     public HistoryResponseDTO.LikeResult changeLike(Long memberId, Long historyId, boolean isLiked) {
@@ -259,11 +262,7 @@ public class HistoryServiceImpl implements HistoryService {
                     });
 
             // ES 동기화
-            try {
-                searchRepositoryService.updateHistoryDataToElasticsearch(history);
-            } catch (IOException e) {
-                throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-            }
+            asyncUpdatedHistoryFromES(history);
 
             return HistoryConverter.toHistoryCreateResult(history);
         }
@@ -293,11 +292,7 @@ public class HistoryServiceImpl implements HistoryService {
         historyToUpdate.updateHistory(historyUpdate.getContent(), historyUpdate.getVisibility());
 
         // ES 동기화
-        try {
-            searchRepositoryService.updateHistoryDataToElasticsearch(historyToUpdate);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
+        asyncUpdatedHistoryFromES(historyToUpdate);
 
         return HistoryConverter.toHistoryCreateResult(historyRepositoryService.findById(historyId));
     }
@@ -343,11 +338,7 @@ public class HistoryServiceImpl implements HistoryService {
         historyRepositoryService.deleteById(historyId);
 
         // ES 삭제
-        try {
-            searchRepositoryService.deleteHistoryByIdFromElasticsearch(historyId);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
-        }
+        asyncDeletedHistoryFromES(historyId);
     }
 
     @Override
@@ -427,6 +418,29 @@ public class HistoryServiceImpl implements HistoryService {
 
         hashtagToAdd.forEach(hashtag -> hashtagHistoryRepositoryService.addHashtagHistory(hashtag, history));
         hashtagToDelete.forEach(hashtag -> hashtagHistoryRepositoryService.deleteHashtagHistory(hashtag, history));
+    }
+
+    
+    // 비동기 방식으로 Elasticsearch 수정 요청
+    @Override
+    public void asyncUpdatedHistoryFromES(History history) {
+        try {
+            searchRepositoryService.updateHistoryDataToElasticsearch(history);
+        } catch (IOException e) {
+            searchRepositoryService.saveFailedUpdateES(history,FAILED_ES_UPDATE_SYNC_HISTORY_KEY); // 실패한 History 저장 후 재시도 가능하도록 처리
+            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
+        }
+    }
+
+    // 비동기 방식으로 Elasticsearch 삭제 요청
+    @Override
+    public void asyncDeletedHistoryFromES(Long historyId) {
+        try {
+            searchRepositoryService.deleteHistoryByIdFromElasticsearch(historyId);
+        } catch (IOException e) {
+            searchRepositoryService.saveFailedDeletionES(historyId,FAILED_ES_DELETE_SYNC_HISTORY_KEY); // 실패한 ID 저장 후 재시도 가능하도록 처리
+            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
+        }
     }
 
     @Override

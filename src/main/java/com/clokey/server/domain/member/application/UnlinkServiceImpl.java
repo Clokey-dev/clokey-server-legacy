@@ -62,6 +62,7 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final SearchRepositoryService searchRepositoryService;
     private final AuthService authService;
 
+    private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
 
     @Value("${kakao.admin-key}")
     private String KAKAO_ADMIN_KEY;
@@ -158,13 +159,8 @@ public class UnlinkServiceImpl implements UnlinkService {
     public void deleteData(Long memberId) {
         Member member = memberRepositoryService.findMemberById(memberId);
 
-        try {
-            searchRepositoryService.deleteClothesByMemberIdFromElasticsearch(memberId);
-            searchRepositoryService.deleteHistoriesByMemberIdFromElasticsearch(memberId);
-            searchRepositoryService.deleteMemberByMemberIdFromElasticsearch(memberId);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
-        }
+        // ES 동기화
+        asyncDeletedMemberFromES(memberId);
 
         LocalDate inactiveDate = member.getInactiveDate();
         if (inactiveDate == null || inactiveDate.isAfter(LocalDate.now().minusDays(15))) {
@@ -224,6 +220,15 @@ public class UnlinkServiceImpl implements UnlinkService {
         log.info("회원 및 관련 데이터 삭제 완료: userId={}", memberId);
     }
 
+    // 비동기 방식으로 Elasticsearch 삭제 요청
+    public void asyncDeletedMemberFromES(Long memberId) {
+        try {
+            searchRepositoryService.deleteMemberAndClothesAndHistoriesByMemberIdFromElasticsearch(memberId);
+        } catch (IOException e) {
+            searchRepositoryService.saveFailedDeletionES(memberId,FAILED_ES_DELETE_SYNC_USER_KEY); // 실패한 ID 저장 후 재시도 가능하도록 처리
+            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
+        }
+    }
 
     void checkActiveMember(Member member) {
         if (member.getStatus() != MemberStatus.ACTIVE) {

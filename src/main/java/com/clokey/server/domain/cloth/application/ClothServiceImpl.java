@@ -47,6 +47,9 @@ public class ClothServiceImpl implements ClothService {
     private final SearchRepositoryService searchRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
 
+    private static final String FAILED_ES_UPDATE_SYNC_CLOTH_KEY = "failed_es_update_sync_cloth";
+    private static final String FAILED_ES_DELETE_SYNC_CLOTH_KEY = "failed_es_delete_sync_cloth";
+
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClothPopupViewResult readClothPopupInfoById(Long clothId) {
 
@@ -149,11 +152,7 @@ public class ClothServiceImpl implements ClothService {
 
         clothImageRepositoryService.save(clothImage);
 
-        try {
-            searchRepositoryService.updateClothDataToElasticsearch(cloth);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
+        asyncUpdatedClothFromES(cloth);
 
         return ClothConverter.toClothCreateResult(cloth);
     }
@@ -181,11 +180,7 @@ public class ClothServiceImpl implements ClothService {
         );
 
         // ES 동기화
-        try {
-            searchRepositoryService.updateClothDataToElasticsearch(existingCloth);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
+        asyncUpdatedClothFromES(existingCloth);
     }
 
     @Transactional
@@ -195,9 +190,25 @@ public class ClothServiceImpl implements ClothService {
         clothImageRepositoryService.deleteByClothId(clothId);
         clothRepositoryService.deleteById(clothId);
 
+        asyncDeletedClothFromES(clothId);
+    }
+
+    // 비동기 방식으로 Elasticsearch 수정 요청
+    public void asyncUpdatedClothFromES(Cloth cloth) {
+        try {
+            searchRepositoryService.updateClothDataToElasticsearch(cloth);
+        } catch (IOException e) {
+            searchRepositoryService.saveFailedUpdateES(cloth,FAILED_ES_UPDATE_SYNC_CLOTH_KEY); // 실패한 Cloth 저장 후 재시도 가능하도록 처리
+            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
+        }
+    }
+
+    // 비동기 방식으로 Elasticsearch 삭제 요청
+    public void asyncDeletedClothFromES(Long clothId) {
         try {
             searchRepositoryService.deleteClothByIdFromElasticsearch(clothId);
         } catch (IOException e) {
+            searchRepositoryService.saveFailedDeletionES(clothId,FAILED_ES_DELETE_SYNC_CLOTH_KEY); // 실패한 ID 저장 후 재시도 가능하도록 처리
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
         }
     }

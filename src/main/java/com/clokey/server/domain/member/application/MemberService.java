@@ -1,5 +1,6 @@
 package com.clokey.server.domain.member.application;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.clokey.server.domain.member.domain.entity.Member;
@@ -15,6 +16,9 @@ public interface MemberService {
     MemberDTO.GetUserRP getUser(String clokeyId, Member currentUser); // 로그인한 사용자 정보 추가
 
     MemberDTO.ProfileRP updateProfile(Long userId, MemberDTO.ProfileRQ request, MultipartFile profileImage, MultipartFile profileBackImage);
+
+    @Async
+    void asyncUpdatedMemberFromES(Member member);
 
     void logout(Long userId);
 

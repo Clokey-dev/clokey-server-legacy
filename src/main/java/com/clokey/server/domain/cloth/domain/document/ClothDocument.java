@@ -13,8 +13,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(indexName = "cloth")
-@Mapping(mappingPath = "static/elastic-mapping-cloth.json")
-@Setting(settingPath = "static/elastic-setting-cloth.json")
 public class ClothDocument {
 
     @Id

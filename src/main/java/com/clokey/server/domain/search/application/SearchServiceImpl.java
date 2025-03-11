@@ -222,9 +222,17 @@ public class SearchServiceImpl implements SearchService {
                                             ))
                                     ))
                                     .should(m -> m.bool(bb -> bb
-                                            .must(ms -> ms.matchPhrasePrefix(t -> t
+                                            .should(ms -> ms.matchPhrasePrefix(t -> t
                                                     .field("clokeyId")
                                                     .query(keyword)
+                                            ))
+                                            .should(ms -> ms.matchBoolPrefix(t -> t
+                                                    .field("clokeyId")
+                                                    .query(keyword)
+                                            ))
+                                            .should(ms -> ms.wildcard(t -> t
+                                                    .field("clokeyId")
+                                                    .value("*" + keyword + "*")
                                             ))
                                     ))
                                     .minimumShouldMatch("1")
