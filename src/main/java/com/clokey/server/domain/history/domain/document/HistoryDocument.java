@@ -25,6 +25,8 @@ public class HistoryDocument {
 
     private String imageUrl;
 
+    private Long memberId;
+
     private String memberVisibility;
 
     private String historyVisibility;
