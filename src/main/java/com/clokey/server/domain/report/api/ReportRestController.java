@@ -116,7 +116,7 @@ public class ReportRestController {
 
         ReportResponseDTO.AdminReportViewResults result = reportService.getAdminReportViewResults(reportStatus,reportType,reporterId,reportedInstanceId);
 
-        return BaseResponse.onSuccess(SuccessStatus.REPORT_PROFILE_SUCCESS, result);
+        return BaseResponse.onSuccess(SuccessStatus.REPORT_ADMIN_VIEW_SUCCESS, result);
     }
 
 }
