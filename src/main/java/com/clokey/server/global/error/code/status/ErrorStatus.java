@@ -85,6 +85,7 @@ public enum ErrorStatus implements BaseErrorCode {
     //해시태그 에러
     NO_SUCH_HASHTAG_NAME(HttpStatus.BAD_REQUEST,"HASHTAG_4001","해당 이름의 해시태그가 존재하지 않습니다"),
     DUPLICATE_HASHTAGS(HttpStatus.BAD_REQUEST,"HASHTAG_4002","중복된 해시태그를 기록에 등록할 수 없습니다"),
+    BLANK_HASHTAGS(HttpStatus.BAD_REQUEST,"HASHTAG_4003","해시태그로 공백을 등록할 수 없습니다"),
 
     //알림 에러
     NOTIFICATION_TYPE_INVALID(HttpStatus.BAD_REQUEST,"NOTIFICATION_4001","잘못된 알림 Type 입니다."),
@@ -135,7 +136,10 @@ public enum ErrorStatus implements BaseErrorCode {
     OUT_OF_RANGE_TEMP(HttpStatus.BAD_REQUEST,"HOME_4002","온도 범위를 벗어났습니다."),
 
     //신고 에러
-    REPORT_OUT_OF_RANGE(HttpStatus.BAD_REQUEST,"REPORT_4001","신고 내용이 %d자 까지만 가능합니다.")
+    REPORT_OUT_OF_RANGE(HttpStatus.BAD_REQUEST,"REPORT_4001","신고 내용이 %d자 까지만 가능합니다."),
+    REPORT_INSTANCE_ID_WITHOUT_REPORT_TYPE(HttpStatus.BAD_REQUEST,"REPORT_4002","Report Type을 선택하지 않고 Report Instance의 Id를 조회할 수 없습니다."),
+    NO_SUCH_REPORT_INSTANCE_ID(HttpStatus.BAD_REQUEST,"REPORT_4003","조건에 해당하는 Report Instance의 Id가 존재하지 않습니다."),
+    INVALID_REPORT_TYPE(HttpStatus.BAD_REQUEST,"REPORT_4004","존재하지 않는 Report Type 입니다")
     ;
 
 
