@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -205,5 +206,36 @@ public class HistoryResponseDTO {
     @AllArgsConstructor
     public static class HistoryCreateResult {
         Long historyId;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HistoryMyCommentListResult {
+        private List<HistoryMyCommentResult> histories;
+        private int totalPage;
+        private long totalElements;
+        private Boolean isFirst;
+        private Boolean isLast;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HistoryMyCommentResult {
+        private List<MyCommentResult> comments;
+        private Long historyId;
+        private String imageUrl;
+        private LocalDate date;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MyCommentResult {
+        private String content;
     }
 }
