@@ -442,7 +442,9 @@ public class HistoryServiceImpl implements HistoryService {
     public HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page) {
         Page<Comment> commentsPage = commentRepositoryService.findByMemberId(memberId, PageRequest.of(page, 10));
 
-        Map<Long, List<HistoryResponseDTO.MyCommentResult>> groupedComments = commentsPage.getContent().stream().collect(Collectors.groupingBy(
+        Map<Long, List<HistoryResponseDTO.MyCommentResult>> groupedComments = commentsPage.getContent().stream()
+                .filter(comment -> comment.getHistory()!=null)
+                .collect(Collectors.groupingBy(
                 comment -> comment.getHistory().getId(),
                 Collectors.mapping(comment -> HistoryResponseDTO.MyCommentResult.builder()
                                 .content(comment.getContent())
