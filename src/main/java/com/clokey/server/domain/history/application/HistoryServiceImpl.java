@@ -436,4 +436,51 @@ public class HistoryServiceImpl implements HistoryService {
         Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
         return HistoryConverter.toHistoryPreviewListResult(histories, historyImageMap);
     }
+
+    // 내가 작성한 댓글 조회
+    @Override
+    public HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page) {
+        Page<Comment> commentsPage = commentRepositoryService.findByMemberId(memberId, PageRequest.of(page, 10));
+
+        Map<Long, List<HistoryResponseDTO.MyCommentResult>> groupedComments = commentsPage.getContent().stream().collect(Collectors.groupingBy(
+                comment -> comment.getHistory().getId(),
+                Collectors.mapping(comment -> HistoryResponseDTO.MyCommentResult.builder()
+                                .content(comment.getContent())
+                                .build(),
+                        Collectors.toList()
+                )
+        ));
+
+        List<HistoryResponseDTO.HistoryMyCommentResult> historyMyCommentResults = groupedComments.entrySet().stream()
+                .map(entry -> {
+                    List<HistoryResponseDTO.MyCommentResult> commentsList = entry.getValue();
+                    History history = commentsPage.getContent().stream()
+                            .filter(comment -> comment.getHistory().getId().equals(entry.getKey()))
+                            .findFirst()
+                            .map(Comment::getHistory)
+                            .orElseThrow(() -> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
+
+                    return HistoryResponseDTO.HistoryMyCommentResult.builder()
+                            .historyId(history.getId())
+                            .imageUrl(historyImageRepositoryService.findByHistoryId(history.getId()).stream()
+                                    .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
+                                    .map(HistoryImage::getImageUrl)
+                                    .findFirst()
+                                    .orElse(null))
+                            .date(history.getHistoryDate())
+                            .comments(commentsList)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return HistoryResponseDTO.HistoryMyCommentListResult.builder()
+                .histories(historyMyCommentResults)
+                .totalPage(commentsPage.getTotalPages())
+                .totalElements(commentsPage.getTotalElements())
+                .isFirst(commentsPage.isFirst())
+                .isLast(commentsPage.isLast())
+                .build();
+
+    }
+
 }

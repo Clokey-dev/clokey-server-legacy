@@ -32,4 +32,7 @@ public interface HistoryService {
     HistoryResponseDTO.LikedUserResults getLikedUser(Long memberId, Long historyId);
 
     HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page);
+
+    HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page);
+
 }
