@@ -1,7 +1,10 @@
 package com.clokey.server.domain.report.application;
 
+import com.clokey.server.domain.model.entity.enums.ReportStatus;
+import com.clokey.server.domain.model.entity.enums.ReportType;
 import com.clokey.server.domain.report.dto.ReportRequestDTO;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
+import org.springframework.web.bind.annotation.RequestParam;
 
 public interface ReportService {
 
@@ -16,4 +19,6 @@ public interface ReportService {
     ReportResponseDTO.ProfileReportInfoResult getProfileReportInfo(String clokeyId);
 
     ReportResponseDTO.ProfileReportResult getProfileReportResult(ReportRequestDTO.ProfileReportRequest profileReportRequest, Long memberId);
+
+    ReportResponseDTO.AdminReportViewResults getAdminReportViewResults(ReportStatus reportStatus,ReportType reportType, Long reporterId, Long reportedInstanceId);
 }

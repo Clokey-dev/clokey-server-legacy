@@ -46,6 +46,15 @@ public class HashtagConditionValidator implements ConstraintValidator<HashtagCon
             return false;
         }
 
+        for(String hashtag:hashtags){
+            if(hashtag == null || hashtag.isBlank()){
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(ErrorStatus.BLANK_HASHTAGS.toString()).addConstraintViolation();
+
+                return false;
+            }
+        }
+
         return true;
 
     }

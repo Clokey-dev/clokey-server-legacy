@@ -83,10 +83,10 @@ public class GetUserConverter {
     }
 
     public static MemberDTO.GetBlockMemberResult toGetBlockPeopleResultDTO(
-            List<Member> members, Pageable pageable, List<Boolean> isBlock, List<Boolean> isMySelf) {
+            List<Member> members, Pageable pageable) {
 
         List<MemberDTO.BlockMemberResult> memberResults = IntStream.range(0, members.size())
-                .mapToObj(i -> convertToBlockProfilePreviewResult(members.get(i), isBlock.get(i), isMySelf.get(i)))
+                .mapToObj(i -> convertToBlockProfilePreviewResult(members.get(i)))
                 .collect(Collectors.toList());
 
         return MemberDTO.GetBlockMemberResult.builder()
@@ -98,13 +98,11 @@ public class GetUserConverter {
                 .build();
     }
 
-    private static MemberDTO.BlockMemberResult convertToBlockProfilePreviewResult(Member member, Boolean isBlock, Boolean isMySelf) {
+    private static MemberDTO.BlockMemberResult convertToBlockProfilePreviewResult(Member member) {
         return MemberDTO.BlockMemberResult.builder()
                 .profileImage(member.getProfileImageUrl())
                 .clokeyId(member.getClokeyId())
                 .nickname(member.getNickname())
-                .isBlocked(isBlock)
-                .isMe(isMySelf)
                 .build();
     }
 }

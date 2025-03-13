@@ -96,6 +96,7 @@ public enum SuccessStatus implements BaseCode {
     REPORT_COMMENT_SUCCESS(HttpStatus.OK, "REPORT_201", "댓글을 성공적으로 신고했습니다."),
     REPORT_PROFILE_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200", "계정 신고의 정보가 성공적으로 조회되었습니다."),
     REPORT_PROFILE_SUCCESS(HttpStatus.OK, "REPORT_201", "계정을 성공적으로 신고했습니다."),
+    REPORT_ADMIN_VIEW_SUCCESS(HttpStatus.OK, "REPORT_200","관리자용 신고 기록이 성공적으로 조회되었습니다.")
 
     ;
 

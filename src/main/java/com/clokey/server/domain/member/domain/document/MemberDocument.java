@@ -16,8 +16,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(indexName = "user")
-@Mapping(mappingPath = "static/elastic-mapping-member.json")
-@Setting(settingPath = "static/elastic-setting-member.json")
 public class MemberDocument {
 
     @Id

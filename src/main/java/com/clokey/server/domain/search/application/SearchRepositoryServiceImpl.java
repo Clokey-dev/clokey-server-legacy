@@ -1,5 +1,9 @@
 package com.clokey.server.domain.search.application;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -50,6 +54,47 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private final HistoryImageRepositoryService historyImageRepositoryService;
     private static final String HISTORY_INDEX_NAME = "history";
 
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    private static final String FAILED_ES_UPDATE_SYNC_CLOTH_KEY = "failed_es_update_sync_cloth";
+    private static final String FAILED_ES_DELETE_SYNC_CLOTH_KEY = "failed_es_delete_sync_cloth";
+    private static final String FAILED_ES_UPDATE_SYNC_HISTORY_KEY = "failed_es_update_sync_history";
+    private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
+    private static final String FAILED_ES_UPDATE_SYNC_USER_KEY = "failed_es_update_sync_user";
+    private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
+
+    /****************************************Save For Retry Sync****************************************/
+
+    // Update 실패 데이터 저장
+    public void saveFailedUpdateES(Object object, String option) {
+        String jsonData = convertObjectToJson(object);  // 객체를 JSON 문자열로 변환
+        switch (option) {
+            case FAILED_ES_UPDATE_SYNC_CLOTH_KEY -> redisTemplate.opsForList().rightPush(FAILED_ES_UPDATE_SYNC_CLOTH_KEY, jsonData);
+            case FAILED_ES_UPDATE_SYNC_HISTORY_KEY -> redisTemplate.opsForList().rightPush(FAILED_ES_UPDATE_SYNC_HISTORY_KEY, jsonData);
+            case FAILED_ES_UPDATE_SYNC_USER_KEY -> redisTemplate.opsForList().rightPush(FAILED_ES_UPDATE_SYNC_USER_KEY, jsonData);
+        }
+    }
+
+    // Delete 실패 데이터 저장
+    public void saveFailedDeletionES(Long id, String option) {
+        switch (option) {
+            case FAILED_ES_DELETE_SYNC_CLOTH_KEY -> redisTemplate.opsForList().rightPush(FAILED_ES_DELETE_SYNC_CLOTH_KEY, String.valueOf(id));
+            case FAILED_ES_DELETE_SYNC_HISTORY_KEY -> redisTemplate.opsForList().rightPush(FAILED_ES_DELETE_SYNC_HISTORY_KEY, String.valueOf(id));
+            case FAILED_ES_DELETE_SYNC_USER_KEY -> redisTemplate.opsForList().rightPush(FAILED_ES_DELETE_SYNC_USER_KEY, String.valueOf(id));
+        }
+    }
+
+    // 객체 → JSON 변환 (엔티티 클래스를 자동으로 처리)
+    private String convertObjectToJson(Object object) {
+        try {
+            // ObjectMapper에서 직접 엔티티 클래스를 매핑하여 JSON으로 변환
+            return new ObjectMapper().writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to convert object to JSON", e);
+        }
+    }
+
     /****************************************Cloth Sync****************************************/
 
     // 단일 옷 데이터를 Elasticsearch로 저장하는 메서드
@@ -81,24 +126,6 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
             System.err.println("Elasticsearch 단일 데이터 업데이트 중 오류 발생: " + bulkResponse.toString());
 
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
-    }
-
-    // 특정 memberId를 가진 멤버의 Elasticsearch의 모든 옷 데이터 삭제하는 메서드
-    @Override
-    public void deleteClothesByMemberIdFromElasticsearch(Long memberId) throws IOException {
-
-        DeleteByQueryResponse deleteResponse = elasticsearchClient.deleteByQuery(d -> d
-                .index(CLOTH_INDEX_NAME)
-                .query(q -> q
-                        .term(t -> t.field("memberId").value(memberId))
-                )
-        );
-
-        if (deleteResponse.deleted() == 0) {
-            System.err.println("Elasticsearch에서 clothId: " + memberId + "을 memberId로 가지는 옷에 해당하는 데이터를 찾을 수 없습니다.");
-
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
         }
     }
 
@@ -201,24 +228,6 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
         }
     }
 
-    // 특정 memberId를 가진 멤버의 Elasticsearch의 모든 기록 데이터 삭제하는 메서드
-    @Override
-    public void deleteHistoriesByMemberIdFromElasticsearch(Long memberId) throws IOException {
-
-        DeleteByQueryResponse deleteResponse = elasticsearchClient.deleteByQuery(d -> d
-                .index(HISTORY_INDEX_NAME)
-                .query(q -> q
-                        .term(t -> t.field("memberId").value(memberId))
-                )
-        );
-
-        if (deleteResponse.deleted() == 0) {
-            System.err.println("Elasticsearch에서 clothId: " + memberId + "을 memberId로 가지는 기록에 해당하는 데이터를 찾을 수 없습니다.");
-
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
-        }
-    }
-
     // 특정 옷 Elasticsearch에서 삭제하는 메서드
     @Override
     public void deleteHistoryByIdFromElasticsearch(Long historyId) throws IOException {
@@ -317,19 +326,39 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
         }
     }
 
-    // 특정 memberId를 가진 멤버의 Elasticsearch의 유저 데이터 삭제하는 메서드
+    // 특정 memberId를 가진 멤버의 Elasticsearch의 유저, 옷, 기록 데이터 삭제하는 메서드
     @Override
-    public void deleteMemberByMemberIdFromElasticsearch(Long memberId) throws IOException {
+    public void deleteMemberAndClothesAndHistoriesByMemberIdFromElasticsearch(Long memberId) throws IOException {
 
-        DeleteResponse deleteResponse = elasticsearchClient.delete(d -> d
+        DeleteResponse deleteMemberResponse = elasticsearchClient.delete(d -> d
                 .index(MEMBER_INDEX_NAME)
                 .id(memberId.toString())
         );
 
-        if (!deleteResponse.result().equals(Result.Deleted)) {
-            System.err.println("Elasticsearch에서 clothId: " + memberId + "을 memberId로 가지는 멤버에 해당하는 데이터를 찾을 수 없습니다.");
+        DeleteByQueryResponse deleteClothesResponse = elasticsearchClient.deleteByQuery(d -> d
+                .index(CLOTH_INDEX_NAME)
+                .query(q -> q
+                        .term(t -> t.field("memberId").value(memberId))
+                )
+        );
+
+        DeleteByQueryResponse deleteHistoriesResponse = elasticsearchClient.deleteByQuery(d -> d
+                .index(HISTORY_INDEX_NAME)
+                .query(q -> q
+                        .term(t -> t.field("memberId").value(memberId))
+                )
+        );
+
+        if (!deleteMemberResponse.result().equals(Result.Deleted)) {
+            System.err.println("Elasticsearch에서 memberId: " + memberId + "을 memberId로 가지는 멤버에 해당하는 데이터를 찾을 수 없습니다.");
 
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
+        }
+        if (deleteClothesResponse.deleted() == 0) {
+            System.err.println("Elasticsearch에서 memberId: " + memberId + "유저가 가지는 옷에 해당하는 데이터를 찾을 수 없습니다.");
+        }
+        if (deleteHistoriesResponse.deleted() == 0) {
+            System.err.println("Elasticsearch에서 Id: " + memberId + "유저가 가지는 기록에 해당하는 데이터를 찾을 수 없습니다.");
         }
     }
 

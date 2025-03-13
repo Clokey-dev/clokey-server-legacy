@@ -1,7 +1,6 @@
 package com.clokey.server.domain.member.application;
 
 import com.clokey.server.domain.member.domain.entity.Block;
-import com.clokey.server.domain.report.application.ProfileReportRepositoryService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,10 +39,11 @@ public class MemberServiceImpl implements MemberService {
     private final HistoryRepositoryService historyRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
     private final BlockRepositoryService blockRepositoryService;
-    private final ProfileReportRepositoryService profileReportRepositoryService;
 
     private final S3ImageService s3ImageService; // ✅ S3 업로드 서비스 추가
     private final SearchRepositoryService searchRepositoryService;
+
+    private static final String FAILED_ES_UPDATE_SYNC_USER_KEY = "failed_es_update_sync_user";
 
     @Override
     @Transactional(readOnly = true)
@@ -152,14 +152,20 @@ public class MemberServiceImpl implements MemberService {
         Member updatedMember = memberRepositoryService.saveMember(member);
 
         // ES 동기화
-        try {
-            searchRepositoryService.updateMemberDataToElasticsearch(updatedMember);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
+        asyncUpdatedMemberFromES(updatedMember);
 
         // 응답 생성
         return ProfileConverter.toProfileRPDTO(updatedMember);
+    }
+
+    // 비동기 방식으로 Elasticsearch 수정 요청
+    public void asyncUpdatedMemberFromES(Member member) {
+        try {
+            searchRepositoryService.updateMemberDataToElasticsearch(member);
+        } catch (IOException e) {
+            searchRepositoryService.saveFailedUpdateES(member,FAILED_ES_UPDATE_SYNC_USER_KEY); // 실패한 Member 저장 후 재시도 가능하도록 처리
+            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
+        }
     }
 
     @Override
@@ -260,9 +266,7 @@ public class MemberServiceImpl implements MemberService {
         Pageable pageable = PageRequest.of(page - 1, 10);
 
             List<Member> members = blockRepositoryService.findAllByBlocker(currentUser.getId(), pageable);
-            List<Boolean> isBlocked = blockRepositoryService.checkBlockedStatus(currentUser.getId(), members);
-            List<Boolean> isMySelf = members.stream().map(member -> member.getId().equals(currentUser.getId())).toList();
-            return GetUserConverter.toGetBlockPeopleResultDTO(members, pageable, isBlocked, isMySelf);
+            return GetUserConverter.toGetBlockPeopleResultDTO(members, pageable);
     }
 
     @Override
