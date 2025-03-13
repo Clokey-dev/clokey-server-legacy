@@ -450,9 +450,9 @@ public class HistoryServiceImpl implements HistoryService {
         Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
         return HistoryConverter.toHistoryPreviewListResult(histories, historyImageMap);
     }
-
-    // 내가 작성한 댓글 조회
+    
     @Override
+    @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page) {
         Page<Comment> commentsPage = commentRepositoryService.findByMemberId(memberId, PageRequest.of(page, 10));
 

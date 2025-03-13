@@ -41,7 +41,7 @@ public interface HistoryService {
     void asyncDeletedHistoryFromES(Long historyId);
 
     HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page);
-    
+
     HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page);
 
 }
