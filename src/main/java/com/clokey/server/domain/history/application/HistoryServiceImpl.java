@@ -446,43 +446,30 @@ public class HistoryServiceImpl implements HistoryService {
                 .filter(comment -> comment.getHistory()!=null)
                 .collect(Collectors.groupingBy(
                 comment -> comment.getHistory().getId(),
-                Collectors.mapping(comment -> HistoryResponseDTO.MyCommentResult.builder()
-                                .content(comment.getContent())
-                                .build(),
-                        Collectors.toList()
-                )
+                Collectors.mapping(HistoryConverter::toMyCommentResult, Collectors.toList())
         ));
+
+        List<History> histories = commentsPage.getContent().stream()
+                .map(Comment::getHistory)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, History> historyMap = histories.stream().collect(Collectors.toMap(History::getId, history -> history));
+
+        Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
 
         List<HistoryResponseDTO.HistoryMyCommentResult> historyMyCommentResults = groupedComments.entrySet().stream()
                 .map(entry -> {
                     List<HistoryResponseDTO.MyCommentResult> commentsList = entry.getValue();
-                    History history = commentsPage.getContent().stream()
-                            .filter(comment -> comment.getHistory().getId().equals(entry.getKey()))
-                            .findFirst()
-                            .map(Comment::getHistory)
-                            .orElseThrow(() -> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
+                    History history = historyMap.get(entry.getKey());
 
-                    return HistoryResponseDTO.HistoryMyCommentResult.builder()
-                            .historyId(history.getId())
-                            .imageUrl(historyImageRepositoryService.findByHistoryId(history.getId()).stream()
-                                    .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
-                                    .map(HistoryImage::getImageUrl)
-                                    .findFirst()
-                                    .orElse(null))
-                            .date(history.getHistoryDate())
-                            .comments(commentsList)
-                            .build();
+                    return HistoryConverter.toHistoryMyCommentResult(history, commentsList, historyImageMap);
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        return HistoryResponseDTO.HistoryMyCommentListResult.builder()
-                .histories(historyMyCommentResults)
-                .totalPage(commentsPage.getTotalPages())
-                .totalElements(commentsPage.getTotalElements())
-                .isFirst(commentsPage.isFirst())
-                .isLast(commentsPage.isLast())
-                .build();
-
+        return HistoryConverter.toHistoryMyCommentListResult(commentsPage, historyMyCommentResults);
     }
 
 }
