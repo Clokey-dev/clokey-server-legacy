@@ -10,7 +10,7 @@ public interface SearchService {
 
     ClothResponseDTO.ClothPreviewListResult searchClothesByNameOrBrand(Long requestedMemberId, String clokeyId, String keyword, int page, int size) throws IOException;
 
-    HistoryResponseDTO.HistoryPreviewListResult searchHistoriesByHashtagAndCategory(String keyword, int page, int size) throws IOException;
+    HistoryResponseDTO.HistoryPreviewListResult searchHistoriesByHashtagAndCategory(Long memberId, String keyword, int page, int size) throws IOException;
 
-    MemberDTO.ProfilePreviewListRP searchMembersByClokeyIdOrNickname(String keyword, int page, int size) throws IOException;
+    MemberDTO.ProfilePreviewListRP searchMembersByClokeyIdOrNickname(Long memberId, String keyword, int page, int size) throws IOException;
 }

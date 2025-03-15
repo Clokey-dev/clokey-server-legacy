@@ -146,7 +146,7 @@ public class SearchRestController {
     ) {
         if(HISTORY_SEARCH_FILTER_BY_HASHTAG_AND_CATEGORY.equals(by)) {
             try {
-                HistoryResponseDTO.HistoryPreviewListResult result = searchService.searchHistoriesByHashtagAndCategory(keyword,page,size);
+                HistoryResponseDTO.HistoryPreviewListResult result = searchService.searchHistoriesByHashtagAndCategory(member.getId(),keyword,page,size);
                 return BaseResponse.onSuccess(SuccessStatus.SEARCH_SUCCESS, result);
             } catch (IOException e) {
                 return BaseResponse.onFailure(ErrorStatus.SEARCHING_IOEXCEPION, null);
@@ -181,7 +181,7 @@ public class SearchRestController {
     ) {
         if(USER_SEARCH_FILTER_BY_ID_AND_NICKNAME.equals(by)) {
             try {
-                MemberDTO.ProfilePreviewListRP result = searchService.searchMembersByClokeyIdOrNickname(keyword,page,size);
+                MemberDTO.ProfilePreviewListRP result = searchService.searchMembersByClokeyIdOrNickname(member.getId(),keyword,page,size);
                 return BaseResponse.onSuccess(SuccessStatus.SEARCH_SUCCESS, result);
             } catch (IOException e) {
                 return BaseResponse.onFailure(ErrorStatus.SEARCHING_IOEXCEPION, null);
