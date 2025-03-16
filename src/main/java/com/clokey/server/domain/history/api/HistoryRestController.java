@@ -233,5 +233,18 @@ public class HistoryRestController {
         return BaseResponse.onSuccess(SuccessStatus.HISTORY_SUCCESS, result);
     }
 
+    @GetMapping("/my-comments")
+    @Operation(summary = "내가 남긴 댓글 조회 api")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "HISTORY_200", description = "OK, 성공적으로 조회되었습니다.")
+    })
+    @Parameters({
+            @Parameter(name = "page", description = "페이징 관련 query parameter. 1부터 시작합니다.")
+    })
+    public BaseResponse<HistoryResponseDTO.HistoryMyCommentListResult> getMyComments(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                                       @RequestParam(value = "page") @Valid @CheckPage int page) {
+        HistoryResponseDTO.HistoryMyCommentListResult result = historyService.getMyComments(member.getId(), page - 1);
 
+        return BaseResponse.onSuccess(SuccessStatus.HISTORY_SUCCESS, result);
+    }
 }

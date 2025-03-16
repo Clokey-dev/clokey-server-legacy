@@ -1,5 +1,9 @@
 package com.clokey.server.domain.search.application;
 
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermsQueryField;
+import com.clokey.server.domain.member.application.BlockRepositoryService;
+import com.clokey.server.domain.member.domain.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,18 +29,9 @@ import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.converter.MemberDocumentConverter;
 import com.clokey.server.domain.member.domain.document.MemberDocument;
 import com.clokey.server.domain.member.dto.MemberDTO;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +40,8 @@ public class SearchServiceImpl implements SearchService {
     private final ElasticsearchClient elasticsearchClient;
 
     private final MemberRepositoryService memberRepositoryService;
+
+    private final BlockRepositoryService blockRepositoryService;
 
     private static final String MEMBER_INDEX_NAME = "user";
 
@@ -124,13 +121,26 @@ public class SearchServiceImpl implements SearchService {
 
     // 기록의 해쉬태그와 카테고리로 검색하는 메서드
     @Override
-    public HistoryResponseDTO.HistoryPreviewListResult searchHistoriesByHashtagAndCategory(String keyword, int page, int size) throws IOException {
+    public HistoryResponseDTO.HistoryPreviewListResult searchHistoriesByHashtagAndCategory(Long memberId, String keyword, int page, int size) throws IOException {
 
         Pageable pageable = PageRequest.of(page - 1, size);
+
+        List<Member> blockedMembers = blockRepositoryService.findAllByBlocker(memberId, pageable);
+        List<Long> blockedMemberIds = blockedMembers.stream()
+                .map(Member::getId)
+                .collect(Collectors.toList());
 
         SearchResponse<HistoryDocument> response = elasticsearchClient.search(s -> s
                         .index(HISTORY_INDEX_NAME)
                         .query(q -> q.bool(b -> b
+                                .mustNot(mn -> mn.terms(tq -> tq
+                                        .field("memberId")
+                                        .terms(TermsQueryField.of(t -> t.value(
+                                                blockedMemberIds.stream()
+                                                        .map(FieldValue::of) // Long → FieldValue 변환
+                                                        .collect(Collectors.toList())
+                                        )))
+                                ))
                                 .must(m -> m.match(t -> t
                                         .field("memberVisibility")
                                         .query("PUBLIC")
@@ -190,9 +200,14 @@ public class SearchServiceImpl implements SearchService {
 
     // 유저의 Clokey Id 또는 닉네임으로 검색하는 메서드
     @Override
-    public MemberDTO.ProfilePreviewListRP searchMembersByClokeyIdOrNickname(String keyword, int page, int size) throws IOException {
+    public MemberDTO.ProfilePreviewListRP searchMembersByClokeyIdOrNickname(Long memberId, String keyword, int page, int size) throws IOException {
 
         Pageable pageable = PageRequest.of(page - 1, size);
+
+        List<Member> blockedMembers = blockRepositoryService.findAllByBlocker(memberId, pageable);
+        List<Long> blockedMemberIds = blockedMembers.stream()
+                .map(Member::getId)
+                .collect(Collectors.toList());
 
         if (CHOSEONG_PATTERN.matcher(keyword).find()) {
             return MemberDTO.ProfilePreviewListRP.builder()
@@ -207,6 +222,14 @@ public class SearchServiceImpl implements SearchService {
             SearchResponse<MemberDocument> response = elasticsearchClient.search(s -> s
                             .index(MEMBER_INDEX_NAME)
                             .query(q -> q.bool(b -> b
+                                    .mustNot(mn -> mn.terms(tq -> tq
+                                            .field("id")
+                                            .terms(TermsQueryField.of(t -> t.value(
+                                                    blockedMemberIds.stream()
+                                                            .map(FieldValue::of) // Long → FieldValue 변환
+                                                            .collect(Collectors.toList())
+                                            )))
+                                    ))
                                     .should(m -> m.bool(bb -> bb
                                             .should(ms -> ms.matchPhrase(t -> t
                                                     .field("nickname")

@@ -100,4 +100,9 @@ public class CommentRepositoryServiceImpl implements CommentRepositoryService {
     public void deleteCommentsByCommentIds(List<Long> commentIds) {
         commentRepository.deleteCommentsByCommentIds(commentIds);
     }
+
+    @Override
+    public Page<Comment> findByMemberId(Long historyId, PageRequest pageRequest) {
+        return commentRepository.findByMember_Id(historyId, pageRequest);
+    }
 }

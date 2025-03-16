@@ -39,4 +39,6 @@ public interface CommentRepositoryService {
 
     void deleteCommentsByCommentIds(List<Long> commentIds);
 
+    Page<Comment> findByMemberId(Long memberId, PageRequest pageRequest);
+
 }
