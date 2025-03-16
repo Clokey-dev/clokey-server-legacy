@@ -2,6 +2,7 @@ package com.clokey.server.domain.history.converter;
 
 import com.clokey.server.domain.folder.domain.entity.Folder;
 import com.clokey.server.domain.folder.dto.FolderResponseDTO;
+import com.clokey.server.domain.history.domain.entity.HistoryImage;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -212,6 +213,32 @@ public class HistoryConverter {
         }
         return HistoryResponseDTO.LikedUserResults.builder()
                 .likedUsers(likedUserResults)
+                .build();
+    }
+
+    public static HistoryResponseDTO.MyCommentResult toMyCommentResult(Comment comment) {
+        return HistoryResponseDTO.MyCommentResult.builder()
+            .content(comment.getContent())
+            .build();
+    }
+
+    public static HistoryResponseDTO.HistoryMyCommentResult toHistoryMyCommentResult(History history, List<HistoryResponseDTO.MyCommentResult> commentsList,  Map<Long, String> imageMap) {
+        return HistoryResponseDTO.HistoryMyCommentResult.builder()
+                .historyId(history.getId())
+                .date(history.getHistoryDate())
+                .imageUrl(imageMap.get(history.getId()))
+                .comments(commentsList)
+                .build();
+    }
+
+
+    public static HistoryResponseDTO.HistoryMyCommentListResult toHistoryMyCommentListResult(Page<Comment> commentsPage, List<HistoryResponseDTO.HistoryMyCommentResult> historyMyCommentResults) {
+        return HistoryResponseDTO.HistoryMyCommentListResult.builder()
+                .histories(historyMyCommentResults)
+                .totalPage(commentsPage.getTotalPages())
+                .totalElements(commentsPage.getTotalElements())
+                .isFirst(commentsPage.isFirst())
+                .isLast(commentsPage.isLast())
                 .build();
     }
 }

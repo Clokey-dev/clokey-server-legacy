@@ -42,4 +42,6 @@ public interface HistoryService {
 
     HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page);
 
+    HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page);
+
 }

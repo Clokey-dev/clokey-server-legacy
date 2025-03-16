@@ -450,4 +450,40 @@ public class HistoryServiceImpl implements HistoryService {
         Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
         return HistoryConverter.toHistoryPreviewListResult(histories, historyImageMap);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page) {
+        Page<Comment> commentsPage = commentRepositoryService.findByMemberId(memberId, PageRequest.of(page, 10));
+
+        Map<Long, List<HistoryResponseDTO.MyCommentResult>> groupedComments = commentsPage.getContent().stream()
+                .filter(comment -> comment.getHistory()!=null)
+                .collect(Collectors.groupingBy(
+                comment -> comment.getHistory().getId(),
+                Collectors.mapping(HistoryConverter::toMyCommentResult, Collectors.toList())
+        ));
+
+        List<History> histories = commentsPage.getContent().stream()
+                .map(Comment::getHistory)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, History> historyMap = histories.stream().collect(Collectors.toMap(History::getId, history -> history));
+
+        Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
+
+        List<HistoryResponseDTO.HistoryMyCommentResult> historyMyCommentResults = groupedComments.entrySet().stream()
+                .map(entry -> {
+                    List<HistoryResponseDTO.MyCommentResult> commentsList = entry.getValue();
+                    History history = historyMap.get(entry.getKey());
+
+                    return HistoryConverter.toHistoryMyCommentResult(history, commentsList, historyImageMap);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return HistoryConverter.toHistoryMyCommentListResult(commentsPage, historyMyCommentResults);
+    }
+
 }
