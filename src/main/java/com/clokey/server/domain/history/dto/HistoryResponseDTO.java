@@ -226,7 +226,8 @@ public class HistoryResponseDTO {
     @AllArgsConstructor
     public static class HistoryMyCommentResult {
         private List<MyCommentResult> comments;
-        private String nickName;
+        private Long historyId;
+        private String nickname;
         private String imageUrl;
         private LocalDate date;
     }
