@@ -28,9 +28,9 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     }
 
     @Override
-    public List<History> findHistoriesByMemberWithinWeek(Long memberId) {
-        LocalDate weekAgo = LocalDate.now().minusWeeks(1);
-        return historyRepository.findHistoriesWithinWeek(memberId, weekAgo);
+    public List<History> findHistoriesByMemberWithinMonth(Long memberId) {
+        LocalDate monthAgo = LocalDate.now().minusMonths(1);
+        return historyRepository.findHistoriesWithinMonth(memberId, monthAgo);
     }
 
     @Override

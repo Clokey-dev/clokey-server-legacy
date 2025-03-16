@@ -14,7 +14,7 @@ public interface HistoryRepositoryService {
 
     List<History> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
 
-    List<History> findHistoriesByMemberWithinWeek(Long memberId);
+    List<History> findHistoriesByMemberWithinMonth(Long memberId);
 
     void incrementLikes(Long historyId);
 
