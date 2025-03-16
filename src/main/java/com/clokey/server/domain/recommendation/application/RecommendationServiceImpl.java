@@ -1,5 +1,6 @@
 package com.clokey.server.domain.recommendation.application;
 
+import com.clokey.server.domain.member.application.BlockRepositoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +52,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final FollowRepositoryService followRepositoryService;
     private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
     private final HashtagRepositoryService hashtagRepositoryService;
+    private final BlockRepositoryService blockRepositoryService;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -148,9 +150,10 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         Member member = memberRepositoryService.findMemberById(memberId);
         List<Member> followingMembers = getFollowingMembers(member.getId());
+        List<Member> blockingMembers = getBlockingMembers(member.getId());
 
         if (cachedRecommends == null) {
-            cachedRecommends = getRecommendList(member);
+            cachedRecommends = getRecommendList(member, blockingMembers);
             saveToRedis(cacheKeyRecommend, cachedRecommends, Duration.ofMinutes(1));
         }
         if (cachedClosets == null) {
@@ -162,7 +165,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             saveToRedis(cacheKeyCalendar, cachedCalendars, Duration.ofMinutes(1));
         }
         if (cachedPeople == null) {
-            cachedPeople = getPeopleList(member);
+            cachedPeople = getPeopleList(member, blockingMembers);
             saveToRedis(cacheKeyPeople, cachedPeople, Duration.ofMinutes(1));
         }
 
@@ -180,6 +183,10 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<RecommendationResponseDTO.PeopleResult> peopleResponseList = RecommendationConverter.convertPeopleToResponseDTO(cachedPeople, memberMap);
 
         return RecommendationConverter.toDailyNewsResult(recommendResponseList, closetResponseList, calendarResponseList, peopleResponseList);
+    }
+
+    private List<Member> getBlockingMembers(Long id) {
+        return blockRepositoryService.findAllByBlocker(id, Pageable.unpaged());
     }
 
     private <T> void saveToRedis(String key, List<T> value, Duration duration) {
@@ -214,12 +221,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         } else throw new RecommendException(ErrorStatus.NO_SUCH_SECTION);
     }
 
-    private List<RecommendationResponseDTO.RecommendCacheResult> getRecommendList(Member member) {
+    private List<RecommendationResponseDTO.RecommendCacheResult> getRecommendList(Member member, List<Member> blockingMembers) {
         List<RecommendationResponseDTO.RecommendCacheResult> recommendList = new ArrayList<>();
         String unusedHashtag = hashtagRepositoryService.findRandomUnusedHashtag(member.getId());
 
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
-                getHistoryImageUrlByHashtagName(unusedHashtag),
+                getHistoryImageUrlByHashtagName(unusedHashtag, blockingMembers),
                 member.getId(),
                 "님이 시도하지 않은 스타일",
                 unusedHashtag
@@ -227,7 +234,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         String recentHashtag = hashtagHistoryRepositoryService.findLatestTaggedHashtag(member.getId());
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
-                getHistoryImageUrlByHashtagName(recentHashtag),
+                getHistoryImageUrlByHashtagName(recentHashtag, blockingMembers),
                 member.getId(),
                 "님이 최근 태그한 해시태그",
                 recentHashtag
@@ -235,7 +242,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         String frequentCategory = clothRepositoryService.findMostWornCategory(member.getId());
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
-                getHistoryImageUrlByHashtagNameAtLast(frequentCategory),
+                getHistoryImageUrlByHashtagNameAtLast(frequentCategory, blockingMembers),
                 member.getId(),
                 "님이 자주 착용한 카테고리",
                 "#"+frequentCategory
@@ -297,7 +304,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         return new PageImpl<>(calendarList, PageRequest.of(page - 1, 6), calendarList.size());
     }
 
-    private List<RecommendationResponseDTO.PeopleCacheResult> getPeopleList(Member member) {
+    private List<RecommendationResponseDTO.PeopleCacheResult> getPeopleList(Member member, List<Member> blockingMembers) {
         List<Long> topFollowingMemberIds = followRepositoryService.findTopFollowingMembers();
 
         if (topFollowingMemberIds.isEmpty()) {
@@ -321,7 +328,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .map(historyMap::get)
                 .filter(Objects::nonNull)
                 .filter(history -> history.getMember().getVisibility() == Visibility.PUBLIC &&
-                        history.getVisibility() == Visibility.PUBLIC && history.getMember() != member)
+                        history.getVisibility() == Visibility.PUBLIC && history.getMember() != member && !blockingMembers.contains(history.getMember()))
                 .limit(4)
                 .toList();
 
@@ -352,7 +359,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .toList();
     }
 
-    private String getHistoryImageUrlByHashtagName(String hashtagName) {
+    private String getHistoryImageUrlByHashtagName(String hashtagName, List<Member> blockingMembers) {
         List<HashtagHistory> histories = hashtagHistoryRepositoryService.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName);
 
         if (histories == null || histories.isEmpty()) {
@@ -360,7 +367,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         for (HashtagHistory history : histories) {
-            if (history.getHistory() != null && history.getHistory().getVisibility() == Visibility.PUBLIC) {
+            if (history.getHistory() != null && history.getHistory().getVisibility() == Visibility.PUBLIC && !blockingMembers.contains(history.getHistory().getMember())) {
                 List<HistoryImage> images = historyImageRepositoryService.findByHistoryId(history.getHistory().getId());
                 if (!images.isEmpty()) {
                     return images.get(0).getImageUrl();
@@ -371,7 +378,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         return null;
     }
 
-    private String getHistoryImageUrlByHashtagNameAtLast(String hashtagName) {
+    private String getHistoryImageUrlByHashtagNameAtLast(String hashtagName, List<Member> blockingMembers) {
         List<HashtagHistory> histories = hashtagHistoryRepositoryService.findTop5HistoriesByHashtagNameOrderByDateDesc("#"+hashtagName);
 
         if (histories == null || histories.isEmpty()) {
@@ -379,7 +386,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         for (HashtagHistory history : histories) {
-            if (history.getHistory() != null && history.getHistory().getVisibility() == Visibility.PUBLIC) {
+            if (history.getHistory() != null && history.getHistory().getVisibility() == Visibility.PUBLIC && !blockingMembers.contains(history.getHistory().getMember())) {
                 List<HistoryImage> images = historyImageRepositoryService.findByHistoryId(history.getHistory().getId());
                 if (!images.isEmpty()) {
                     return images.get(0).getImageUrl();
@@ -397,7 +404,6 @@ public class RecommendationServiceImpl implements RecommendationService {
         LocalDate today = LocalDate.now();
         LocalDate oneYearAgo = today.minusYears(1);
 
-        //자신의 1년전 기록을 탐색합니다.
         if (historyRepositoryService.checkHistoryExistOfDate(oneYearAgo, memberId)) {
             History historyOneYearAgo = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberId);
             List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgo.getId()).stream()
@@ -415,7 +421,6 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         Long memberPicked = getRandomMemberWithHistory(followingMembers, membersHaveHistoryOneYearAgo);
 
-        // 팔로우 하는 사람들의 1년전 오늘을 확인합니다.
         if (memberPicked != null) {
             History historyOneYearAgo = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberPicked);
             List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgo.getId()).stream()
@@ -424,7 +429,6 @@ public class RecommendationServiceImpl implements RecommendationService {
             return RecommendationConverter.toLastYearHistoryResult(historyOneYearAgo.getId(),historyOneYearAgo.getHistoryDate(), historyUrls, memberRepositoryService.findMemberById(memberPicked), false);
         }
 
-        // 나와 팔로우 하는 사람들의 랜덤 게시물을 반환합니다.
         List<Long> members = new ArrayList<>(followingMembers);
         members.add(memberId);
         List<History> histories = historyRepositoryService.findHistoriesByMemberIdsAndDateRange(members,oneYearAgo,today);
@@ -435,7 +439,6 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .toList();
             return RecommendationConverter.toLastYearHistoryResult(randomHistory.getId(),randomHistory.getHistoryDate(),historyUrls,randomHistory.getMember(), randomHistory.getMember().equals(member));
         }
-
 
         return RecommendationConverter.toLastYearHistoryResult(null, null, null, member, true);
     }
