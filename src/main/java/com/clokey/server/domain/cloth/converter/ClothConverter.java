@@ -124,6 +124,13 @@ public class ClothConverter {
                 .collect(Collectors.toList());
     }
 
+    public static ClothResponseDTO.ClosetViewResult toClosetViewResult(String nickname, ClothResponseDTO.ClothPreviewListResult result) {
+        return ClothResponseDTO.ClosetViewResult.builder()
+                .nickname(nickname)
+                .clothPreviewListResult(result)
+                .build();
+    }
+
     public static ClothResponseDTO.ClothPreviewListResult toClothPreviewListResult(Page<?> page,
                                                                                    List<ClothResponseDTO.ClothPreview> clothPreviews) {
         return ClothResponseDTO.ClothPreviewListResult.builder()
