@@ -437,7 +437,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
 
-        return RecommendationConverter.toLastYearHistoryResult(null, null, null, member, true);
+        return RecommendationConverter.toLastYearHistoryResult(null, null, null, member, null);
     }
 
     private Long getRandomMemberWithHistory(List<Long> followingMembers, List<Boolean> membersHaveHistoryOneYearAgo) {
