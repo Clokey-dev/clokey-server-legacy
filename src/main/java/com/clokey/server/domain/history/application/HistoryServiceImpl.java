@@ -270,6 +270,8 @@ public class HistoryServiceImpl implements HistoryService {
 
     private HistoryResponseDTO.HistoryCreateResult updateHistory(HistoryRequestDTO.HistoryCreate historyUpdate, Long memberId, Long historyId, List<MultipartFile> images) {
 
+        validateVisualizeBannedHistory(memberId,historyUpdate);
+
         historyAccessibleValidator.validateMyHistory(historyId, memberId);
 
         historyImageRepositoryService.deleteAllByHistoryId(historyId);
@@ -295,6 +297,15 @@ public class HistoryServiceImpl implements HistoryService {
         asyncUpdatedHistoryFromES(historyToUpdate);
 
         return HistoryConverter.toHistoryCreateResult(historyRepositoryService.findById(historyId));
+    }
+
+    private void validateVisualizeBannedHistory(Long historyId, HistoryRequestDTO.HistoryCreate historyUpdate){
+        boolean banned = historyRepositoryService.findById(historyId).isBanned();
+        boolean changeToPublic = historyUpdate.getVisibility().equals(Visibility.PUBLIC);
+
+        if(banned && changeToPublic){
+            throw new HistoryException(ErrorStatus.BANNED_HISTORY_TO_PUBLIC);
+        }
     }
 
     @Override
