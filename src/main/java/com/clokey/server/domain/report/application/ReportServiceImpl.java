@@ -176,7 +176,7 @@ public class ReportServiceImpl implements ReportService{
             profileReport.disApproveReport();
         }
 
-        profileReport.disApproveReport();
+        profileReport.getReported().releaseBan();
     }
 
     private void processHistory(Long reportId, Boolean ban){
