@@ -2,6 +2,8 @@ package com.clokey.server.domain.member.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.clokey.server.domain.member.exception.annotation.VisualizeBannedUser;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,6 +46,7 @@ public class MemberDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @VisualizeBannedUser
     public static class ProfileRQ {
         @EssentialFieldNotNull
         String nickname;

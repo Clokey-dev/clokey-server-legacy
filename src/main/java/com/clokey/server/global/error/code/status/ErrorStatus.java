@@ -34,6 +34,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NO_SUCH_FOLLOWER(HttpStatus.NOT_FOUND,"MEMBER_4010","존재하지 않는 팔로워 ID입니다."),
     CANNOT_BLOCK_MYSELF(HttpStatus.BAD_REQUEST,"MEMBER_4011","자신을 차단할 수 없습니다."),
     CANNOT_REPORT_MYSELF(HttpStatus.BAD_REQUEST,"MEMBER_4012","자신을 신고할 수 없습니다."),
+    BANNED_MEMBER_TO_PUBLIC(HttpStatus.BAD_REQUEST,"MEMBER_4013","신고당한 회원은 공개로 전환할 수 없습니다."),
 
     //옷 에러
     NO_SUCH_CLOTH(HttpStatus.NOT_FOUND,"CLOTH_4041","존재하지 않는 옷 ID입니다."),
