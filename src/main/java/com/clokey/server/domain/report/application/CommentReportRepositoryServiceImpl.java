@@ -3,6 +3,8 @@ package com.clokey.server.domain.report.application;
 import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import com.clokey.server.domain.report.domain.entity.CommentReport;
 import com.clokey.server.domain.report.domain.repository.CommentReportRepository;
+import com.clokey.server.domain.report.exception.ReportException;
+import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,5 +30,10 @@ public class CommentReportRepositoryServiceImpl implements CommentReportReposito
     @Override
     public List<CommentReport> findAllByPredicate(Predicate predicate) {
         return commentReportRepository.findAll(predicate);
+    }
+
+    @Override
+    public CommentReport findById(Long id) {
+        return commentReportRepository.findById(id).orElseThrow(()-> new ReportException(ErrorStatus.NO_SUCH_COMMENT_REPORT));
     }
 }
