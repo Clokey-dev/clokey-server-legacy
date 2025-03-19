@@ -270,7 +270,7 @@ public class HistoryServiceImpl implements HistoryService {
 
     private HistoryResponseDTO.HistoryCreateResult updateHistory(HistoryRequestDTO.HistoryCreate historyUpdate, Long memberId, Long historyId, List<MultipartFile> images) {
 
-        validateVisualizeBannedHistory(memberId,historyUpdate);
+        validateVisualizeBannedHistory(historyId,historyUpdate);
 
         historyAccessibleValidator.validateMyHistory(historyId, memberId);
 
