@@ -150,6 +150,51 @@ public class ReportServiceImpl implements ReportService{
                 throw new ReportException(ErrorStatus.INVALID_REPORT_TYPE);
         }
     }
+
+    @Override
+    public void processReport(ReportType reportType, Long reportId, Boolean ban) {
+        if(reportType.equals(ReportType.PROFILE)){
+            processProfile(reportId,ban);
+        } else if(reportType.equals(ReportType.HISTORY)){
+            processHistory(reportId,ban);
+        } else {
+            processComment(reportId,ban);
+        }
+    }
+
+    private void processProfile(Long reportId, Boolean ban){
+        ProfileReport profileReport = profileReportRepositoryService.findById(reportId);
+        if(ban) {
+            profileReport.approveReport();
+            profileReport.getReported().makePrivate();
+            return;
+        }
+        profileReport.disApproveReport();
+    }
+
+    private void processHistory(Long reportId, Boolean ban){
+        HistoryReport historyReport = historyReportRepositoryService.findById(reportId);
+        if(ban) {
+            historyReport.approveReport();
+            historyReport.getHistory().makePrivate();
+            return;
+        }
+        historyReport.disApproveReport();
+    }
+
+    private void processComment(Long reportId, Boolean ban){
+        CommentReport commentReport = commentReportRepositoryService.findById(reportId);
+        if(ban) {
+            commentReport.approveReport();
+            Long reportedCommentId = commentReport.getComment().getId();
+            commentRepositoryService.deleteChildren(reportedCommentId);
+            commentRepositoryService.deleteById(reportedCommentId);
+            return;
+        }
+        commentReport.disApproveReport();
+    }
+
+
     private ReportResponseDTO.AdminReportViewResults getFilteredReportsForProfile(BooleanBuilder builder,
                                                                                   ReportStatus reportStatus,
                                                                                   Long reporterId,

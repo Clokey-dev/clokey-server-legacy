@@ -37,4 +37,12 @@ public class CommentReport extends BaseEntity {
 
     @Column(length = 200)
     private String content;
+
+    public void approveReport(){
+        this.reportStatus = ReportStatus.APPROVED;
+    }
+
+    public void disApproveReport(){
+        this.reportStatus = ReportStatus.DISAPPROVED;
+    }
 }

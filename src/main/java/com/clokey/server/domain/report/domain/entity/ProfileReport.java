@@ -38,4 +38,12 @@ public class ProfileReport extends BaseEntity {
     @Column(columnDefinition = "VARCHAR(15) DEFAULT 'UNCHECKED'", nullable = false)
     private ReportStatus reportStatus;
 
+    public void approveReport(){
+        this.reportStatus = ReportStatus.APPROVED;
+    }
+
+    public void disApproveReport(){
+        this.reportStatus = ReportStatus.DISAPPROVED;
+    }
+
 }

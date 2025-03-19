@@ -103,7 +103,7 @@ public class ReportRestController {
         return BaseResponse.onSuccess(SuccessStatus.REPORT_PROFILE_SUCCESS, result);
     }
 
-    @PostMapping("/admin")
+    @GetMapping("/admin")
     @Operation(summary = "관리자용 신고 조회 API", description = "다양한 조건으로 신고 사항을 조회할 수 있는 API")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_200", description = "관리자용 신고 기록이 성공적으로 조회되었습니다."),
@@ -117,6 +117,19 @@ public class ReportRestController {
         ReportResponseDTO.AdminReportViewResults result = reportService.getAdminReportViewResults(reportStatus,reportType,reporterId,reportedInstanceId);
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_ADMIN_VIEW_SUCCESS, result);
+    }
+
+    @PostMapping("/admin")
+    @Operation(summary = "관리자용 신고 처리 API", description = "신고를 보고 제제를 가하는 것에 대한 처리 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "REPORT_204", description = "신고가 성공적으로 처리되었습니다."),
+    })
+    public BaseResponse<Void> processReport(
+            @RequestParam ReportType reportType,
+            @RequestParam Long reportId,
+            @RequestParam Boolean ban) {
+        reportService.processReport(reportType,reportId,ban);
+        return BaseResponse.onSuccess(SuccessStatus.REPORT_ADMIN_PROCESSED, null);
     }
 
 }

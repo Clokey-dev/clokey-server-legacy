@@ -51,4 +51,12 @@ public class History extends BaseEntity {
             this.visibility = visibility;
         }
     }
+
+    public void makePublic(){
+        this.visibility = Visibility.PUBLIC;
+    }
+
+    public void makePrivate(){
+        this.visibility = Visibility.PRIVATE;
+    }
 }

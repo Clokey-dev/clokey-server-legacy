@@ -148,5 +148,12 @@ public class Member extends BaseEntity {
         this.inactiveDate = date;
     }
 
+    public void makePublic(){
+        this.visibility = Visibility.PUBLIC;
+    }
+
+    public void makePrivate(){
+        this.visibility = Visibility.PRIVATE;
+    }
 
 }
