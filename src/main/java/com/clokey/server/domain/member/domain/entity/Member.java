@@ -156,4 +156,12 @@ public class Member extends BaseEntity {
         this.visibility = Visibility.PRIVATE;
     }
 
+    public void ban(){
+        this.banned = true;
+    }
+
+    public void releaseBan(){
+        this.banned = false;
+    }
+
 }

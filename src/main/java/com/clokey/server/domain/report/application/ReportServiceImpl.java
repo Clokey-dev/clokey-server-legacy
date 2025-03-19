@@ -152,6 +152,7 @@ public class ReportServiceImpl implements ReportService{
     }
 
     @Override
+    @Transactional
     public void processReport(ReportType reportType, Long reportId, Boolean ban) {
         if(reportType.equals(ReportType.PROFILE)){
             processProfile(reportId,ban);
@@ -166,9 +167,15 @@ public class ReportServiceImpl implements ReportService{
         ProfileReport profileReport = profileReportRepositoryService.findById(reportId);
         if(ban) {
             profileReport.approveReport();
-            profileReport.getReported().makePrivate();
+            Member reported = profileReport.getReported();
+            reported.makePrivate();
+            reported.ban();
             return;
         }
+        if(profileReport.getReportStatus().equals(ReportStatus.UNCHECKED)){
+            profileReport.disApproveReport();
+        }
+
         profileReport.disApproveReport();
     }
 
@@ -176,10 +183,16 @@ public class ReportServiceImpl implements ReportService{
         HistoryReport historyReport = historyReportRepositoryService.findById(reportId);
         if(ban) {
             historyReport.approveReport();
-            historyReport.getHistory().makePrivate();
+            History reported = historyReport.getHistory();
+            reported.makePrivate();
+            reported.ban();
             return;
         }
-        historyReport.disApproveReport();
+        if(historyReport.getReportStatus().equals(ReportStatus.UNCHECKED)){
+            historyReport.disApproveReport();
+        }
+
+        historyReport.getHistory().releaseBan();
     }
 
     private void processComment(Long reportId, Boolean ban){

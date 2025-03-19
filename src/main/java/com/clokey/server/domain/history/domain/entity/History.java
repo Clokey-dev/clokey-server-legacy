@@ -59,4 +59,13 @@ public class History extends BaseEntity {
     public void makePrivate(){
         this.visibility = Visibility.PRIVATE;
     }
+
+    public void ban(){
+        this.banned = true;
+    }
+
+    public void releaseBan(){
+        this.banned = false;
+    }
+
 }
