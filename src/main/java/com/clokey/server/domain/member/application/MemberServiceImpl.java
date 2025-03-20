@@ -99,7 +99,7 @@ public class MemberServiceImpl implements MemberService {
             member = currentUser;
             isFollowing = null;
             isBlocking = null;
-            isMyself = null;
+            isMyself = true;
             topCloths = clothRepositoryService.getTop3Cloths(member);
         } else {
             member = memberRepositoryService.findMemberByClokeyId(clokeyId);
