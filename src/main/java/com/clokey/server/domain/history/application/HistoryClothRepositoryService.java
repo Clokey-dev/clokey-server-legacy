@@ -23,4 +23,6 @@ public interface HistoryClothRepositoryService {
     void saveAll(List<HistoryCloth> historyCloths);
 
     void deleteAllByHistoryIds(List<Long> historyIds);
+
+    String findMostWornCategory(Long memberId);
 }

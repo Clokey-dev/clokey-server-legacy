@@ -63,13 +63,9 @@ public interface ClothRepository extends JpaRepository<Cloth, Long> {
     List<Cloth> findTop6ByMemberInAndVisibilityAndCreatedAtBetweenOrderByCreatedAtDesc(
             Collection<Member> member, Visibility visibility, LocalDateTime createdAt, LocalDateTime createdAt2);
 
-    @Query("SELECT c.category.name FROM Cloth c WHERE c.member.id = :memberId " +
-            "GROUP BY c.category ORDER BY COUNT(c.id) DESC LIMIT 1")
-    Optional<String> findMostWornCategory(@Param("memberId") Long memberId);
-
     @Query("SELECT c FROM Cloth c WHERE c.member.id = :memberId " +
-            "AND ((:nowTemp BETWEEN c.tempLowerBound AND c.tempUpperBound) " + // 1순위: 현재 온도가 온도 범위 내
-            "OR (c.tempLowerBound <= :maxTemp AND c.tempUpperBound >= :minTemp)) " + // 2순위: 오늘 기온과 겹치는 옷
+            "AND ((:nowTemp BETWEEN c.tempLowerBound AND c.tempUpperBound) " +
+            "OR (c.tempLowerBound <= :maxTemp AND c.tempUpperBound >= :minTemp)) " +
             "ORDER BY RAND()")
     List<Cloth> findBySuitableClothFilters (@Param("memberId") Long memberId,
                                            @Param("nowTemp") Integer nowTemp,

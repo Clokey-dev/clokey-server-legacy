@@ -49,8 +49,6 @@ public interface ClothRepositoryService {
     List<Cloth> findTop6ByMemberInAndVisibilityOrderByCreatedAtDesc(
             List<Member> members, Visibility visibility);
 
-    String findMostWornCategory(Long memberId);
-
     List<Cloth> findBySuitableClothFilters(Long memberId, Integer nowTemp, Integer minTemp, Integer maxTemp);
 
     List<Cloth> getTop3Cloths(Member member);
