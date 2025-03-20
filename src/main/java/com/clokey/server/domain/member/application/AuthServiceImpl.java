@@ -96,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String extractUserIdFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
-        return claims.get("userId", String.class);
+        return claims.get("userId", Long.class).toString();
     }
 
 
