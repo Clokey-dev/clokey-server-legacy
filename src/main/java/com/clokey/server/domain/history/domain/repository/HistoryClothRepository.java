@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
+
 import jakarta.transaction.Transactional;
 
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
@@ -40,4 +42,7 @@ public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long
     @Query("DELETE FROM HistoryCloth hc WHERE hc.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
+    @Query("SELECT c.cloth.category.name FROM HistoryCloth c WHERE c.cloth.member.id = :memberId " +
+            "GROUP BY c.cloth.category.name ORDER BY COUNT(c.id) DESC LIMIT 1")
+    Optional<String> findMostWornCategory(@Param("memberId") Long memberId);
 }
