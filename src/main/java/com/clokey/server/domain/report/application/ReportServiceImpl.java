@@ -199,12 +199,14 @@ public class ReportServiceImpl implements ReportService{
         CommentReport commentReport = commentReportRepositoryService.findById(reportId);
         if(ban) {
             commentReport.approveReport();
-            Long reportedCommentId = commentReport.getComment().getId();
-            commentRepositoryService.deleteChildren(reportedCommentId);
-            commentRepositoryService.deleteById(reportedCommentId);
+            Comment reportedComment = commentReport.getComment();
+            reportedComment.ban();
             return;
         }
-        commentReport.disApproveReport();
+        if (commentReport.getReportStatus().equals(ReportStatus.UNCHECKED)){
+            commentReport.disApproveReport();
+        }
+        commentReport.getComment().releaseBan();
     }
 
 
