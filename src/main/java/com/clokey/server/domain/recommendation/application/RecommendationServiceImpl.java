@@ -179,7 +179,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<RecommendationResponseDTO.CalendarResult> calendarResponseList = RecommendationConverter.toCalendarResult(cachedCalendars, memberMap);
         List<RecommendationResponseDTO.PeopleResult> peopleResponseList = RecommendationConverter.toPeopleResult(cachedPeople, memberMap, blockingMembers);
 
-        return RecommendationConverter.toDailyNewsResult(recommendResponseList, closetResponseList, calendarResponseList, peopleResponseList);
+        return RecommendationConverter.toDailyNewsResult(recommendResponseList, closetResponseList, calendarResponseList, peopleResponseList, followingMembers.size());
     }
 
     private Set<Long> getBlockingMembers(Long id) {
@@ -355,7 +355,6 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         return followingMembers.stream()
                 .filter(filteredmember -> filteredmember.getVisibility().equals(Visibility.PUBLIC))
-                .limit(20)
                 .toList();
     }
 

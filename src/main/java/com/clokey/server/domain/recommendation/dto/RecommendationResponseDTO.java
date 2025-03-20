@@ -33,6 +33,7 @@ public class RecommendationResponseDTO {
         private List<ClosetResult> closet;
         private List<CalendarResult> calendar;
         private List<PeopleResult> people;
+        Integer followingCount;
     }
 
     @Builder
