@@ -65,12 +65,17 @@ public class RecommendationConverter {
                     LocalDate date = entry.getKey().getSecond();
                     List<Cloth> groupedClothList = entry.getValue();
 
-                    List<Long> clothesIds = groupedClothList.stream()
-                            .map(Cloth::getId)
+                    List<Pair<Long, String>> clothData = groupedClothList.stream()
+                            .limit(3)
+                            .map(cloth -> Pair.of(cloth.getId(), cloth.getImage() != null ? cloth.getImage().getImageUrl() : null))
+                            .toList();
+
+                    List<Long> clothesIds = clothData.stream()
+                            .map(Pair::getFirst)
                             .collect(Collectors.toList());
 
-                    List<String> images = groupedClothList.stream()
-                            .map(cloth -> cloth.getImage() != null ? cloth.getImage().getImageUrl() : null)
+                    List<String> images = clothData.stream()
+                            .map(Pair::getSecond)
                             .collect(Collectors.toList());
 
                     return new RecommendationResponseDTO.ClosetCacheResult(
@@ -142,12 +147,13 @@ public class RecommendationConverter {
                 .build();
     }
 
-    public static RecommendationResponseDTO.DailyNewsResult toDailyNewsResult(List<RecommendationResponseDTO.RecommendResult> recommendList, List<RecommendationResponseDTO.ClosetResult> closetList, List<RecommendationResponseDTO.CalendarResult> calendarList, List<RecommendationResponseDTO.PeopleResult> peopleList) {
+    public static RecommendationResponseDTO.DailyNewsResult toDailyNewsResult(List<RecommendationResponseDTO.RecommendResult> recommendList, List<RecommendationResponseDTO.ClosetResult> closetList, List<RecommendationResponseDTO.CalendarResult> calendarList, List<RecommendationResponseDTO.PeopleResult> peopleList, Integer followingCount) {
         return RecommendationResponseDTO.DailyNewsResult.builder()
                 .recommend(recommendList)
                 .closet(closetList)
                 .calendar(calendarList)
                 .people(peopleList)
+                .followingCount(followingCount)
                 .build();
     }
 
