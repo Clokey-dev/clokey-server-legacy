@@ -53,4 +53,16 @@ public interface HashtagHistoryRepository extends JpaRepository<HashtagHistory, 
     @Query("SELECT hh FROM HashtagHistory hh WHERE hh.hashtag.name = :hashtagName ORDER BY hh.history.createdAt DESC")
     List<HashtagHistory> findTop5HistoriesByHashtagNameOrderByDateDesc(@Param("hashtagName") String hashtagName, Pageable pageable);
 
+    @Query("SELECT hh FROM HashtagHistory hh " +
+            "JOIN hh.history h " +
+            "JOIN HistoryCloth hc ON hc.history = h " +
+            "JOIN hc.cloth c " +
+            "JOIN c.category ch " +
+            "WHERE hh.hashtag.name = :hashtagName OR ch.name = :categoryName " +
+            "ORDER BY h.createdAt DESC")
+    List<HashtagHistory> findTop5HistoriesByCategoryNameOrderByDateDesc(
+            @Param("hashtagName") String hashtagName,
+            @Param("categoryName") String categoryName,
+            Pageable pageable);
+
 }

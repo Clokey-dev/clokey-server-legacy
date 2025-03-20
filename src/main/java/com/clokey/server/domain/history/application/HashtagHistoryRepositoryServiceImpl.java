@@ -74,4 +74,10 @@ public class HashtagHistoryRepositoryServiceImpl implements HashtagHistoryReposi
         return hashtagHistoryRepository.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName, PageRequest.of(0, 5));
     }
 
+    @Override
+    public List<HashtagHistory> findTop5HistoriesByCategoryNameOrderByDateDesc(String categoryName) {
+        return hashtagHistoryRepository.findTop5HistoriesByCategoryNameOrderByDateDesc("#"+categoryName, categoryName, PageRequest.of(0, 5));
+    }
+
+
 }

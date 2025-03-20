@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -242,7 +243,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         String frequentCategory = historyClothRepositoryService.findMostWornCategory(member.getId());
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
-                getHistoryImageUrlByHashtagNameAtLast(frequentCategory, blockingMembers),
+                getHistoryImageUrlByCategoryName(frequentCategory, blockingMembers),
                 member.getId(),
                 "님이 자주 착용한 카테고리",
                 "#"+frequentCategory
@@ -358,15 +359,18 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .toList();
     }
 
-    private String getHistoryImageUrlByHashtagName(String hashtagName, Set<Long> blockingMembers) {
-        List<HashtagHistory> histories = hashtagHistoryRepositoryService.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName);
+    private String getHistoryImageUrl(Supplier<List<HashtagHistory>> historySupplier, Set<Long> blockingMembers) {
+        List<HashtagHistory> histories = historySupplier.get();
 
         if (histories == null || histories.isEmpty()) {
             return null;
         }
 
         for (HashtagHistory history : histories) {
-            if (history.getHistory() != null && history.getHistory().getVisibility() == Visibility.PUBLIC && !blockingMembers.contains(history.getHistory().getMember().getId())) {
+            if (history.getHistory() != null &&
+                    history.getHistory().getVisibility() == Visibility.PUBLIC &&
+                    !blockingMembers.contains(history.getHistory().getMember().getId())) {
+
                 List<HistoryImage> images = historyImageRepositoryService.findByHistoryId(history.getHistory().getId());
                 if (!images.isEmpty()) {
                     return images.get(0).getImageUrl();
@@ -377,24 +381,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         return null;
     }
 
-    private String getHistoryImageUrlByHashtagNameAtLast(String hashtagName, Set<Long> blockingMembers) {
-        List<HashtagHistory> histories = hashtagHistoryRepositoryService.findTop5HistoriesByHashtagNameOrderByDateDesc("#"+hashtagName);
-
-        if (histories == null || histories.isEmpty()) {
-            return null;
-        }
-
-        for (HashtagHistory history : histories) {
-            if (history.getHistory() != null && history.getHistory().getVisibility() == Visibility.PUBLIC && !blockingMembers.contains(history.getHistory().getMember().getId())) {
-                List<HistoryImage> images = historyImageRepositoryService.findByHistoryId(history.getHistory().getId());
-                if (!images.isEmpty()) {
-                    return images.get(0).getImageUrl();
-                }
-            }
-        }
-
-        return null;
+    public String getHistoryImageUrlByHashtagName(String hashtagName, Set<Long> blockingMembers) {
+        return getHistoryImageUrl(() -> hashtagHistoryRepositoryService.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName), blockingMembers);
     }
+
+    public String getHistoryImageUrlByCategoryName(String categoryName, Set<Long> blockingMembers) {
+        return getHistoryImageUrl(() -> hashtagHistoryRepositoryService.findTop5HistoriesByCategoryNameOrderByDateDesc(categoryName), blockingMembers);
+    }
+
 
     @Override
     @Transactional(readOnly = true)
