@@ -16,7 +16,7 @@ public interface AuthService {
 
     boolean validateJwtToken(String token);
 
-    String extractEmailFromToken(String token);
+    String extractUserIdFromToken(String token);
 
     // 카카오 사용자 정보 조회 및 DB 저장 메서드 추가
     BaseResponse<AuthDTO.TokenResponse> authenticateKakaoUser(String kakaoAccessToken, String deviceToken);
