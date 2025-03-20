@@ -34,6 +34,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NO_SUCH_FOLLOWER(HttpStatus.NOT_FOUND,"MEMBER_4010","존재하지 않는 팔로워 ID입니다."),
     CANNOT_BLOCK_MYSELF(HttpStatus.BAD_REQUEST,"MEMBER_4011","자신을 차단할 수 없습니다."),
     CANNOT_REPORT_MYSELF(HttpStatus.BAD_REQUEST,"MEMBER_4012","자신을 신고할 수 없습니다."),
+    BANNED_MEMBER_TO_PUBLIC(HttpStatus.BAD_REQUEST,"MEMBER_4013","신고당한 회원은 공개로 전환할 수 없습니다."),
 
     //옷 에러
     NO_SUCH_CLOTH(HttpStatus.NOT_FOUND,"CLOTH_4041","존재하지 않는 옷 ID입니다."),
@@ -81,6 +82,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NO_HISTORY_FOR_DATE(HttpStatus.BAD_REQUEST,"HISTORY_4016","해당 날짜에 기록이 없습니다"),
     NO_CLOTH_FOR_HISTORY(HttpStatus.BAD_REQUEST,"HISTORY_4017","기록에는 반드시 옷을 등록해야합니다."),
     TOO_MANY_HASHTAGS(HttpStatus.BAD_REQUEST,"HISTORY_4018","해시태그는 20개 이하로 등록 가능합니다."),
+    BANNED_HISTORY_TO_PUBLIC(HttpStatus.BAD_REQUEST,"HISTORY_4019","신고 당한 기록은 공개로 전환할 수 없습니다."),
 
     //해시태그 에러
     NO_SUCH_HASHTAG_NAME(HttpStatus.BAD_REQUEST,"HASHTAG_4001","해당 이름의 해시태그가 존재하지 않습니다"),
@@ -139,7 +141,10 @@ public enum ErrorStatus implements BaseErrorCode {
     REPORT_OUT_OF_RANGE(HttpStatus.BAD_REQUEST,"REPORT_4001","신고 내용이 %d자 까지만 가능합니다."),
     REPORT_INSTANCE_ID_WITHOUT_REPORT_TYPE(HttpStatus.BAD_REQUEST,"REPORT_4002","Report Type을 선택하지 않고 Report Instance의 Id를 조회할 수 없습니다."),
     NO_SUCH_REPORT_INSTANCE_ID(HttpStatus.BAD_REQUEST,"REPORT_4003","조건에 해당하는 Report Instance의 Id가 존재하지 않습니다."),
-    INVALID_REPORT_TYPE(HttpStatus.BAD_REQUEST,"REPORT_4004","존재하지 않는 Report Type 입니다")
+    INVALID_REPORT_TYPE(HttpStatus.BAD_REQUEST,"REPORT_4004","존재하지 않는 Report Type 입니다."),
+    NO_SUCH_COMMENT_REPORT(HttpStatus.BAD_REQUEST,"REPORT_4005","댓글 신고 내역이 존재하지 않습니다."),
+    NO_SUCH_MEMBER_REPORT(HttpStatus.BAD_REQUEST,"REPORT_4006","회원 신고 내역이 존재하지 않습니다."),
+    NO_SUCH_HISTORY_REPORT(HttpStatus.BAD_REQUEST,"REPORT_4007","기록 신고 내역이 존재하지 않습니다."),
     ;
 
 

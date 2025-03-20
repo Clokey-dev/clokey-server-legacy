@@ -21,4 +21,6 @@ public interface ReportService {
     ReportResponseDTO.ProfileReportResult getProfileReportResult(ReportRequestDTO.ProfileReportRequest profileReportRequest, Long memberId);
 
     ReportResponseDTO.AdminReportViewResults getAdminReportViewResults(ReportStatus reportStatus,ReportType reportType, Long reporterId, Long reportedInstanceId);
+
+    void processReport(ReportType reportType, Long reportId, Boolean ban);
 }

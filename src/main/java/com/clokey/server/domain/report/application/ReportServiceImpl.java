@@ -150,6 +150,66 @@ public class ReportServiceImpl implements ReportService{
                 throw new ReportException(ErrorStatus.INVALID_REPORT_TYPE);
         }
     }
+
+    @Override
+    @Transactional
+    public void processReport(ReportType reportType, Long reportId, Boolean ban) {
+        if(reportType.equals(ReportType.PROFILE)){
+            processProfile(reportId,ban);
+        } else if(reportType.equals(ReportType.HISTORY)){
+            processHistory(reportId,ban);
+        } else {
+            processComment(reportId,ban);
+        }
+    }
+
+    private void processProfile(Long reportId, Boolean ban){
+        ProfileReport profileReport = profileReportRepositoryService.findById(reportId);
+        if(ban) {
+            profileReport.approveReport();
+            Member reported = profileReport.getReported();
+            reported.makePrivate();
+            reported.ban();
+            return;
+        }
+        if(profileReport.getReportStatus().equals(ReportStatus.UNCHECKED)){
+            profileReport.disApproveReport();
+        }
+
+        profileReport.getReported().releaseBan();
+    }
+
+    private void processHistory(Long reportId, Boolean ban){
+        HistoryReport historyReport = historyReportRepositoryService.findById(reportId);
+        if(ban) {
+            historyReport.approveReport();
+            History reported = historyReport.getHistory();
+            reported.makePrivate();
+            reported.ban();
+            return;
+        }
+        if(historyReport.getReportStatus().equals(ReportStatus.UNCHECKED)){
+            historyReport.disApproveReport();
+        }
+
+        historyReport.getHistory().releaseBan();
+    }
+
+    private void processComment(Long reportId, Boolean ban){
+        CommentReport commentReport = commentReportRepositoryService.findById(reportId);
+        if(ban) {
+            commentReport.approveReport();
+            Comment reportedComment = commentReport.getComment();
+            reportedComment.ban();
+            return;
+        }
+        if (commentReport.getReportStatus().equals(ReportStatus.UNCHECKED)){
+            commentReport.disApproveReport();
+        }
+        commentReport.getComment().releaseBan();
+    }
+
+
     private ReportResponseDTO.AdminReportViewResults getFilteredReportsForProfile(BooleanBuilder builder,
                                                                                   ReportStatus reportStatus,
                                                                                   Long reporterId,

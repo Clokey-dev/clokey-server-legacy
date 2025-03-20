@@ -2,6 +2,8 @@ package com.clokey.server.domain.report.application;
 
 import com.clokey.server.domain.report.domain.entity.HistoryReport;
 import com.clokey.server.domain.report.domain.repository.HistoryReportRepository;
+import com.clokey.server.domain.report.exception.ReportException;
+import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,5 +24,10 @@ public class HistoryReportRepositoryServiceImpl implements HistoryReportReposito
     @Override
     public List<HistoryReport> findAllByPredicate(Predicate predicate) {
         return historyReportRepository.findAll(predicate);
+    }
+
+    @Override
+    public HistoryReport findById(Long id) {
+        return historyReportRepository.findById(id).orElseThrow(()-> new ReportException(ErrorStatus.NO_SUCH_HISTORY_REPORT));
     }
 }

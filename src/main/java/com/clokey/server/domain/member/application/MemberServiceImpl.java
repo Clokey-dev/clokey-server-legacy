@@ -125,6 +125,8 @@ public class MemberServiceImpl implements MemberService {
         // 사용자 확인
         Member member = memberRepositoryService.findMemberById(userId);
 
+        validateVisualizeBannedMember(member,request);
+
         // ✅ S3 업로드 후 URL 저장
         String profileImageUrl;
         if (profileImage != null && !profileImage.isEmpty()) {
@@ -156,6 +158,14 @@ public class MemberServiceImpl implements MemberService {
 
         // 응답 생성
         return ProfileConverter.toProfileRPDTO(updatedMember);
+    }
+
+    private void validateVisualizeBannedMember(Member member, MemberDTO.ProfileRQ request){
+        boolean banned = member.isBanned();
+        boolean changeToPublic = request.getVisibility().equals(Visibility.PUBLIC);
+        if(banned && changeToPublic){
+            throw new MemberException(ErrorStatus.BANNED_MEMBER_TO_PUBLIC);
+        }
     }
 
     // 비동기 방식으로 Elasticsearch 수정 요청

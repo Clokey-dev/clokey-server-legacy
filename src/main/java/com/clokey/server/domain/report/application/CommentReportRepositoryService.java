@@ -12,4 +12,6 @@ public interface CommentReportRepositoryService {
     Boolean existsById(Long commentId);
 
     List<CommentReport> findAllByPredicate(Predicate predicate);
+
+    CommentReport findById(Long id);
 }

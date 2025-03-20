@@ -8,4 +8,6 @@ public interface ProfileReportRepositoryService {
     Long save(ProfileReport profileReport);
 
     List<ProfileReport> findAllByPredicate(Predicate predicate);
+
+    ProfileReport findById(Long id);
 }

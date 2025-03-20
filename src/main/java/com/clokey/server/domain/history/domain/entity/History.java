@@ -35,6 +35,10 @@ public class History extends BaseEntity {
     @Column(length = 200)
     private String content;
 
+    //default가 false입니다.
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private boolean banned;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -47,4 +51,21 @@ public class History extends BaseEntity {
             this.visibility = visibility;
         }
     }
+
+    public void makePublic(){
+        this.visibility = Visibility.PUBLIC;
+    }
+
+    public void makePrivate(){
+        this.visibility = Visibility.PRIVATE;
+    }
+
+    public void ban(){
+        this.banned = true;
+    }
+
+    public void releaseBan(){
+        this.banned = false;
+    }
+
 }
