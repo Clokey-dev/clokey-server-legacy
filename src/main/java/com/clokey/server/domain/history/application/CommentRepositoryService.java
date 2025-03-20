@@ -9,7 +9,7 @@ import com.clokey.server.domain.history.domain.entity.Comment;
 
 public interface CommentRepositoryService {
 
-    Page<Comment> findByHistoryIdAndCommentIsNull(Long historyId, PageRequest pageRequest);
+    Page<Comment> findByHistoryParentCommentsNotBanned(Long historyId, PageRequest pageRequest);
 
     List<Comment> findByCommentId(Long parentId);
 

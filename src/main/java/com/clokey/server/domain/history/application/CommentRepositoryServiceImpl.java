@@ -22,8 +22,8 @@ public class CommentRepositoryServiceImpl implements CommentRepositoryService {
     private final CommentRepository commentRepository;
 
     @Override
-    public Page<Comment> findByHistoryIdAndCommentIsNull(Long historyId, PageRequest pageRequest) {
-        return commentRepository.findByHistoryIdAndCommentIsNull(historyId, pageRequest);
+    public Page<Comment> findByHistoryParentCommentsNotBanned(Long historyId, PageRequest pageRequest) {
+        return commentRepository.findActiveRootComments(historyId, pageRequest);
     }
 
     @Override

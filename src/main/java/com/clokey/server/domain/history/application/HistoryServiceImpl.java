@@ -147,9 +147,10 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryCommentResult getComments(Long historyId, int page) {
-        Page<Comment> comments = commentRepositoryService.findByHistoryIdAndCommentIsNull(historyId, PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt")));
+        Page<Comment> comments = commentRepositoryService.findByHistoryParentCommentsNotBanned(historyId, PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt")));
         List<List<Comment>> repliesForEachComment = comments.stream()
                 .map(comment -> commentRepositoryService.findByCommentId(comment.getId()).stream()
+                        .filter(reply -> !reply.isBanned())
                         .sorted(Comparator.comparing(Comment::getCreatedAt).reversed()) // 최신 순 정렬
                         .toList()
                 )
