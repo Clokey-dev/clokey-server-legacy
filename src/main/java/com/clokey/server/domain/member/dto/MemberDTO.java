@@ -30,6 +30,7 @@ public class MemberDTO {
         List<GetUserClothResult> clothResults;
         Boolean isFollowing;
         Boolean isBlocking;
+        Boolean isMe;
     }
 
     @Builder
