@@ -123,7 +123,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
 
         if (bulkResponse.errors()) {
 
-            System.err.println("Elasticsearch 단일 데이터 업데이트 중 오류 발생: " + bulkResponse.toString());
+            System.err.println("Elasticsearch 단일 cloth 데이터 업데이트 중 오류 발생: " + bulkResponse.toString());
 
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
         }
@@ -174,7 +174,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
             );
 
             if (bulkResponse.errors()) {
-                System.err.println("Elasticsearch 동기화 중 오류 발생: " + bulkResponse.toString());
+                System.err.println("Elasticsearch cloth 동기화 중 오류 발생: " + bulkResponse.toString());
 
                 throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
             }
@@ -223,7 +223,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
         );
 
         if (bulkResponse.errors()) {
-            System.err.println("Elasticsearch 단일 데이터 업데이트 중 오류 발생: " + bulkResponse.toString());
+            System.err.println("Elasticsearch 단일 history 데이터 업데이트 중 오류 발생: " + bulkResponse.toString());
 
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
         }
@@ -239,7 +239,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
         );
 
         if (!deleteResponse.result().equals(Result.Deleted)) {
-            System.err.println("Elasticsearch에서 clothId: " + historyId + " 에 해당하는 데이터를 찾을 수 없습니다.");
+            System.err.println("Elasticsearch에서 historyId: " + historyId + " 에 해당하는 데이터를 찾을 수 없습니다.");
 
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
         }
@@ -292,7 +292,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
             );
 
             if (bulkResponse.errors()) {
-                System.err.println("Elasticsearch 동기화 중 오류 발생: " + bulkResponse.toString());
+                System.err.println("Elasticsearch history 동기화 중 오류 발생: " + bulkResponse.toString());
 
                 throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
             }
@@ -322,7 +322,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
         );
 
         if (bulkResponse.errors()) {
-            System.err.println("Elasticsearch 단일 데이터 업데이트 중 오류 발생: " + bulkResponse.toString());
+            System.err.println("Elasticsearch 단일 member 데이터 업데이트 중 오류 발생: " + bulkResponse.toString());
 
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
         }
