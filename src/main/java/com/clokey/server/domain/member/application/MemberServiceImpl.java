@@ -92,17 +92,20 @@ public class MemberServiceImpl implements MemberService {
         Member member;
         Boolean isFollowing;
         Boolean isBlocking;
+        Boolean isMyself;
         List<Cloth> topCloths;
 
         if (clokeyId == null) {
             member = currentUser;
             isFollowing = null;
             isBlocking = null;
+            isMyself = true;
             topCloths = clothRepositoryService.getTop3Cloths(member);
         } else {
             member = memberRepositoryService.findMemberByClokeyId(clokeyId);
             isFollowing = followRepositoryService.isFollowing(currentUser, member);
             isBlocking = blockRepositoryService.isBlocking(currentUser, member);
+            isMyself = member.getId().equals(currentUser.getId());
             if (member.getVisibility().equals(Visibility.PUBLIC)) {
                 topCloths = clothRepositoryService.getTop3PublicCloths(member);
             } else {
@@ -115,7 +118,7 @@ public class MemberServiceImpl implements MemberService {
         Long followerCount = followRepositoryService.countFollowersByMember(member);
         Long followingCount = followRepositoryService.countFollowingByMember(member);
 
-        return GetUserConverter.toGetUserResponseDTO(member, recordCount, followerCount, followingCount, isFollowing, isBlocking, topCloths);
+        return GetUserConverter.toGetUserResponseDTO(member, recordCount, followerCount, followingCount, isFollowing, isBlocking, isMyself, topCloths);
     }
 
 
@@ -124,6 +127,8 @@ public class MemberServiceImpl implements MemberService {
     public MemberDTO.ProfileRP updateProfile(Long userId, MemberDTO.ProfileRQ request, MultipartFile profileImage, MultipartFile profileBackImage) {
         // 사용자 확인
         Member member = memberRepositoryService.findMemberById(userId);
+
+        validateVisualizeBannedMember(member,request);
 
         // ✅ S3 업로드 후 URL 저장
         String profileImageUrl;
@@ -156,6 +161,14 @@ public class MemberServiceImpl implements MemberService {
 
         // 응답 생성
         return ProfileConverter.toProfileRPDTO(updatedMember);
+    }
+
+    private void validateVisualizeBannedMember(Member member, MemberDTO.ProfileRQ request){
+        boolean banned = member.isBanned();
+        boolean changeToPublic = request.getVisibility().equals(Visibility.PUBLIC);
+        if(banned && changeToPublic){
+            throw new MemberException(ErrorStatus.BANNED_MEMBER_TO_PUBLIC);
+        }
     }
 
     // 비동기 방식으로 Elasticsearch 수정 요청

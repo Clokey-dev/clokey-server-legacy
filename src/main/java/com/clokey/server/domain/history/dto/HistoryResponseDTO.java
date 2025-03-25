@@ -227,6 +227,7 @@ public class HistoryResponseDTO {
     public static class HistoryMyCommentResult {
         private List<MyCommentResult> comments;
         private Long historyId;
+        private String nickname;
         private String imageUrl;
         private LocalDate date;
     }

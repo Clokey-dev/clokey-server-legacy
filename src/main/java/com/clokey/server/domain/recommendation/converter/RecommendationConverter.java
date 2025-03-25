@@ -9,10 +9,7 @@ import org.springframework.data.util.Pair;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RecommendationConverter {
@@ -68,12 +65,17 @@ public class RecommendationConverter {
                     LocalDate date = entry.getKey().getSecond();
                     List<Cloth> groupedClothList = entry.getValue();
 
-                    List<Long> clothesIds = groupedClothList.stream()
-                            .map(Cloth::getId)
+                    List<Pair<Long, String>> clothData = groupedClothList.stream()
+                            .limit(3)
+                            .map(cloth -> Pair.of(cloth.getId(), cloth.getImage() != null ? cloth.getImage().getImageUrl() : null))
+                            .toList();
+
+                    List<Long> clothesIds = clothData.stream()
+                            .map(Pair::getFirst)
                             .collect(Collectors.toList());
 
-                    List<String> images = groupedClothList.stream()
-                            .map(cloth -> cloth.getImage() != null ? cloth.getImage().getImageUrl() : null)
+                    List<String> images = clothData.stream()
+                            .map(Pair::getSecond)
                             .collect(Collectors.toList());
 
                     return new RecommendationResponseDTO.ClosetCacheResult(
@@ -145,12 +147,13 @@ public class RecommendationConverter {
                 .build();
     }
 
-    public static RecommendationResponseDTO.DailyNewsResult toDailyNewsResult(List<RecommendationResponseDTO.RecommendResult> recommendList, List<RecommendationResponseDTO.ClosetResult> closetList, List<RecommendationResponseDTO.CalendarResult> calendarList, List<RecommendationResponseDTO.PeopleResult> peopleList) {
+    public static RecommendationResponseDTO.DailyNewsResult toDailyNewsResult(List<RecommendationResponseDTO.RecommendResult> recommendList, List<RecommendationResponseDTO.ClosetResult> closetList, List<RecommendationResponseDTO.CalendarResult> calendarList, List<RecommendationResponseDTO.PeopleResult> peopleList, Integer followingCount) {
         return RecommendationResponseDTO.DailyNewsResult.builder()
                 .recommend(recommendList)
                 .closet(closetList)
                 .calendar(calendarList)
                 .people(peopleList)
+                .followingCount(followingCount)
                 .build();
     }
 
@@ -164,8 +167,9 @@ public class RecommendationConverter {
                 .build();
     }
     public static List<RecommendationResponseDTO.RecommendResult> toRecommendResult(
-            List<RecommendationResponseDTO.RecommendCacheResult> cachedRecommend, Map<Long, Member> memberMap) {
+            List<RecommendationResponseDTO.RecommendCacheResult> cachedRecommend, Map<Long, Member> memberMap, Set<Long> blockingMembers) {
         return cachedRecommend.stream()
+                .filter(recommendCache -> !blockingMembers.contains(recommendCache.getMemberId()))
                 .map(recommendCache -> {
                     Member member = Optional.ofNullable(memberMap.get(recommendCache.getMemberId())).orElse(new Member());
                     return RecommendationResponseDTO.RecommendResult.builder()
@@ -181,45 +185,46 @@ public class RecommendationConverter {
     public static List<RecommendationResponseDTO.ClosetResult> toClosetResult(
             List<RecommendationResponseDTO.ClosetCacheResult> cachedClosets, Map<Long, Member> memberMap) {
         return cachedClosets.stream()
-                .map(closetCacheDTO -> {
-                    Member member = Optional.ofNullable(memberMap.get(closetCacheDTO.getMemberId())).orElse(new Member());
+                .map(closetCache -> {
+                    Member member = Optional.ofNullable(memberMap.get(closetCache.getMemberId())).orElse(new Member());
                     return RecommendationResponseDTO.ClosetResult.builder()
                             .clokeyId(member.getClokeyId())
                             .profileImage(member.getProfileImageUrl())
-                            .clothesId(closetCacheDTO.getClothesId())
-                            .images(closetCacheDTO.getImages())
-                            .date(closetCacheDTO.getDate())
+                            .clothesId(closetCache.getClothesId())
+                            .images(closetCache.getImages())
+                            .date(closetCache.getDate())
                             .build();
                 })
                 .collect(Collectors.toList());
     }
 
-    public static List<RecommendationResponseDTO.CalendarResult> convertCalendarToResponseDTO(
+    public static List<RecommendationResponseDTO.CalendarResult> toCalendarResult(
             List<RecommendationResponseDTO.CalendarCacheResult> cachedCalendars, Map<Long, Member> memberMap) {
         return cachedCalendars.stream()
-                .map(calendarCacheDTO -> {
-                    Member member = Optional.ofNullable(memberMap.get(calendarCacheDTO.getMemberId())).orElse(new Member());
+                .map(calendarCache -> {
+                    Member member = Optional.ofNullable(memberMap.get(calendarCache.getMemberId())).orElse(new Member());
                     return RecommendationResponseDTO.CalendarResult.builder()
                             .clokeyId(member.getClokeyId())
                             .profileImage(member.getProfileImageUrl())
-                            .date(calendarCacheDTO.getDate())
-                            .historyId(calendarCacheDTO.getHistoryId())
-                            .imageUrl(calendarCacheDTO.getImageUrl())
+                            .date(calendarCache.getDate())
+                            .historyId(calendarCache.getHistoryId())
+                            .imageUrl(calendarCache.getImageUrl())
                             .build();
                 })
                 .collect(Collectors.toList());
     }
 
-    public static List<RecommendationResponseDTO.PeopleResult> convertPeopleToResponseDTO(
-            List<RecommendationResponseDTO.PeopleCacheResult> cachedPeople, Map<Long, Member> memberMap) {
+    public static List<RecommendationResponseDTO.PeopleResult> toPeopleResult(
+            List<RecommendationResponseDTO.PeopleCacheResult> cachedPeople, Map<Long, Member> memberMap, Set<Long> blockingMembers) {
         return cachedPeople.stream()
-                .map(peopleCacheDTO -> {
-                    Member member = Optional.ofNullable(memberMap.get(peopleCacheDTO.getMemberId())).orElse(new Member());
+                .filter(peopleCache -> !blockingMembers.contains(peopleCache.getMemberId()))
+                .map(peopleCache -> {
+                    Member member = Optional.ofNullable(memberMap.get(peopleCache.getMemberId())).orElse(new Member());
                     return RecommendationResponseDTO.PeopleResult.builder()
                             .clokeyId(member.getClokeyId())
                             .profileImage(member.getProfileImageUrl())
-                            .imageUrl(peopleCacheDTO.getImageUrl())
-                            .historyId(peopleCacheDTO.getHistoryId())
+                            .imageUrl(peopleCache.getImageUrl())
+                            .historyId(peopleCache.getHistoryId())
                             .build();
                 })
                 .collect(Collectors.toList());

@@ -21,10 +21,9 @@ public class PrincipalDetailsService implements UserDetailsService {
     private final MemberRepositoryService memberRepositoryService;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Member member =
-                memberRepositoryService
-                        .findMemberByEmail(email)
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+        Member member = memberRepositoryService
+                        .getMember(Long.parseLong(userId))
                         .orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_MEMBER));
 
         return new PrincipalDetails(member);

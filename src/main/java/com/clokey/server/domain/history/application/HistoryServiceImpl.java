@@ -147,9 +147,10 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryCommentResult getComments(Long historyId, int page) {
-        Page<Comment> comments = commentRepositoryService.findByHistoryIdAndCommentIsNull(historyId, PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt")));
+        Page<Comment> comments = commentRepositoryService.findByHistoryParentCommentsNotBanned(historyId, PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt")));
         List<List<Comment>> repliesForEachComment = comments.stream()
                 .map(comment -> commentRepositoryService.findByCommentId(comment.getId()).stream()
+                        .filter(reply -> !reply.isBanned())
                         .sorted(Comparator.comparing(Comment::getCreatedAt).reversed()) // 최신 순 정렬
                         .toList()
                 )
@@ -270,6 +271,8 @@ public class HistoryServiceImpl implements HistoryService {
 
     private HistoryResponseDTO.HistoryCreateResult updateHistory(HistoryRequestDTO.HistoryCreate historyUpdate, Long memberId, Long historyId, List<MultipartFile> images) {
 
+        validateVisualizeBannedHistory(historyId,historyUpdate);
+
         historyAccessibleValidator.validateMyHistory(historyId, memberId);
 
         historyImageRepositoryService.deleteAllByHistoryId(historyId);
@@ -297,6 +300,15 @@ public class HistoryServiceImpl implements HistoryService {
         return HistoryConverter.toHistoryCreateResult(historyRepositoryService.findById(historyId));
     }
 
+    private void validateVisualizeBannedHistory(Long historyId, HistoryRequestDTO.HistoryCreate historyUpdate){
+        boolean banned = historyRepositoryService.findById(historyId).isBanned();
+        boolean changeToPublic = historyUpdate.getVisibility().equals(Visibility.PUBLIC);
+
+        if(banned && changeToPublic){
+            throw new HistoryException(ErrorStatus.BANNED_HISTORY_TO_PUBLIC);
+        }
+    }
+
     @Override
     @Transactional
     public void deleteComment(Long commentId, Long memberId) {
@@ -318,6 +330,7 @@ public class HistoryServiceImpl implements HistoryService {
     public void deleteHistory(Long historyId, Long memberId) {
         historyAccessibleValidator.validateMyHistory(historyId, memberId);
 
+        commentRepositoryService.deleteAllComments(historyId);
         commentRepositoryService.deleteAllComments(historyId);
 
         //기록_옷 지우기
@@ -446,7 +459,7 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page) {
-        Page<History> histories = historyRepositoryService.findHistoriesByMemberIdAndMemberLike(memberId, PageRequest.of(page, 12));
+        Page<History> histories = historyRepositoryService.findHistoriesByMemberIdAndMemberLike(memberId, PageRequest.of(page, 15));
         Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
         return HistoryConverter.toHistoryPreviewListResult(histories, historyImageMap);
     }

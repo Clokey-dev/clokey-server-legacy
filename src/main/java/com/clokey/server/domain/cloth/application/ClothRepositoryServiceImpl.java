@@ -88,12 +88,6 @@ public class ClothRepositoryServiceImpl implements ClothRepositoryService{
     }
 
     @Override
-    public String findMostWornCategory(Long memberId) {
-        return clothRepository.findMostWornCategory(memberId)
-                .orElse(null);
-    }
-
-    @Override
     public List<Cloth> findBySuitableClothFilters(Long memberId, Integer nowTemp, Integer minTemp, Integer maxTemp) {
         return clothRepository.findBySuitableClothFilters(memberId, nowTemp, minTemp, maxTemp);
     }

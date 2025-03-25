@@ -63,4 +63,10 @@ public class HistoryClothRepositoryServiceImpl implements HistoryClothRepository
     public void deleteAllByHistoryIds(List<Long> historyIds) {
         historyClothRepository.deleteAllByHistoryIds(historyIds);
     }
+
+    @Override
+    public String findMostWornCategory(Long memberId) {
+        return historyClothRepository.findMostWornCategory(memberId)
+                .orElse(null);
+    }
 }

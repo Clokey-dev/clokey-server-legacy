@@ -10,4 +10,6 @@ public interface HistoryReportRepositoryService {
     Long save(HistoryReport historyReport);
 
     List<HistoryReport> findAllByPredicate(Predicate predicate);
+
+    HistoryReport findById(Long id);
 }

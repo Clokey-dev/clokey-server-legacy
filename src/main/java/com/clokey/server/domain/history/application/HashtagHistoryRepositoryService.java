@@ -28,4 +28,6 @@ public interface HashtagHistoryRepositoryService {
 
     List<HashtagHistory> findTop5HistoriesByHashtagNameOrderByDateDesc(String hashtagName);
 
+    List<HashtagHistory> findTop5HistoriesByCategoryNameOrderByDateDesc(String categoryName);
+
 }

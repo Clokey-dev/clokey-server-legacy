@@ -2,6 +2,7 @@ package com.clokey.server.domain.member.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +30,7 @@ public class MemberDTO {
         List<GetUserClothResult> clothResults;
         Boolean isFollowing;
         Boolean isBlocking;
+        Boolean isMe;
     }
 
     @Builder

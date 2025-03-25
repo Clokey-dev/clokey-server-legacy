@@ -225,6 +225,7 @@ public class HistoryConverter {
     public static HistoryResponseDTO.HistoryMyCommentResult toHistoryMyCommentResult(History history, List<HistoryResponseDTO.MyCommentResult> commentsList,  Map<Long, String> imageMap) {
         return HistoryResponseDTO.HistoryMyCommentResult.builder()
                 .historyId(history.getId())
+                .nickname(history.getMember().getNickname())
                 .date(history.getHistoryDate())
                 .imageUrl(imageMap.get(history.getId()))
                 .comments(commentsList)
