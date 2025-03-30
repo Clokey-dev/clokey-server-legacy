@@ -1,9 +1,11 @@
 package com.clokey.server.domain.term.application;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ import com.clokey.server.domain.term.domain.entity.Term;
 import com.clokey.server.domain.term.dto.TermRequestDTO;
 import com.clokey.server.domain.term.dto.TermResponseDTO;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TermCommandServiceImpl implements TermCommandService {
@@ -29,44 +32,70 @@ public class TermCommandServiceImpl implements TermCommandService {
 
     private static final String APP_VERSION = "1.0.0";
 
-
     @Override
     @Transactional
     public TermResponseDTO joinTerm(Long userId, TermRequestDTO.Join request) {
         // 사용자 조회
         Member member = memberRepositoryService.findMemberById(userId);
 
-        // 약관 처리
+        // 기존 동의 약관 조회
+        List<MemberTerm> existingMemberTerms = memberTermRepositoryService.findByMember(member);
+        Set<Long> existingTermIds = existingMemberTerms.stream()
+                .map(memberTerm -> memberTerm.getTerm().getId())
+                .collect(Collectors.toSet());
+
+        //새로 들어온 약관 동의 목록
+        Set<Long> newTermIds = request.getTerms().stream()
+                .filter(TermRequestDTO.Join.Term::getAgreed)
+                .map(TermRequestDTO.Join.Term::getTermId)
+                .collect(Collectors.toSet());
+
+        // 삭제 대상: 기존에 있었는데 요청에는 없는 약관
+        Set<Long> toDelete = new HashSet<>(existingTermIds);
+        toDelete.removeAll(newTermIds);
+
+        // 추가 대상: 요청에는 있는데 기존에 없던 약관
+        Set<Long> toAdd = new HashSet<>(newTermIds);
+        toAdd.removeAll(existingTermIds);
+
+        // 삭제 처리
+        for (Long termId : toDelete) {
+            memberTermRepositoryService.deleteAllByMemberIdAndTermId(userId, termId);
+        }
+
+        // 추가 처리
         List<TermResponseDTO.Term> termResponses = new ArrayList<>();
-        for (TermRequestDTO.Join.Term termDto : request.getTerms()) {
-            // 약관 조회 (이미 존재 여부는 확인된 상태)
-            Term term = termRepositoryService.findById(termDto.getTermId());
-
-
-            // MemberTerm 생성 및 저장
+        for (Long termId : toAdd) {
+            Term term = termRepositoryService.findById(termId);
             MemberTerm memberTerm = MemberTerm.builder()
                     .member(member)
                     .term(term)
                     .build();
-
             memberTermRepositoryService.save(memberTerm);
 
-            // 응답 데이터에 추가
             termResponses.add(TermResponseDTO.Term.builder()
                     .termId(term.getId())
-                    .agreed(termDto.getAgreed())
+                    .agreed(true)
                     .build());
         }
 
-        if (member.getRegisterStatus() == RegisterStatus.NOT_AGREED) {
-            // 약관 동의가 완료되었으므로 회원의 등록 상태를 업데이트
-            member.updateRegisterStatus(RegisterStatus.AGREED_PROFILE_NOT_SET);
+        // 이미 있던 항목들도 응답에 포함시키기 위해 전체 목록 다시 구성
+        for (Long termId : newTermIds) {
+            if (toAdd.contains(termId)) continue; // 이미 포함됨
+            Term term = termRepositoryService.findById(termId);
+            termResponses.add(TermResponseDTO.Term.builder()
+                    .termId(term.getId())
+                    .agreed(true)
+                    .build());
+        }
 
-            // 저장 (등록 상태 업데이트 반영)
+        // 회원 상태 업데이트
+        if (member.getRegisterStatus() == RegisterStatus.NOT_AGREED) {
+            member.updateRegisterStatus(RegisterStatus.AGREED_PROFILE_NOT_SET);
             memberRepositoryService.saveMember(member);
         }
 
-        // 최종 응답 생성
+        // 최종 응답
         return TermResponseDTO.builder()
                 .userId(userId)
                 .terms(termResponses)
@@ -142,7 +171,7 @@ public class TermCommandServiceImpl implements TermCommandService {
                 memberTermRepositoryService.save(memberTerm);
             } else {
                 // 동의 철회한 경우 -> 삭제
-                memberTermRepositoryService.deleteByMemberIdAndTermId(userId, term.getId());
+                memberTermRepositoryService.deleteAllByMemberIdAndTermId(userId, term.getId());
             }
 
             // 응답 데이터 생성

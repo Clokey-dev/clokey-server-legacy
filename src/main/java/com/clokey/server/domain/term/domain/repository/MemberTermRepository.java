@@ -6,6 +6,9 @@ import java.util.List;
 
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.term.domain.entity.MemberTerm;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MemberTermRepository extends JpaRepository<MemberTerm, Long> {
     void deleteByMemberId(Long memberId);
@@ -17,4 +20,9 @@ public interface MemberTermRepository extends JpaRepository<MemberTerm, Long> {
     MemberTerm save(MemberTerm memberTerm); // 사용자의 약관 동의 저장
 
     boolean existsByMemberIdAndTermId(Long memberId, Long termId);
+
+    @Modifying
+    @Query("DELETE FROM MemberTerm mt WHERE mt.member.id = :memberId AND mt.term.id = :termId")
+    void deleteAllByMemberIdAndTermId(@Param("memberId") Long memberId, @Param("termId") Long termId);
+
 }

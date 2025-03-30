@@ -1,5 +1,6 @@
 package com.clokey.server.domain.term.application;
 
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,5 +42,9 @@ public class MemberTermRepositoryServiceImpl implements MemberTermRepositoryServ
         return memberTermRepository.existsByMemberIdAndTermId(memberId,termId);
     }
 
+    @Override
+    public void deleteAllByMemberIdAndTermId(Long memberId, Long termId){
+        memberTermRepository.deleteAllByMemberIdAndTermId(memberId, termId);
+    }
 
 }
