@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.term.domain.entity.MemberTerm;
+import org.springframework.data.repository.query.Param;
 
 
 public interface MemberTermRepositoryService {
@@ -17,4 +18,7 @@ public interface MemberTermRepositoryService {
     MemberTerm save(MemberTerm memberTerm); //// 사용자의 약관 동의 저장
 
     boolean existsByMemberIdAndTermId(Long memberId, Long termId);
+
+    void deleteAllByMemberIdAndTermId(Long memberId, Long termId);
+
 }
