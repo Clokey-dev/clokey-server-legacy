@@ -45,7 +45,7 @@ public class ClothRestController {
 
     // 스마트 요약 API
     @GetMapping("/smart-summary")
-    @Operation(summary = "일주일간 평균 착용 횟수에 따른 스마트 요약 API", description = "query string으로 SummaryFrequency를 넘겨주세요")
+    @Operation(summary = "한달 간 평균 착용 횟수에 따른 스마트 요약 API", description = "query string으로 SummaryFrequency를 넘겨주세요")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CLOTH_200", description = "OK, 성공적으로 조회되었습니다."),
     })
@@ -78,7 +78,7 @@ public class ClothRestController {
             @Parameter(name = "page", description = "페이지 값, query string 입니다."),
             @Parameter(name = "size", description = "페이지에 표시할 요소 개수 값, query string 입니다.")
     })
-    public BaseResponse<ClothResponseDTO.ClothPreviewListResult> getClothPreviewInfoListByCategoryId(
+    public BaseResponse<ClothResponseDTO.ClosetViewResult> getClothPreviewInfoListByCategoryId(
             @RequestParam(value = "clokeyId", required = false) @NullableClokeyIdExist String clokeyId,
             @RequestParam @CategoryExist Long categoryId,
             @RequestParam Season season,
@@ -94,7 +94,7 @@ public class ClothRestController {
             // 조회하는 유저와 다른 유저의 옷장이고, 그 유저가 비공개인 유저인지 확인합니다.
             memberAccessibleValidator.validateClothAccessOfMember(clokeyId, member.getId());
         }
-        ClothResponseDTO.ClothPreviewListResult result = clothService.readClothPreviewInfoListByClokeyId(clokeyId, member.getId(), categoryId, season, sort, page, size);
+        ClothResponseDTO.ClosetViewResult result = clothService.readClothPreviewInfoListByClokeyId(clokeyId, member.getId(), categoryId, season, sort, page, size);
 
         return BaseResponse.onSuccess(SuccessStatus.CLOTH_SUCCESS, result);
     }

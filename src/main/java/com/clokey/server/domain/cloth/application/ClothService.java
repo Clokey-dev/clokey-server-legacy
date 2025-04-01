@@ -17,7 +17,7 @@ public interface ClothService {
 
     ClothResponseDTO.ClothDetailViewResult readClothDetailInfoById(Long clothId);
 
-    ClothResponseDTO.ClothPreviewListResult readClothPreviewInfoListByClokeyId(String ownerClokeyId, Long requesterId, Long categoryId, Season season, ClothSort sort, int page, int pageSize);
+    ClothResponseDTO.ClosetViewResult readClothPreviewInfoListByClokeyId(String ownerClokeyId, Long requesterId, Long categoryId, Season season, ClothSort sort, int page, int pageSize);
 
     ClothResponseDTO.SmartSummaryClothPreviewListResult readSmartSummary(Long memberId);
 

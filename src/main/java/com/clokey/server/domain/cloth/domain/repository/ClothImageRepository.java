@@ -13,6 +13,8 @@ public interface ClothImageRepository extends JpaRepository<ClothImage, Long> {
 
     int deleteByClothId(Long clothId);
 
+    ClothImage findByClothId(Long clothId);
+
     List<ClothImage> findByCloth_IdIn(List<Long> clothIds);
 
     @Modifying

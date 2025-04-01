@@ -105,6 +105,15 @@ public class ClothResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class ClosetViewResult {
+        private String nickname;
+        private ClothPreviewListResult clothPreviewListResult;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SmartSummaryClothPreview {
         private String baseCategoryName;
         private String coreCategoryName;
