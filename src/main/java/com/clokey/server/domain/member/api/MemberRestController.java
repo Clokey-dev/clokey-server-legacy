@@ -91,7 +91,11 @@ public class MemberRestController {
 
     @Operation(summary = "팔로잉/팔로워 목록 조회 API", description = "팔로잉/팔로워 목록을 조회하는 api입니다.")
     @GetMapping("users/{clokeyId}/follow")
-    public BaseResponse<MemberDTO.GetFollowMemberResult> getFollowMembers(@Parameter(name = "user", hidden = true) @AuthUser Member member, @PathVariable("clokeyId") String clokeyId, @RequestParam(value = "page", defaultValue = "1") Integer page, @RequestParam(value = "isFollowing", defaultValue = "true") Boolean isFollowing) {
+    public BaseResponse<MemberDTO.GetFollowMemberResult> getFollowMembers(
+            @Parameter(name = "user", hidden = true) @AuthUser Member member,
+            @PathVariable("clokeyId") String clokeyId,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "isFollowing", defaultValue = "true") Boolean isFollowing) {
         MemberDTO.GetFollowMemberResult response = memberService.getFollowPeople(member.getId(), clokeyId, page, isFollowing);
         return BaseResponse.onSuccess(SuccessStatus.MEMBER_SUCCESS, response);
     }
