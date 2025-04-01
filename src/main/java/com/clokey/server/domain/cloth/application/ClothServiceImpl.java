@@ -90,9 +90,7 @@ public class ClothServiceImpl implements ClothService {
 
         List<ClothResponseDTO.ClothPreview> clothPreviews = ClothConverter.toClothPreviewList(clothes);
 
-        ClothResponseDTO.ClothPreviewListResult result = ClothConverter.toClothPreviewListResult(clothes, clothPreviews);
-
-        return ClothConverter.toClosetViewResult(nickname, result);
+        return ClothConverter.toClosetViewResult(nickname, clothes, clothPreviews);
     }
 
     // 지난 7일간 착용횟수를 통해 카테고리와 카테고리에 해당하는 옷의 PreView 조회 후 스마트 요약 DTO로 변환해서 반환

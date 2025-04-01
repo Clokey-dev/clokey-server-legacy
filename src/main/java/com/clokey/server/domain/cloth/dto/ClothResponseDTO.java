@@ -107,7 +107,11 @@ public class ClothResponseDTO {
     @AllArgsConstructor
     public static class ClosetViewResult {
         private String nickname;
-        private ClothPreviewListResult clothPreviewListResult;
+        private List<ClothPreview> clothPreviews;
+        private int totalPage;
+        private long totalElements;
+        private Boolean isFirst;
+        private Boolean isLast;
     }
 
     @Builder
