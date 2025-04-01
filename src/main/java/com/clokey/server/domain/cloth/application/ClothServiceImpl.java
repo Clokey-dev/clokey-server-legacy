@@ -50,6 +50,7 @@ public class ClothServiceImpl implements ClothService {
     private static final String FAILED_ES_UPDATE_SYNC_CLOTH_KEY = "failed_es_update_sync_cloth";
     private static final String FAILED_ES_DELETE_SYNC_CLOTH_KEY = "failed_es_delete_sync_cloth";
 
+    @Override
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClothPopupViewResult readClothPopupInfoById(Long clothId) {
 
@@ -58,6 +59,7 @@ public class ClothServiceImpl implements ClothService {
         return ClothConverter.toClothPopupViewResult(cloth);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClothEditViewResult readClothEditInfoById(Long clothId){
 
@@ -66,6 +68,7 @@ public class ClothServiceImpl implements ClothService {
         return ClothConverter.toClothEditViewResult(cloth);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClothDetailViewResult readClothDetailInfoById(Long clothId){
 
@@ -75,6 +78,7 @@ public class ClothServiceImpl implements ClothService {
     }
 
     // 옷장의 옷의 PreView 조회 후 옷장 조회 DTO로 변환해서 반환
+    @Override
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClosetViewResult readClothPreviewInfoListByClokeyId(
             String ownerClokeyId, Long requesterId, Long categoryId, Season season, ClothSort sort, int page, int size) {
@@ -92,6 +96,7 @@ public class ClothServiceImpl implements ClothService {
     }
 
     // 지난 7일간 착용횟수를 통해 카테고리와 카테고리에 해당하는 옷의 PreView 조회 후 스마트 요약 DTO로 변환해서 반환
+    @Override
     @Transactional(readOnly = true)
     public ClothResponseDTO.SmartSummaryClothPreviewListResult readSmartSummary(Long memberId) {
 
@@ -140,6 +145,7 @@ public class ClothServiceImpl implements ClothService {
         );
     }
 
+    @Override
     @Transactional
     public ClothResponseDTO.ClothCreateResult createCloth(Long memberId,
                                                           ClothRequestDTO.ClothCreateOrUpdateRequest request,
@@ -161,6 +167,7 @@ public class ClothServiceImpl implements ClothService {
         return ClothConverter.toClothCreateResult(cloth);
     }
 
+    @Override
     @Transactional
     public void updateClothById(Long clothId,
                                 ClothRequestDTO.ClothCreateOrUpdateRequest request,
@@ -187,6 +194,7 @@ public class ClothServiceImpl implements ClothService {
         asyncUpdatedClothFromES(existingCloth);
     }
 
+    @Override
     @Transactional
     public void deleteClothById(Long clothId){
         historyClothRepositoryService.deleteAllByClothId(clothId);
@@ -198,6 +206,7 @@ public class ClothServiceImpl implements ClothService {
     }
 
     // 비동기 방식으로 Elasticsearch 수정 요청
+    @Override
     public void asyncUpdatedClothFromES(Cloth cloth) {
         try {
             searchRepositoryService.updateClothDataToElasticsearch(cloth);
@@ -208,6 +217,7 @@ public class ClothServiceImpl implements ClothService {
     }
 
     // 비동기 방식으로 Elasticsearch 삭제 요청
+    @Override
     public void asyncDeletedClothFromES(Long clothId) {
         try {
             searchRepositoryService.deleteClothByIdFromElasticsearch(clothId);

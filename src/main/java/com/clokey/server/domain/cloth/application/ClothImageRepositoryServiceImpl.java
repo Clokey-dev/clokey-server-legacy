@@ -20,6 +20,9 @@ public class ClothImageRepositoryServiceImpl implements ClothImageRepositoryServ
     private final S3ImageService s3ImageService;
 
     @Override
+    public ClothImage findByClothId(Long clothId) { return clothImageRepository.findByClothId(clothId); }
+
+    @Override
     public void save(ClothImage clothImage) {
         clothImageRepository.save(clothImage);
     }

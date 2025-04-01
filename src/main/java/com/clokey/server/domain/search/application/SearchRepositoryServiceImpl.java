@@ -1,5 +1,7 @@
 package com.clokey.server.domain.search.application;
 
+import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
+import com.clokey.server.domain.cloth.application.ClothImageRepositoryServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private final ElasticsearchClient elasticsearchClient;
 
     private final ClothRepositoryService clothRepositoryService;
+    private final ClothImageRepositoryService clothImageRepositoryService;
     private static final String CLOTH_INDEX_NAME = "cloth";
 
     private final MemberRepositoryService memberRepositoryService;
@@ -63,6 +66,8 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
     private static final String FAILED_ES_UPDATE_SYNC_USER_KEY = "failed_es_update_sync_user";
     private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
+    @Autowired
+    private ClothImageRepositoryServiceImpl clothImageRepositoryServiceImpl;
 
     /****************************************Save For Retry Sync****************************************/
 
@@ -101,6 +106,8 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     @Override
     public void updateClothDataToElasticsearch(Cloth cloth) throws IOException {
 
+        String imageUrl = clothImageRepositoryService.findByClothId(cloth.getId()).getImageUrl();
+
         BulkOperation bulkOperation = BulkOperation.of(op -> op
                 .index(IndexOperation.of(idx -> idx
                         .index(CLOTH_INDEX_NAME)
@@ -109,7 +116,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
                                 .id(cloth.getId())
                                 .name(cloth.getName())
                                 .brand(cloth.getBrand())
-                                .imageUrl(cloth.getImage() != null ? cloth.getImage().getImageUrl() : null)
+                                .imageUrl(imageUrl)
                                 .wearNum(cloth.getWearNum())
                                 .memberId(cloth.getMember().getId())
                                 .visibility(cloth.getVisibility().toString())
