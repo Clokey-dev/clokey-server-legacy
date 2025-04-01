@@ -216,7 +216,7 @@ public class MemberServiceImpl implements MemberService {
         Member findMember = memberRepositoryService.findByClokeyId(clokeyId);
 
         Pageable pageable = PageRequest.of(page - 1, 10);
-        if (findMember.getVisibility() == Visibility.PUBLIC) {
+        if (findMember.getId().equals(memberId) || findMember.getVisibility() == Visibility.PUBLIC) {
             if (isFollow) {
                 // 팔로잉 리스트 가져오기
                 List<Member> members = followRepositoryService.findFollowingByFollowedId(findMember.getId(), pageable);
