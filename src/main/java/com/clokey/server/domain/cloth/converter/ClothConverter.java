@@ -124,10 +124,15 @@ public class ClothConverter {
                 .collect(Collectors.toList());
     }
 
-    public static ClothResponseDTO.ClosetViewResult toClosetViewResult(String nickname, ClothResponseDTO.ClothPreviewListResult result) {
+    public static ClothResponseDTO.ClosetViewResult toClosetViewResult(String nickname, Page<?> page,
+                                                                       List<ClothResponseDTO.ClothPreview> clothPreviews) {
         return ClothResponseDTO.ClosetViewResult.builder()
                 .nickname(nickname)
-                .clothPreviewListResult(result)
+                .clothPreviews(clothPreviews)
+                .totalPage(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .isFirst(page.isFirst())
+                .isLast(page.isLast())
                 .build();
     }
 
