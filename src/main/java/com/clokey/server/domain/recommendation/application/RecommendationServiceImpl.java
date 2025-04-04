@@ -251,8 +251,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         return recommendList;
     }
-
-    // 팔로우 중인 옷장 업데이트 조회
+    
     private List<RecommendationResponseDTO.ClosetCacheResult> getClosetList(List<Member> followingMembers) {
         List<Cloth> clothesList = clothRepositoryService.findTop6ByMemberInAndVisibilityOrderByCreatedAtDesc(followingMembers, Visibility.PUBLIC);
 
