@@ -95,7 +95,7 @@ public class MemberServiceImpl implements MemberService {
         Boolean isMyself;
         List<Cloth> topCloths;
 
-        if (clokeyId == null) {
+        if (clokeyId == null || clokeyId.equals(currentUser.getClokeyId())) {
             member = currentUser;
             isFollowing = null;
             isBlocking = null;
