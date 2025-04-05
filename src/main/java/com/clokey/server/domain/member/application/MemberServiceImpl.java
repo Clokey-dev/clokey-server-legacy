@@ -187,7 +187,6 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepositoryService.findMemberById(userId);
         member.deleteAccessRefreshToken();
     }
-
     @Override
     @Transactional(readOnly = true)
     public void clokeyIdUsingCheck(String clokeyId, Member currentUser) {
