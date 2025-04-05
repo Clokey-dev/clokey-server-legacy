@@ -96,16 +96,12 @@ public class FollowRepositoryServiceImpl implements FollowRepositoryService {
 
     @Override
     public List<Member> findFollowedByFollowingId(Long followingId, Pageable pageable) {
-        return followRepository.findFollowedByFollowingId(followingId, pageable).stream()
-                .filter(member -> member.getVisibility() == Visibility.PUBLIC)
-                .toList();
+        return followRepository.findFollowedByFollowingId(followingId, pageable);
     }
 
     @Override
     public List<Member> findFollowingByFollowedId(Long followedId, Pageable pageable) {
-        return followRepository.findFollowingByFollowedId(followedId, pageable).stream()
-                .filter(member -> member.getVisibility() == Visibility.PUBLIC)
-                .toList();
+        return followRepository.findFollowingByFollowedId(followedId, pageable);
     }
 
     @Override
