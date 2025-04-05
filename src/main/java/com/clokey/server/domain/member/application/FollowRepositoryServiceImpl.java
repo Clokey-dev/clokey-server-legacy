@@ -3,6 +3,7 @@ package com.clokey.server.domain.member.application;
 import com.clokey.server.domain.member.domain.entity.Follow;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.domain.repository.FollowRepository;
+import com.clokey.server.domain.model.entity.enums.Visibility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -95,12 +96,16 @@ public class FollowRepositoryServiceImpl implements FollowRepositoryService {
 
     @Override
     public List<Member> findFollowedByFollowingId(Long followingId, Pageable pageable) {
-        return followRepository.findFollowedByFollowingId(followingId, pageable);
+        return followRepository.findFollowedByFollowingId(followingId, pageable).stream()
+                .filter(member -> member.getVisibility() == Visibility.PUBLIC)
+                .toList();
     }
 
     @Override
     public List<Member> findFollowingByFollowedId(Long followedId, Pageable pageable) {
-        return followRepository.findFollowingByFollowedId(followedId, pageable);
+        return followRepository.findFollowingByFollowedId(followedId, pageable).stream()
+                .filter(member -> member.getVisibility() == Visibility.PUBLIC)
+                .toList();
     }
 
     @Override
