@@ -1,5 +1,6 @@
 package com.clokey.server.domain.member.application;
 
+import com.clokey.server.domain.member.scheduler.InactiveUserCleanupTask;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,6 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final ClothImageRepositoryService clothImageRepositoryService;
     private final ClothFolderRepositoryService clothFolderRepositoryService;
     private final FolderRepositoryService folderRepositoryService;
-    private final CommentRepository commentRepository;
     private final NotificationRepositoryService notificationRepositoryService;
     private final SearchRepositoryService searchRepositoryService;
     private final AuthService authService;
@@ -102,7 +102,6 @@ public class UnlinkServiceImpl implements UnlinkService {
         member.updateInactiveDate(LocalDate.now());
         memberRepositoryService.saveMember(member);
     }
-
 
     public void kakaoUnlink(String kakaoId) {
         String url = "https://kapi.kakao.com/v1/user/unlink";
