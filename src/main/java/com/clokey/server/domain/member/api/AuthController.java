@@ -76,5 +76,12 @@ public class AuthController {
         return BaseResponse.onSuccess(SuccessStatus.UNLINK_SUCCESS, null);
     }
 
+    @Operation(summary = "관리자용 즉시 회원탈퇴 API", description = "즉시 회원탈퇴하는 API입니다.")
+    @DeleteMapping("/instant-unlink")
+    public BaseResponse<Void> instantUnlink(@Parameter(name = "user", hidden = true) @AuthUser Member member) {
+        logoutService.unlink(member.getId());
+        logoutService.deleteData(member.getId());
+        return BaseResponse.onSuccess(SuccessStatus.UNLINK_SUCCESS, null);
+    }
 
 }

@@ -9,4 +9,6 @@ public interface UnlinkService {
     void asyncDeletedMemberFromES(Long memberId);
 
     void unlink(Long userId);
+
+    void deleteData(Long userId);
 }
