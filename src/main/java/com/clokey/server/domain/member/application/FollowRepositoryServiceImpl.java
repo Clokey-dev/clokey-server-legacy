@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
@@ -105,7 +106,7 @@ public class FollowRepositoryServiceImpl implements FollowRepositoryService {
     }
 
     @Override
-    public List<Long> findTopFollowingMembers() {
-        return followRepository.findTopFollowingMembers(PageRequest.of(0, 5));
+    public List<Long> findTopFollowingMembers(Set<Long> blockingMemberIds, Member member) {
+        return followRepository.findTopFollowingMembers(blockingMemberIds, member.getId(), PageRequest.of(0, 4));
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.clokey.server.domain.member.domain.entity.Follow;
 import com.clokey.server.domain.member.domain.entity.Member;
@@ -39,5 +40,5 @@ public interface FollowRepositoryService {
 
     List<Member> findFollowingByFollowedId(Long followedId, Pageable pageable);
 
-    List<Long> findTopFollowingMembers();
+    List<Long> findTopFollowingMembers(Set<Long> blockingMemberIds, Member member);
 }

@@ -74,7 +74,7 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
 
     @Query("SELECT h FROM History h " +
             "WHERE h.member.id IN :memberIds " +
-            "AND h.createdAt = (SELECT MAX(h2.createdAt) FROM History h2 WHERE h2.member.id = h.member.id)")
+            "AND h.createdAt = (SELECT MAX(h2.createdAt) FROM History h2 WHERE h2.member.id = h.member.id AND h2.visibility = 'PUBLIC' AND h2.banned = false) ")
     List<History> findHistoryByMemberIdIn(@Param("memberIds") List<Long> memberIds);
 
     @Query("SELECT h FROM History h WHERE h.member.id IN :memberIds " +
