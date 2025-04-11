@@ -64,6 +64,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
         SELECT 1 FROM History h
         WHERE h.member.id = f.following.id
           AND h.visibility = 'PUBLIC'
+          AND h.banned = false
       )
     GROUP BY f.following.id
     ORDER BY COUNT(f.followed.id) DESC
