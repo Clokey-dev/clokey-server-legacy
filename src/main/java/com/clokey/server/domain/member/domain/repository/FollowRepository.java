@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.clokey.server.domain.member.domain.entity.Follow;
 import com.clokey.server.domain.member.domain.entity.Member;
@@ -53,8 +54,20 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     @Query("SELECT f.following FROM Follow f WHERE f.followed.id = :followedId")
     List<Member> findFollowingByFollowedId(@Param("followedId") Long followedId, Pageable pageable);
 
-    @Query("SELECT f.following.id FROM Follow f " +
-            "GROUP BY f.following.id " +
-            "ORDER BY COUNT(f.followed.id) DESC")
-    List<Long> findTopFollowingMembers(Pageable pageable);
+    @Query("""
+    SELECT f.following.id FROM Follow f
+    WHERE f.following.id NOT IN :blockingMemberIds
+      AND f.following.id <> :memberId
+      AND f.following.banned = false
+      AND f.following.visibility = 'PUBLIC'
+      AND EXISTS (
+        SELECT 1 FROM History h
+        WHERE h.member.id = f.following.id
+          AND h.visibility = 'PUBLIC'
+          AND h.banned = false
+      )
+    GROUP BY f.following.id
+    ORDER BY COUNT(f.followed.id) DESC
+    """)
+    List<Long> findTopFollowingMembers(Set<Long> blockingMemberIds, Long memberId, Pageable pageable);
 }

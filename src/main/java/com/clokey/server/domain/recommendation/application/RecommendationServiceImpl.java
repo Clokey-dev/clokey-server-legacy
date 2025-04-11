@@ -305,7 +305,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private List<RecommendationResponseDTO.PeopleCacheResult> getPeopleList(Member member, Set<Long> blockingMembers) {
-        List<Long> topFollowingMemberIds = followRepositoryService.findTopFollowingMembers();
+        List<Long> topFollowingMemberIds = followRepositoryService.findTopFollowingMembers(blockingMembers, member);
 
         if (topFollowingMemberIds.isEmpty()) {
             return List.of();
@@ -316,33 +316,13 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (recommendedMemberHistories.isEmpty()) {
             return List.of();
         }
-
-        Map<Long, History> historyMap = recommendedMemberHistories.stream()
-                .collect(Collectors.toMap(
-                        h -> h.getMember().getId(),
-                        h -> h,
-                        (h1, h2) -> h1.getCreatedAt().isAfter(h2.getCreatedAt()) ? h1 : h2
-                ));
-
-        List<History> filteredHistories = topFollowingMemberIds.stream()
-                .map(historyMap::get)
-                .filter(Objects::nonNull)
-                .filter(history -> history.getMember().getVisibility() == Visibility.PUBLIC &&
-                        history.getVisibility() == Visibility.PUBLIC && history.getMember() != member && !blockingMembers.contains(history.getMember().getId()))
-                .limit(4)
-                .toList();
-
-        if (filteredHistories.isEmpty()) {
-            return List.of();
-        }
-
-        List<Long> historyIds = filteredHistories.stream()
+        List<Long> historyIds = recommendedMemberHistories.stream()
                 .map(History::getId)
                 .toList();
 
         Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(historyIds);
 
-        return RecommendationConverter.toPeopleCacheDTO(filteredHistories, historyImageMap);
+        return RecommendationConverter.toPeopleCacheDTO(recommendedMemberHistories, historyImageMap);
     }
 
 
