@@ -239,4 +239,26 @@ public class HistoryResponseDTO {
     public static class MyCommentResult {
         private String content;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HistoryLikedListResult {
+        private List<HistoryLikedPreview> historyPreviews;
+        private int totalPage;
+        private long totalElements;
+        private Boolean isFirst;
+        private Boolean isLast;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HistoryLikedPreview {
+        Long id;
+        String imageUrl;
+        Boolean isMine;
+    }
 }
