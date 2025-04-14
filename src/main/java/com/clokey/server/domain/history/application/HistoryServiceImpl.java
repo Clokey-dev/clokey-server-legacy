@@ -458,10 +458,10 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public HistoryResponseDTO.HistoryPreviewListResult getLikedHistories(Long memberId, int page) {
+    public HistoryResponseDTO.HistoryLikedListResult getLikedHistories(Long memberId, int page) {
         Page<History> histories = historyRepositoryService.findHistoriesByMemberIdAndMemberLike(memberId, PageRequest.of(page, 15));
         Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
-        return HistoryConverter.toHistoryPreviewListResult(histories, historyImageMap);
+        return HistoryConverter.toHistoryLikedListResult(histories, historyImageMap, memberId);
     }
     
     @Override

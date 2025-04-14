@@ -226,9 +226,9 @@ public class HistoryRestController {
     @Parameters({
             @Parameter(name = "page", description = "페이징 관련 query parameter. 1부터 시작합니다.")
     })
-    public BaseResponse<HistoryResponseDTO.HistoryPreviewListResult> getLikedHistories(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+    public BaseResponse<HistoryResponseDTO.HistoryLikedListResult> getLikedHistories(@Parameter(name = "user", hidden = true) @AuthUser Member member,
                                                                              @RequestParam(value = "page") @Valid @CheckPage int page) {
-        HistoryResponseDTO.HistoryPreviewListResult result = historyService.getLikedHistories(member.getId(), page - 1);
+        HistoryResponseDTO.HistoryLikedListResult result = historyService.getLikedHistories(member.getId(), page - 1);
 
         return BaseResponse.onSuccess(SuccessStatus.HISTORY_SUCCESS, result);
     }
