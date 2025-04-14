@@ -47,15 +47,16 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.HistoryPreviewListResult toHistoryPreviewListResult(Page<History> histories, Map<Long, String> folderImageMap) {
-        List<HistoryResponseDTO.HistoryPreview> historyPreviews = histories.getContent().stream()
-                .map(history -> new HistoryResponseDTO.HistoryPreview(
+    public static HistoryResponseDTO.HistoryLikedListResult toHistoryLikedListResult(Page<History> histories, Map<Long, String> folderImageMap, Long currentMemberId) {
+        List<HistoryResponseDTO.HistoryLikedPreview> historyPreviews = histories.getContent().stream()
+                .map(history -> new HistoryResponseDTO.HistoryLikedPreview(
                         history.getId(),
-                        folderImageMap.get(history.getId())
+                        folderImageMap.get(history.getId()),
+                        history.getMember().getId().equals(currentMemberId)
                 ))
                 .collect(Collectors.toList());
 
-        return HistoryResponseDTO.HistoryPreviewListResult.builder()
+        return HistoryResponseDTO.HistoryLikedListResult.builder()
                 .historyPreviews(historyPreviews)
                 .totalPage(histories.getTotalPages())
                 .totalElements((int) histories.getTotalElements())
