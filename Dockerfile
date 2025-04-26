@@ -2,9 +2,9 @@
 FROM gradle:8.5-jdk17 AS dependencies
 WORKDIR /build
 
-COPY build.gradle settings.gradle gradle.properties ./
-COPY gradlew .
+COPY gradlew gradlew
 COPY gradle gradle
+COPY build.gradle settings.gradle ./
 
 RUN ./gradlew dependencies --no-daemon
 
