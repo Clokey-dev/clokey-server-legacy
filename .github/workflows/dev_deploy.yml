@@ -36,16 +36,37 @@ jobs:
         with:
           driver: docker-container
 
-      - name: Build and Push Docker Image (with Cache)
+      - name: Check Dependency Changes
+        id: check_changes
+        run: |
+          git fetch origin ${{ github.event.before }}
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E 'build.gradle|settings.gradle|gradle.properties'; then
+            echo "changed=true" >> $GITHUB_ENV
+          else
+            echo "changed=false" >> $GITHUB_ENV
+          fi
+
+      - name: Build and Push Docker Image (with or without Cache Export)
         run: |
           echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-          docker buildx build \
-            --cache-from=type=registry,ref=yongjun0511/clokey-docker:buildcache \
-            --cache-to=type=registry,ref=yongjun0511/clokey-docker:buildcache,mode=max \
-            --tag yongjun0511/clokey-docker:1.0.0 \
-            --push \
-            .
+          if [ "${{ env.changed }}" = "true" ]; then
+            echo "Dependencies changed. Exporting cache..."
+            docker buildx build \
+              --cache-from=type=registry,ref=yongjun0511/clokey-docker:buildcache \
+              --cache-to=type=registry,ref=yongjun0511/clokey-docker:buildcache,mode=max \
+              --tag yongjun0511/clokey-docker:1.0.0 \
+              --push \
+              .
+          else
+            echo "No dependency changes. Skipping cache export..."
+            docker buildx build \
+              --cache-from=type=registry,ref=yongjun0511/clokey-docker:buildcache \
+              --tag yongjun0511/clokey-docker:1.0.0 \
+              --push \
+              .
+          fi
+      
 
       - name: Copy docker-compose file to remote
         uses: appleboy/scp-action@v0.1.3
