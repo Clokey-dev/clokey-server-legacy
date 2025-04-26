@@ -1,0 +1,20 @@
+# 기본적으로 무시할 것들
+.git
+.idea
+.vscode
+*.log
+*.iml
+
+# 빌드 결과물 무시
+build/
+target/
+
+# 민감 파일 무시
+src/main/resources/application-secret.yml
+
+#도커 관련 파일
+docker-compose.yml
+Dockerfile
+
+# 깃허브 파일
+.github/
