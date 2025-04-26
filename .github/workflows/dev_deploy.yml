@@ -41,7 +41,6 @@ jobs:
           echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
           docker buildx build \
-            --builder default \
             --cache-from=type=registry,ref=yongjun0511/clokey-docker:buildcache \
             --cache-to=type=registry,ref=yongjun0511/clokey-docker:buildcache,mode=max \
             --tag yongjun0511/clokey-docker:1.0.0 \
