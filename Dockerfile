@@ -1,9 +1,8 @@
 # syntax=docker/dockerfile:1.4
-ARG DEPENDENCY_IMAGE
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
-COPY --from=${DEPENDENCY_IMAGE} /build /build
+COPY --from=yongjun0511/clokey-docker:dependency-cache /build /build
 
 COPY src src
 
@@ -19,3 +18,4 @@ RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
 WORKDIR /app
 COPY --from=builder /build/build/libs/*.jar app.jar
 ENTRYPOINT ["java","-jar","/app/app.jar"]
+
