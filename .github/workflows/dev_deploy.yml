@@ -36,12 +36,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Check Dependency Or Dockerfile.dependencies changes
+      - name: Check Dockerfile Or Dependency Changes
         id: check_changes
         run: |
           git fetch origin ${{ github.event.before }}
           if git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-              | grep -E 'Dockerfile\.dependencies|build\.gradle|settings\.gradle|gradle\.properties|gradlew|gradle/wrapper/gradle-wrapper\.properties'; then
+              | grep -E 'Dockerfile|build\.gradle|settings\.gradle|gradle\.properties|gradlew|gradle/wrapper/gradle-wrapper\.properties'; then
             echo "changed=true" >> $GITHUB_ENV
           else
             echo "changed=false" >> $GITHUB_ENV
@@ -58,7 +58,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: Dockerfile.dependencies
+          file: Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           cache-to: |
