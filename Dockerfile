@@ -4,9 +4,13 @@ WORKDIR /build
 
 COPY gradlew gradlew
 COPY gradle gradle
+COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/gradle-wrapper.properties
 COPY build.gradle settings.gradle ./
 
-RUN ./gradlew dependencies --no-daemon
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    --mount=type=cache,target=/root/.gradle/build-cache \
+    ./gradlew dependencies --no-daemon
 
 # 2단계: 소스 코드 복사 후 전체 빌드
 FROM gradle:8.5-jdk17 AS builder
@@ -15,8 +19,10 @@ WORKDIR /build
 COPY --from=dependencies /build /build
 COPY src src
 
-RUN --mount=type=cache,target=/root/.gradle/caches --mount=type=cache,target=/root/.gradle/wrapper --mount=type=cache,target=/root/.gradle/build-cache ./gradlew clean build -x test --no-daemon
-
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    --mount=type=cache,target=/root/.gradle/build-cache \
+    ./gradlew build -x test --no-daemon
 
 # 3단계: 실행용 이미지 레이어 생성
 FROM openjdk:17-jdk-slim
