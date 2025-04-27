@@ -1,4 +1,4 @@
-version: '3.8'
+name: clokey_project
 
 services:
   app_blue:
@@ -7,7 +7,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=blue  # 애플리케이션에서 'blue' 프로필로 설정
+      - SPRING_PROFILES_ACTIVE=blue
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+    volumes:
+      - /home/ubuntu/secret/application-secret.yml:/app/config/application-secret.yml:ro
     networks:
       - app_network
 
@@ -17,7 +20,10 @@ services:
     ports:
       - "8081:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=green  # 애플리케이션에서 'green' 프로필로 설정
+      - SPRING_PROFILES_ACTIVE=green
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+    volumes:
+      - /home/ubuntu/secret/application-secret.yml:/app/config/application-secret.yml:ro
     networks:
       - app_network
 
