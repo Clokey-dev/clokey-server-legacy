@@ -107,5 +107,13 @@ jobs:
             docker pull yongjun0511/clokey-docker:1.0.0 
             sudo chmod +x /home/ubuntu/cicd/deploy.sh
             sudo /home/ubuntu/cicd/deploy.sh
-            
+
+      - name: Save Gradle dependencies cache
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
 
