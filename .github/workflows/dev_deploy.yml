@@ -21,9 +21,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          use: true
 
       - name: Check Dependency Changes
         id: check_changes
