@@ -39,28 +39,20 @@ jobs:
           else
             echo "changed=false" >> $GITHUB_ENV
           fi
-      
 
-      - name: Build and Push Docker Image (with or without Cache Export)
-        run: |
-          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      - name: Build and Push Docker Image (inline cache)
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
+          # 이전에 푸시했던 동일 태그 이미지를 캐시로 사용
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
+          # inline 메타데이터로 캐시를 저장
+          cache-to: type=inline,mode=max
 
-          if [ "${{ env.changed }}" = "true" ]; then
-            echo "Dependencies changed. Exporting cache..."
-            docker buildx build \
-              --cache-from=type=registry,ref=yongjun0511/clokey-docker:buildcache \
-              --cache-to=type=registry,ref=yongjun0511/clokey-docker:buildcache,mode=max \
-              --tag yongjun0511/clokey-docker:1.0.0 \
-              --push \
-              .
-          else
-            echo "No dependency changes. Skipping cache export..."
-            docker buildx build \
-              --cache-from=type=registry,ref=yongjun0511/clokey-docker:buildcache \
-              --tag yongjun0511/clokey-docker:1.0.0 \
-              --push \
-              .
-          fi
+
+
 
       - name: Create application-secret.yml from Secret
         run: |
