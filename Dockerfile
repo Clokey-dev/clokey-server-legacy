@@ -15,7 +15,8 @@ WORKDIR /build
 COPY --from=dependencies /build /build
 COPY src src
 
-RUN --mount=type=cache,target=/root/.gradle ./gradlew clean build -x test --no-daemon
+RUN --mount=type=cache,target=/root/.gradle/caches --mount=type=cache,target=/root/.gradle/wrapper --mount=type=cache,target=/root/.gradle/build-cache ./gradlew clean build -x test --no-daemon
+
 
 # 3단계: 실행용 이미지 레이어 생성
 FROM openjdk:17-jdk-slim
