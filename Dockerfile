@@ -2,9 +2,9 @@
 FROM gradle:8.5-jdk17 AS dependencies
 WORKDIR /build
 
+# gradle wrapper 전체 복사
 COPY gradlew gradlew
 COPY gradle gradle
-COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/gradle-wrapper.properties
 COPY build.gradle settings.gradle ./
 
 RUN --mount=type=cache,target=/root/.gradle/caches \
@@ -16,6 +16,7 @@ RUN --mount=type=cache,target=/root/.gradle/caches \
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
+# dependencies 단계 결과 복사
 COPY --from=dependencies /build /build
 COPY src src
 
