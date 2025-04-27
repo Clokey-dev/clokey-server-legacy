@@ -17,6 +17,7 @@ WORKDIR /build
 COPY --from=dependencies /build /build
 COPY src src
 
+
 RUN --mount=type=cache,target=/home/gradle/.gradle \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
     ./gradlew clean build -x test --no-daemon --configuration-cache
