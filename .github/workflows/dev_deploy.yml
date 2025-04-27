@@ -55,20 +55,15 @@ jobs:
           echo "GRADLE_BUILD_CACHE_PASSWORD=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}" >> ./temp_secret/gradle-cache-config.txt
 
       - name: Build & Push Dependency Cache
-        if: env.changed == 'true'
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: Dockerfile
-          target: dependencies
+          file: Dockerfile.dependencies
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          cache-from: |
-            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           cache-to: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
-          build-args: |
-            GRADLE_USER_HOME=/home/gradle/.gradle
+      
 
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
