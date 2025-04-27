@@ -39,11 +39,11 @@ public class MemberTermRepositoryServiceImpl implements MemberTermRepositoryServ
 
     @Override
     public boolean existsByMemberIdAndTermId(Long memberId, Long termId) {
-        return memberTermRepository.existsByMemberIdAndTermId(memberId,termId);
+        return memberTermRepository.existsByMemberIdAndTermId(memberId, termId);
     }
 
     @Override
-    public void deleteAllByMemberIdAndTermId(Long memberId, Long termId){
+    public void deleteAllByMemberIdAndTermId(Long memberId, Long termId) {
         memberTermRepository.deleteAllByMemberIdAndTermId(memberId, termId);
     }
 
