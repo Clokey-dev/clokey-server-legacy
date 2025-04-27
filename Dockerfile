@@ -4,7 +4,8 @@ WORKDIR /build
 
 # gradle wrapper 전체 복사
 COPY gradlew gradlew
-COPY gradle gradle
+COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.jar
+COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/gradle-wrapper.properties
 COPY build.gradle settings.gradle ./
 
 RUN --mount=type=cache,target=/root/.gradle/caches \
