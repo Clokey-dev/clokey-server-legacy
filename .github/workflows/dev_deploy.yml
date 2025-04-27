@@ -40,13 +40,17 @@ jobs:
         id: check_changes
         run: |
           git fetch origin ${{ github.event.before }}
+          echo "Changed files between commits:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+
           if git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-              | grep -E 'Dockerfile|build\.gradle|settings\.gradle|gradle\.properties|gradlew|gradle/wrapper/gradle-wrapper\.properties' \
-              > /dev/null; then
+            | grep -E 'Dockerfile|build\.gradle|settings\.gradle|gradle\.properties|gradlew|gradle/wrapper/gradle-wrapper\.properties' \
+            > /dev/null; then
             echo "changed=true" >> $GITHUB_ENV
           else
             echo "changed=false" >> $GITHUB_ENV
           fi
+      
       
 
       - name: Create gradle-cache-config.txt from Secrets
