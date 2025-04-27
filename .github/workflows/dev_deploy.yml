@@ -47,7 +47,7 @@ jobs:
             echo "changed=false" >> $GITHUB_ENV
           fi
 
-      # 1) 오직 dependencies 스테이지만 뽑아서 레지스트리 캐시를 갱신
+      # 1) 의존성 스테이지만 레지스트리에 캐시 업로드
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
         uses: docker/build-push-action@v3
@@ -57,24 +57,25 @@ jobs:
           target: dependencies
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          cache-to:   type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
+          cache-from:
+            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
+          cache-to:
+            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
           build-args: |
             GRADLE_USER_HOME=/home/gradle/.gradle
 
-      # 2) 전체 이미지 빌드는 inline 캐시만 사용
-      - name: Build & Push Application Image (inline cache)
+      # 2) 애플리케이션 이미지는 inline 캐시 + 위 레지스트리 캐시 사용
+      - name: Build & Push Application Image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
-          cache-from: |
-            # 1) 1단계 의존성 캐시 복구
+          cache-from:
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-            # 2) inline 메타데이터 복구
             type=inline
-          cache-to: type=inline,mode=max
+          cache-to:
+            type=inline,mode=max
           build-args: |
             GRADLE_USER_HOME=/home/gradle/.gradle
 
