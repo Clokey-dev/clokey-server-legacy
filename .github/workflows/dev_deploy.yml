@@ -70,6 +70,7 @@ jobs:
               --push \
               .
           fi
+
       - name: Create application-secret.yml from Secret
         run: |
           mkdir -p ./temp_secret
