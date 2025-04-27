@@ -1,39 +1,38 @@
-# 1단계: 의존성만 빌드해서 캐시하기
+# syntax=docker/dockerfile:1.4
+
+#### 1) 의존성만 다운로드
 FROM gradle:8.5-jdk17 AS dependencies
 WORKDIR /build
 
-# gradle wrapper 전체 복사
-COPY gradlew gradlew
-COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.jar
-COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/gradle-wrapper.properties
+COPY gradlew .
+COPY gradle gradle
 COPY build.gradle settings.gradle ./
 
-RUN --mount=type=cache,target=/root/.gradle/caches \
-    --mount=type=cache,target=/root/.gradle/wrapper \
-    --mount=type=cache,target=/root/.gradle/build-cache \
-    ./gradlew dependencies --no-daemon
+RUN ./gradlew dependencies --no-daemon
 
-# 2단계: 소스 코드 복사 후 전체 빌드
+#### 2) 전체 빌드 (캐시 마운트 적용)
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
-# dependencies 단계 결과 복사
+# 1단계에서 받은 의존성 결과만 통째로 복사
 COPY --from=dependencies /build /build
 COPY src src
 
+# BuildKit 캐시 마운트로 ~/.gradle 디렉토리 유지
 RUN --mount=type=cache,target=/root/.gradle/caches \
     --mount=type=cache,target=/root/.gradle/wrapper \
     --mount=type=cache,target=/root/.gradle/build-cache \
-    ./gradlew build -x test --no-daemon --configuration-cache
+    chmod +x gradlew && \
+    ./gradlew clean build -x test --no-daemon
 
-# 3단계: 실행용 이미지 레이어 생성
+#### 3) 실행용 이미지
 FROM openjdk:17-jdk-slim
 
 ENV TZ=Asia/Seoul
-RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime \
+ && echo $TZ > /etc/timezone
 
 WORKDIR /app
-
 COPY --from=builder /build/build/libs/*.jar app.jar
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
