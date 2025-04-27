@@ -8,10 +8,7 @@ COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
 COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
 COPY build.gradle settings.gradle ./
 
-# BuildKit cache 마운트
-RUN --mount=type=cache,target=/home/gradle/.gradle \
-    --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    ./gradlew dependencies --no-daemon
+RUN ./gradlew dependencies --configuration-cache --no-daemon
 
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
