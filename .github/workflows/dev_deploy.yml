@@ -60,14 +60,21 @@ jobs:
               --push \
               .
           fi
+      - name: Create application-secret.yml from Secret
+        run: |
+          mkdir -p ./temp_secret
+          echo "${{ secrets.APPLICATION_SECRET }}" > ./temp_secret/application-secret.yml
+        shell: bash
+
       - name: Copy application-secret.yml to /home/ubuntu/secret
         uses: appleboy/scp-action@v0.1.3
         with:
-            username: ubuntu
-            host: ${{ secrets.EC2_HOST }}
-            key: ${{ secrets.EC2_SSH_KEY }}
-            source: ./src/main/resources/application-secret.yml
-            target: /home/ubuntu/secret/
+          username: ubuntu
+          host: ${{ secrets.EC2_HOST }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: ./temp_secret/application-secret.yml
+          target: /home/ubuntu/secret/
+
 
       - name: Copy docker-compose file to remote
         uses: appleboy/scp-action@v0.1.3
