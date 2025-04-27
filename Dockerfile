@@ -22,7 +22,7 @@ COPY src src
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    ./gradlew clean build -x test --no-daemon
+    ./gradlew clean build -x test --no-daemon --configuration-cache
 
 FROM openjdk:17-jdk-slim
 ENV TZ=Asia/Seoul
