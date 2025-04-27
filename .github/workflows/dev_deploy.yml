@@ -72,8 +72,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
           cache-from: |
-            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-            type=inline
+             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           cache-to: |
             type=inline,mode=max
           build-args: |
