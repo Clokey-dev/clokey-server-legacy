@@ -1,30 +1,33 @@
-# 1단계: 의존성만 빌드해서 캐시하기
+# syntax=docker/dockerfile:1.4
 FROM gradle:8.5-jdk17 AS dependencies
 WORKDIR /build
 
-COPY gradlew gradlew
-COPY gradle gradle
+# wrapper 관련 파일만 복사
+COPY gradlew .
+COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
+COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
 COPY build.gradle settings.gradle ./
 
-RUN ./gradlew dependencies --no-daemon
+# BuildKit cache 마운트
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+    --mount=type=cache,target=/home/gradle/.gradle/wrapper \
+    ./gradlew dependencies --no-daemon
 
-# 2단계: 소스 코드 복사 후 전체 빌드
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
+# dependencies 스테이지 그대로 재사용
 COPY --from=dependencies /build /build
 COPY src src
 
-RUN ./gradlew clean build -x test --no-daemon
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+    --mount=type=cache,target=/home/gradle/.gradle/wrapper \
+    ./gradlew clean build -x test --no-daemon
 
-# 3단계: 실행용 이미지 레이어 생성
 FROM openjdk:17-jdk-slim
-
 ENV TZ=Asia/Seoul
-RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
 
 WORKDIR /app
-
 COPY --from=builder /build/build/libs/*.jar app.jar
-
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
