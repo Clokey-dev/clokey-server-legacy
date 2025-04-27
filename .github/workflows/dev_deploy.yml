@@ -28,7 +28,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
-          use: true
+          install: true
 
       - name: Log in to DockerHub
         uses: docker/login-action@v2
@@ -53,12 +53,13 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
-          # 이전에 푸시했던 동일 태그 이미지를 캐시로 사용
+          # 이전 이미지에 저장된 inline 캐시를 불러와서
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
-          # inline 메타데이터로 캐시를 저장
+          # 빌드 후에도 inline 메타데이터로 캐시를 레이어에 저장
           cache-to: type=inline,mode=max
-
-
+          # Dockerfile 의 --mount=type=cache 와 경로를 맞춰 줍니다
+          build-args: |
+            GRADLE_USER_HOME=/home/gradle/.gradle
 
 
       - name: Create application-secret.yml from Secret
