@@ -99,3 +99,4 @@ jobs:
             sudo chmod +x /home/ubuntu/cicd/deploy.sh
             sudo /home/ubuntu/cicd/deploy.sh
 
+
