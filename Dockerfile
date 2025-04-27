@@ -8,7 +8,7 @@ COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
 COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
 COPY build.gradle settings.gradle ./
 
-RUN ./gradlew dependencies --configuration-cache --no-daemon
+RUN ./gradlew dependencies --no-daemon
 
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
