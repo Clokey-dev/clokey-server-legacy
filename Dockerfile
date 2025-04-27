@@ -2,7 +2,6 @@
 FROM gradle:8.5-jdk17 AS dependencies
 WORKDIR /build
 
-# wrapper 관련 파일만 복사
 COPY gradlew .
 COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
 COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
@@ -13,15 +12,13 @@ RUN ./gradlew dependencies --no-daemon
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
-# dependencies 스테이지 그대로 재사용
 COPY --from=dependencies /build /build
 COPY src src
 
-
 RUN --mount=type=cache,target=/home/gradle/.gradle \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    ./gradlew clean build -x test --no-daemon --configuration-cache
-
+    --mount=type=cache,target=/home/gradle/.gradle/caches/build-cache \
+    ./gradlew clean build -x test --no-daemon --configuration-cache --build-cache
 FROM openjdk:17-jdk-slim
 ENV TZ=Asia/Seoul
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone

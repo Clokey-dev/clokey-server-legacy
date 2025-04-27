@@ -36,7 +36,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Check Dependency Changes
+      - name: Check Dependency Or Dockerfile changes
         id: check_changes
         run: |
           git fetch origin ${{ github.event.before }}
