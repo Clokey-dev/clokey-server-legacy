@@ -16,12 +16,9 @@ COPY --from=dependencies /build /build
 COPY src src
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    --mount=type=cache,target=/home/gradle/.gradle/caches/build-cache \
+    --mount=type=secret,id=gradle-cache-config \
+    export $(cat /run/secrets/gradle-cache-config | xargs) && \
     ./gradlew clean build -x test --no-daemon --configuration-cache --build-cache
-FROM openjdk:17-jdk-slim
-ENV TZ=Asia/Seoul
-RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
 
 WORKDIR /app
 COPY --from=builder /build/build/libs/*.jar app.jar

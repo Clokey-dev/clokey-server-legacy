@@ -47,7 +47,13 @@ jobs:
             echo "changed=false" >> $GITHUB_ENV
           fi
 
-      # ─── 1) 의존성 스테이지만 레지스트리에 캐시 업로드 ───
+      - name: Create gradle-cache-config.txt from Secrets
+        run: |
+          mkdir -p ./temp_secret
+          echo "GRADLE_BUILD_CACHE_URL=${{ secrets.GRADLE_BUILD_CACHE_URL }}" >> ./temp_secret/gradle-cache-config.txt
+          echo "GRADLE_BUILD_CACHE_USERNAME=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}" >> ./temp_secret/gradle-cache-config.txt
+          echo "GRADLE_BUILD_CACHE_PASSWORD=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}" >> ./temp_secret/gradle-cache-config.txt
+
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
         uses: docker/build-push-action@v3
@@ -64,7 +70,6 @@ jobs:
           build-args: |
             GRADLE_USER_HOME=/home/gradle/.gradle
 
-      # ─── 2) 애플리케이션 이미지는 inline 캐시 + 위 레지스트리 캐시 사용 ───
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
         with:
@@ -72,11 +77,11 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
           cache-from: |
-             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          cache-to: |
-            type=inline,mode=max
+            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           build-args: |
             GRADLE_USER_HOME=/home/gradle/.gradle
+          secrets: |
+            id=gradle-cache-config,src=./temp_secret/gradle-cache-config.txt
 
       - name: Create application-secret.yml from Secret
         run: |
