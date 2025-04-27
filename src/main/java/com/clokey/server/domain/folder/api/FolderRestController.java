@@ -33,8 +33,8 @@ public class FolderRestController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "FOLDER_200", description = "성공적으로 반영되었습니다."),
     })
-    public BaseResponse<FolderResponseDTO.FolderIdResult> createAndUpdateFolder(@Parameter(name = "user",hidden = true) @AuthUser Member member,
-                                                                 @RequestBody @Valid FolderRequestDTO.FolderCreateRequest request) {
+    public BaseResponse<FolderResponseDTO.FolderIdResult> createAndUpdateFolder(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                                @RequestBody @Valid FolderRequestDTO.FolderCreateRequest request) {
         FolderResponseDTO.FolderIdResult response = FolderConverter.toFolderIdDTO(folderService.createAndUpdateFolder(member.getId(), request));
         return BaseResponse.onSuccess(SuccessStatus.FOLDER_CLOTHES_SUCCESS, response);
     }
@@ -44,7 +44,7 @@ public class FolderRestController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "FOLDER_204", description = "성공적으로 삭제되었습니다."),
     })
-    public BaseResponse<String> deleteFolder(@Parameter(name = "user",hidden = true) @AuthUser Member member,
+    public BaseResponse<String> deleteFolder(@Parameter(name = "user", hidden = true) @AuthUser Member member,
                                              @FolderExist @PathVariable Long folderId) {
         folderService.deleteFolder(folderId, member.getId());
         return BaseResponse.onSuccess(SuccessStatus.FOLDER_DELETED, null);
@@ -55,9 +55,9 @@ public class FolderRestController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "FOLDER_200", description = "성공적으로 조회되었습니다."),
     })
-    public BaseResponse<FolderResponseDTO.FolderClothesResult> getClothesFromFolder(@Parameter(name = "user",hidden = true) @AuthUser Member member,
-                                                        @PathVariable @FolderExist Long folderId,
-                                                                                 @RequestParam(value = "page") @Valid @CheckPage Integer page) {
+    public BaseResponse<FolderResponseDTO.FolderClothesResult> getClothesFromFolder(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                                    @PathVariable @FolderExist Long folderId,
+                                                                                    @RequestParam(value = "page") @Valid @CheckPage Integer page) {
         FolderResponseDTO.FolderClothesResult result = folderService.getClothesFromFolder(folderId, page, member.getId());
         return BaseResponse.onSuccess(SuccessStatus.FOLDER_SUCCESS, result);
     }
@@ -67,8 +67,8 @@ public class FolderRestController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "FOLDER_200", description = "성공적으로 조회되었습니다."),
     })
-    public BaseResponse<FolderResponseDTO.FoldersResult> getFolders(@Parameter(name = "user",hidden = true) @AuthUser Member member,
-                                                                              @RequestParam(value = "page") @Valid @CheckPage Integer page) {
+    public BaseResponse<FolderResponseDTO.FoldersResult> getFolders(@Parameter(name = "user", hidden = true) @AuthUser Member member,
+                                                                    @RequestParam(value = "page") @Valid @CheckPage Integer page) {
         FolderResponseDTO.FoldersResult result = folderService.getFolders(page, member.getId());
         return BaseResponse.onSuccess(SuccessStatus.FOLDER_SUCCESS, result);
     }
