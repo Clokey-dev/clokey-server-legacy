@@ -25,33 +25,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-            path: |
-              ~/.gradle/caches
-              ~/.gradle/wrapper
-            key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-            restore-keys: |
-              gradle-${{ runner.os }}-
-
-      - name: Cache Gradle build cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches/build-cache-*
-          key: gradle-buildcache-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            gradle-buildcache-${{ runner.os }}-
-
-      - name: Gradle Build (for caching)
-        run: ./gradlew build -x test --no-daemon
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container
-
       - name: Check Dependency Changes
         id: check_changes
         run: |
