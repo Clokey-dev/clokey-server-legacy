@@ -41,13 +41,13 @@ jobs:
         run: |
           git fetch origin ${{ github.event.before }}
           if git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-              | grep -E 'build.gradle|settings.gradle|gradle.properties|gradlew|gradle/wrapper/gradle-wrapper.properties'; then
+              | grep -E 'build\.gradle|settings\.gradle|gradle\.properties|gradlew|gradle/wrapper/gradle-wrapper\.properties'; then
             echo "changed=true" >> $GITHUB_ENV
           else
             echo "changed=false" >> $GITHUB_ENV
           fi
 
-      # 1) 의존성 스테이지만 레지스트리에 캐시 업로드
+      # ─── 1) 의존성 스테이지만 레지스트리에 캐시 업로드 ───
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
         uses: docker/build-push-action@v3
@@ -57,24 +57,24 @@ jobs:
           target: dependencies
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          cache-from:
+          cache-from: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          cache-to:
+          cache-to: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
           build-args: |
             GRADLE_USER_HOME=/home/gradle/.gradle
 
-      # 2) 애플리케이션 이미지는 inline 캐시 + 위 레지스트리 캐시 사용
+      # ─── 2) 애플리케이션 이미지는 inline 캐시 + 위 레지스트리 캐시 사용 ───
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
-          cache-from:
+          cache-from: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
             type=inline
-          cache-to:
+          cache-to: |
             type=inline,mode=max
           build-args: |
             GRADLE_USER_HOME=/home/gradle/.gradle
