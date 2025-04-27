@@ -44,6 +44,9 @@ jobs:
           restore-keys: |
             gradle-buildcache-${{ runner.os }}-
 
+      - name: Gradle Build (for caching)
+        run: ./gradlew build -x test --no-daemon
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
