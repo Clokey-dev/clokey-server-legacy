@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1.4
+ARG DEPENDENCY_IMAGE
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
-COPY --from=dependencies /build /build
+COPY --from=${DEPENDENCY_IMAGE} /build /build
+
 COPY src src
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \

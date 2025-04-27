@@ -70,11 +70,12 @@ jobs:
         with:
           context: .
           push: true
+          file: Dockerfile
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
+          build-args: |
+            DEPENDENCY_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           cache-from: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          build-args: |
-            GRADLE_USER_HOME=/home/gradle/.gradle
           secrets: |
             id=gradle-cache-config,src=./temp_secret/gradle-cache-config.txt
 
