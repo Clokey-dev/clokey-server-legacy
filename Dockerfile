@@ -25,8 +25,7 @@ RUN --mount=type=secret,id=gradle-cache-config,target=/run/secrets/gradle-cache-
              echo $GRADLE_CACHE_URL && \
              echo $GRADLE_CACHE_USERNAME && \
              echo $GRADLE_CACHE_PASSWORD && \
-             ./gradlew clean build --info"
-
+             ./gradlew clean build --info --scan"
 
 FROM openjdk:17-jdk-slim
 
