@@ -52,19 +52,6 @@ jobs:
             echo "changed=false" >> $GITHUB_ENV
           fi
 
-      - name: Create gradle-cache-config.txt from Secrets
-        run: |
-          echo "GRADLE_BUILD_CACHE_URL=${{ secrets.GRADLE_BUILD_CACHE_URL }}" > gradle-cache-config.txt
-          echo "GRADLE_BUILD_CACHE_USERNAME=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}" >> gradle-cache-config.txt
-          echo "GRADLE_BUILD_CACHE_PASSWORD=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}" >> gradle-cache-config.txt
-
-      - name: Debug gradle-cache-config.txt 존재 확인
-        run: |
-          echo "현재 디렉토리 목록:"
-          ls -al
-          echo "gradle-cache-config.txt 파일 내용:"
-          cat gradle-cache-config.txt || echo "파일 없음"
-
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
         uses: docker/build-push-action@v3
@@ -76,7 +63,9 @@ jobs:
           cache-to: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
           secrets: |
-            id=gradle-cache-config,src=${{ github.workspace }}/gradle-cache-config.txt
+            id=gradle-cache-config,src=${{ secrets.GRADLE_BUILD_CACHE_URL }}
+            id=gradle-cache-username,src=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}
+            id=gradle-cache-password,src=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}
 
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
@@ -90,7 +79,9 @@ jobs:
           cache-from: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           secrets: |
-            id=gradle-cache-config,src=${{ github.workspace }}/gradle-cache-config.txt
+            id=gradle-cache-config,src=${{ secrets.GRADLE_BUILD_CACHE_URL }}
+            id=gradle-cache-username,src=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}
+            id=gradle-cache-password,src=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}
 
       - name: Create application-secret.yml from Secret
         run: |
