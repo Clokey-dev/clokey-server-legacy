@@ -30,7 +30,6 @@ RUN --mount=type=secret,id=gradle-cache-config \
              source /run/secrets/gradle-cache-password && \
              ./gradlew clean build"
 
-
 FROM openjdk:17-jdk-slim
 
 ENV TZ=Asia/Seoul

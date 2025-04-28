@@ -66,6 +66,8 @@ jobs:
             id=gradle-cache-config,src=${{ secrets.GRADLE_BUILD_CACHE_URL }}
             id=gradle-cache-username,src=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}
             id=gradle-cache-password,src=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}
+          build-args: |
+            DOCKER_BUILDKIT=1
 
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
@@ -75,6 +77,7 @@ jobs:
           file: Dockerfile
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
           build-args: |
+            DOCKER_BUILDKIT=1
             DEPENDENCY_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           cache-from: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
