@@ -19,9 +19,9 @@ COPY --from=dependencies /build /build
 
 COPY src src
 
-RUN --mount=type=secret,id=gradle-cache-url \
-    --mount=type=secret,id=gradle-cache-username \
-    --mount=type=secret,id=gradle-cache-password \
+RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
+    --mount=type=secret,id=GRADLE_BUILD_CACHE_USERNAME \
+    --mount=type=secret,id=GRADLE_BUILD_CACHE_PASSWORD \
     bash -c "echo \$GRADLE_BUILD_CACHE_URL && \
              echo \$GRADLE_BUILD_CACHE_USERNAME && \
              echo \$GRADLE_BUILD_CACHE_PASSWORD && \
