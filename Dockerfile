@@ -24,10 +24,11 @@ COPY src src
 RUN --mount=type=secret,id=gradle-cache-config,target=/run/secrets/gradle-cache-config \
     --mount=type=secret,id=gradle-cache-username,target=/run/secrets/gradle-cache-username \
     --mount=type=secret,id=gradle-cache-password,target=/run/secrets/gradle-cache-password \
-    bash -c "source /run/secrets/gradle-cache-config && \
-             source /run/secrets/gradle-cache-username && \
-             source /run/secrets/gradle-cache-password && \
+    bash -c "export GRADLE_CACHE_URL=$(cat /run/secrets/gradle-cache-config) && \
+             export GRADLE_CACHE_USERNAME=$(cat /run/secrets/gradle-cache-username) && \
+             export GRADLE_CACHE_PASSWORD=$(cat /run/secrets/gradle-cache-password) && \
              ./gradlew clean build"
+
 
 
 FROM openjdk:17-jdk-slim
