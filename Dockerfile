@@ -20,8 +20,10 @@ COPY src src
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
     --mount=type=secret,id=gradle-cache-config \
-    export $(cat /run/secrets/gradle-cache-config | xargs) && \
-    ./gradlew clean build -x test --no-daemon --configuration-cache --build-cache --info
+    sh -c "cat /run/secrets/gradle-cache-config && \
+           export \$(xargs < /run/secrets/gradle-cache-config) && \
+           ./gradlew clean build -x test --no-daemon --configuration-cache --build-cache --info"
+
 
 
 FROM openjdk:17-jdk-slim
