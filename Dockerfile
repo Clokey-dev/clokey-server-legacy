@@ -24,7 +24,6 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
            ./gradlew clean build -x test --no-daemon --configuration-cache --build-cache --info"
 
 
-
 FROM openjdk:17-jdk-slim
 
 ENV TZ=Asia/Seoul
