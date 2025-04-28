@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      GRADLE_BUILD_CACHE_URL: ${{ secrets.GRADLE_BUILD_CACHE_URL }}
+      GRADLE_BUILD_CACHE_USERNAME: ${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}
+      GRADLE_BUILD_CACHE_PASSWORD: ${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
