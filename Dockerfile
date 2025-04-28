@@ -4,6 +4,7 @@ FROM gradle:8.5-jdk17 AS dependencies
 WORKDIR /build
 
 COPY gradlew .
+COPY gradle.properties ./
 COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
 COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
 COPY build.gradle settings.gradle ./
