@@ -17,6 +17,7 @@ WORKDIR /build
 COPY --from=dependencies /build /build
 COPY src src
 
+
 RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_USERNAME \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_PASSWORD \
