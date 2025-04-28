@@ -19,11 +19,12 @@ COPY --from=dependencies /build /build
 
 COPY src src
 
-RUN --mount=type=secret,id=gradle-cache-config \
-    bash -c "set -a && source /run/secrets/gradle-cache-config && set +a && \
-             echo \$GRADLE_CACHE_URL && \
-             echo \$GRADLE_CACHE_USERNAME && \
-             echo \$GRADLE_CACHE_PASSWORD && \
+RUN --mount=type=secret,id=gradle-cache-url \
+    --mount=type=secret,id=gradle-cache-username \
+    --mount=type=secret,id=gradle-cache-password \
+    bash -c "echo \$GRADLE_BUILD_CACHE_URL && \
+             echo \$GRADLE_BUILD_CACHE_USERNAME && \
+             echo \$GRADLE_BUILD_CACHE_PASSWORD && \
              ./gradlew clean build --info"
 
 FROM openjdk:17-jdk-slim

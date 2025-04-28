@@ -51,13 +51,6 @@ jobs:
             echo "changed=false" >> $GITHUB_ENV
           fi
 
-      - name: Create .env file from secrets
-        run: |
-          echo "GRADLE_CACHE_URL=${{ secrets.GRADLE_BUILD_CACHE_URL }}" > .env
-          echo "GRADLE_CACHE_USERNAME=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}" >> .env
-          echo "GRADLE_CACHE_PASSWORD=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}" >> .env
-
-
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
         uses: docker/build-push-action@v3
@@ -69,7 +62,9 @@ jobs:
           cache-to: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
           secrets: |
-            id=gradle-cache-config,src=${{ github.workspace }}/.env
+            type=env,id=gradle-cache-url,env=GRADLE_BUILD_CACHE_URL
+            type=env,id=gradle-cache-username,env=GRADLE_BUILD_CACHE_USERNAME
+            type=env,id=gradle-cache-password,env=GRADLE_BUILD_CACHE_PASSWORD
 
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
