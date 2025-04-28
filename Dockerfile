@@ -17,7 +17,6 @@ COPY --from=dependencies /build /build
 
 COPY src src
 
-
 RUN --mount=type=cache,target=/home/gradle/.gradle \
     --mount=type=secret,id=gradle-cache-config \
     sh -c "cat /run/secrets/gradle-cache-config && \
