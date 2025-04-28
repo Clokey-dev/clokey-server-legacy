@@ -57,6 +57,10 @@ jobs:
           echo "GRADLE_BUILD_CACHE_USERNAME=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}" >> gradle-cache-config.txt
           echo "GRADLE_BUILD_CACHE_PASSWORD=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}" >> gradle-cache-config.txt
 
+      - name: Check gradle-cache-config.txt exists
+        run: ls -al gradle-cache-config.txt
+
+
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
         uses: docker/build-push-action@v3
