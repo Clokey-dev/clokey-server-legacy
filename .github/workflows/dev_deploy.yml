@@ -60,16 +60,14 @@ jobs:
 
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
-          cache-to: |
-            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
-          secrets: |
-            id=gradle-cache-config,src=${{ github.workspace }}/gradle-cache-config.txt
+        run: |
+          docker buildx build \
+            --file Dockerfile \
+            --push \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache \
+            --cache-to type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max \
+            --secret id=gradle-cache-config,src=${{ github.workspace }}/gradle-cache-config.txt \
+            .
 
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
