@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1.4
-
 FROM gradle:8.5-jdk17 AS dependencies
 WORKDIR /build
 
@@ -8,6 +7,8 @@ COPY gradle.properties ./
 COPY gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
 COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
 COPY build.gradle settings.gradle ./
+
+RUN mkdir -p /root/.gradle && cp gradle.properties /root/.gradle/gradle.properties
 
 RUN ./gradlew dependencies --no-daemon
 
