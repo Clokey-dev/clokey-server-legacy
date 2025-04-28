@@ -68,7 +68,7 @@ jobs:
           cache-to: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
           secrets: |
-            id=gradle-cache-config,src=.src=gradle-cache-config.txt
+            id=gradle-cache-config,src=gradle-cache-config.txt
 
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
