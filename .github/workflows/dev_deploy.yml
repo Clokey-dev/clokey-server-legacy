@@ -53,10 +53,9 @@ jobs:
 
       - name: Create gradle-cache-config.txt from Secrets
         run: |
-          mkdir -p ./temp_secret
-          echo "GRADLE_BUILD_CACHE_URL=${{ secrets.GRADLE_BUILD_CACHE_URL }}" >> ./temp_secret/gradle-cache-config.txt
-          echo "GRADLE_BUILD_CACHE_USERNAME=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}" >> ./temp_secret/gradle-cache-config.txt
-          echo "GRADLE_BUILD_CACHE_PASSWORD=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}" >> ./temp_secret/gradle-cache-config.txt
+          echo "GRADLE_BUILD_CACHE_URL=${{ secrets.GRADLE_BUILD_CACHE_URL }}" > gradle-cache-config.txt
+          echo "GRADLE_BUILD_CACHE_USERNAME=${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}" >> gradle-cache-config.txt
+          echo "GRADLE_BUILD_CACHE_PASSWORD=${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}" >> gradle-cache-config.txt
 
       - name: Build & Push Dependency Cache
         if: env.changed == 'true'
@@ -69,7 +68,7 @@ jobs:
           cache-to: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max
           secrets: |
-            id=gradle-cache-config,src=./temp_secret/gradle-cache-config.txt
+            id=gradle-cache-config,src=.src=gradle-cache-config.txt
 
       - name: Build & Push Application Image
         uses: docker/build-push-action@v3
@@ -83,7 +82,7 @@ jobs:
           cache-from: |
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache
           secrets: |
-            id=gradle-cache-config,src=./temp_secret/gradle-cache-config.txt
+            id=gradle-cache-config,src=gradle-cache-config.txt
 
       - name: Create application-secret.yml from Secret
         run: |
