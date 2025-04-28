@@ -20,10 +20,9 @@ COPY --from=dependencies /build /build
 
 COPY src src
 
-RUN --mount=type=secret,id=gradle-cache-config,env=GRADLE_CACHE_URL \
-    --mount=type=secret,id=gradle-cache-username,env=GRADLE_CACHE_USERNAME \
-    --mount=type=secret,id=gradle-cache-password,env=GRADLE_CACHE_PASSWORD \
-    bash -c "echo $GRADLE_CACHE_URL && \
+RUN --mount=type=secret,id=gradle-cache-config,target=/run/secrets/gradle-cache-config \
+    bash -c "export $(cat /run/secrets/gradle-cache-config | xargs) && \
+             echo $GRADLE_CACHE_URL && \
              echo $GRADLE_CACHE_USERNAME && \
              echo $GRADLE_CACHE_PASSWORD && \
              ./gradlew clean build"
