@@ -14,18 +14,17 @@ RUN ./gradlew dependencies --no-daemon
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
-
 COPY --from=dependencies /build /build
-
 COPY src src
 
 RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_USERNAME \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_PASSWORD \
-    bash -c "echo \$GRADLE_BUILD_CACHE_URL && \
+    bash -c "ls -l /run/secrets && \
+             echo \$GRADLE_BUILD_CACHE_URL && \
              echo \$GRADLE_BUILD_CACHE_USERNAME && \
              echo \$GRADLE_BUILD_CACHE_PASSWORD && \
-             ./gradlew clean build --info"
+             ./gradlew clean build -x test --info"
 
 FROM openjdk:17-jdk-slim
 
