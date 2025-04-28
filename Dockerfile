@@ -10,7 +10,6 @@ COPY build.gradle settings.gradle ./
 
 RUN ./gradlew dependencies --no-daemon
 
-
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /build
 
