@@ -20,20 +20,15 @@ COPY src src
 RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_USERNAME \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_PASSWORD \
-    bash -euxo pipefail -c '
-      echo "==== Mounted Secrets ===="
-      ls -l /run/secrets
-
-      GRADLE_BUILD_CACHE_URL=$(cat /run/secrets/GRADLE_BUILD_CACHE_URL | tr -d "\r" | tr -d "\n")
-      GRADLE_BUILD_CACHE_USERNAME=$(cat /run/secrets/GRADLE_BUILD_CACHE_USERNAME | tr -d "\r" | tr -d "\n")
-      GRADLE_BUILD_CACHE_PASSWORD=$(cat /run/secrets/GRADLE_BUILD_CACHE_PASSWORD | tr -d "\r" | tr -d "\n")
-
-      echo "$GRADLE_BUILD_CACHE_URL"
-      echo "$GRADLE_BUILD_CACHE_USERNAME"
-      echo "$GRADLE_BUILD_CACHE_PASSWORD"
-
-      ./gradlew clean build -x test --info
-    '
+    bash -c "echo '==== Mounted Secrets ====' && \
+             ls -l /run/secrets && \
+             export GRADLE_BUILD_CACHE_URL=\$(cat /run/secrets/GRADLE_BUILD_CACHE_URL | tr -d '\r\n') && \
+             export GRADLE_BUILD_CACHE_USERNAME=\$(cat /run/secrets/GRADLE_BUILD_CACHE_USERNAME | tr -d '\r\n') && \
+             export GRADLE_BUILD_CACHE_PASSWORD=\$(cat /run/secrets/GRADLE_BUILD_CACHE_PASSWORD | tr -d '\r\n') && \
+             echo \$GRADLE_BUILD_CACHE_URL && \
+             echo \$GRADLE_BUILD_CACHE_USERNAME && \
+             echo \$GRADLE_BUILD_CACHE_PASSWORD && \
+             ./gradlew clean build -x test --info"
 
 
 
