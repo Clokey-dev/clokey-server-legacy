@@ -26,7 +26,7 @@ RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
       export GRADLE_BUILD_CACHE_URL=\$(cat /run/secrets/GRADLE_BUILD_CACHE_URL | tr -d '\r\n') && \
       export GRADLE_BUILD_CACHE_USERNAME=\$(cat /run/secrets/GRADLE_BUILD_CACHE_USERNAME | tr -d '\r\n') && \
       export GRADLE_BUILD_CACHE_PASSWORD=\$(cat /run/secrets/GRADLE_BUILD_CACHE_PASSWORD | tr -d '\r\n') && \
-      ./gradlew bootJar -x test --build-cache
+      ./gradlew bootJar -x test --build-cache \
     "
 
 
