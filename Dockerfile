@@ -29,7 +29,6 @@ RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
       ./gradlew clean build -x test --info \
     "
 
-
 FROM openjdk:17-jdk-slim
 
 ENV TZ=Asia/Seoul
