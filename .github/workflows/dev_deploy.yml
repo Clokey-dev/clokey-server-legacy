@@ -25,15 +25,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Check if deploy.sh exists
-        run: |
-          if [ -f "./deploy.sh" ]; then
-            echo "✅ deploy.sh 파일이 존재합니다."
-          else
-            echo "❌ deploy.sh 파일이 없습니다."
-            exit 1
-          fi
-
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
@@ -118,9 +109,7 @@ jobs:
           username: ubuntu
           host: ${{ secrets.EC2_HOST }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: |
-            ./docker-compose.yml
-            ./deploy.sh
+          source: "./docker-compose.yml ./deploy.sh"
           target: /home/ubuntu/cicd/
 
       - name: Deploy Blue-Green
