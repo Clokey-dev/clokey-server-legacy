@@ -32,8 +32,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           install: true
-          driver-opts: network=host
-          buildkitd-flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
 
       - name: Create and use buildx builder
         run: |
@@ -60,7 +58,7 @@ jobs:
             echo "changed=false" >> $GITHUB_ENV
           fi
 
-      - name: Build & Push Dependency Cache (buildx 직접 사용)
+      - name: Build & Push Dependency Cache
         if: env.changed == 'true'
         run: |
           docker buildx build \
@@ -75,7 +73,7 @@ jobs:
             --secret type=env,id=GRADLE_BUILD_CACHE_PASSWORD,env=GRADLE_BUILD_CACHE_PASSWORD \
             .
 
-      - name: Build & Push Application Image (buildx 직접 사용)
+      - name: Build & Push Application Image
         run: |
           docker buildx build \
             --builder mybuilder \
@@ -125,11 +123,3 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
             sudo chmod +x /home/ubuntu/cicd/deploy.sh
             sudo /home/ubuntu/cicd/deploy.sh
-
-      - name: Show Test Failure Report
-        if: failure()
-        run: |
-          echo "=== TEST FAILURE REPORT ==="
-          find build/reports/tests/test/ -name "*.html" || echo "No report found"
-          find build/reports/tests/test/ -name "*.html" -exec cat {} \; || echo "Failed to read report"
-
