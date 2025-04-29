@@ -125,3 +125,11 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0
             sudo chmod +x /home/ubuntu/cicd/deploy.sh
             sudo /home/ubuntu/cicd/deploy.sh
+
+      - name: Show Test Failure Report
+        if: failure()
+        run: |
+          echo "=== TEST FAILURE REPORT ==="
+          find build/reports/tests/test/ -name "*.html" || echo "No report found"
+          find build/reports/tests/test/ -name "*.html" -exec cat {} \; || echo "Failed to read report"
+
