@@ -20,15 +20,15 @@ COPY src src
 RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_USERNAME \
     --mount=type=secret,id=GRADLE_BUILD_CACHE_PASSWORD \
-    bash -c "
-      echo '==== Mounted Secrets ====' && ls -l /run/secrets && \
-      GRADLE_BUILD_CACHE_URL=$(cat /run/secrets/GRADLE_BUILD_CACHE_URL) && \
-      GRADLE_BUILD_CACHE_USERNAME=$(cat /run/secrets/GRADLE_BUILD_CACHE_USERNAME) && \
-      GRADLE_BUILD_CACHE_PASSWORD=$(cat /run/secrets/GRADLE_BUILD_CACHE_PASSWORD) && \
-      echo \$GRADLE_BUILD_CACHE_URL && \
-      echo \$GRADLE_BUILD_CACHE_USERNAME && \
-      echo \$GRADLE_BUILD_CACHE_PASSWORD && \
-      ./gradlew clean build -x test --info"
+    bash -c "echo '==== Mounted Secrets ====' && \
+             ls -l /run/secrets && \
+             export GRADLE_BUILD_CACHE_URL=$(cat /run/secrets/GRADLE_BUILD_CACHE_URL) && \
+             export GRADLE_BUILD_CACHE_USERNAME=$(cat /run/secrets/GRADLE_BUILD_CACHE_USERNAME) && \
+             export GRADLE_BUILD_CACHE_PASSWORD=$(cat /run/secrets/GRADLE_BUILD_CACHE_PASSWORD) && \
+             echo \$GRADLE_BUILD_CACHE_URL && \
+             echo \$GRADLE_BUILD_CACHE_USERNAME && \
+             echo \$GRADLE_BUILD_CACHE_PASSWORD && \
+             ./gradlew clean build -x test --info"
 
 
 FROM openjdk:17-jdk-slim
