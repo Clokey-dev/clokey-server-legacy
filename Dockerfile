@@ -29,7 +29,6 @@ RUN --mount=type=secret,id=GRADLE_BUILD_CACHE_URL \
       ./gradlew bootJar -x test --build-cache \
     "
 
-
 FROM openjdk:17-jdk-slim
 
 ENV TZ=Asia/Seoul

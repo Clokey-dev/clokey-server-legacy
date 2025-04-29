@@ -4,11 +4,6 @@ def buildCacheUrl = System.getenv('GRADLE_BUILD_CACHE_URL')
 def buildCacheUsername = System.getenv('GRADLE_BUILD_CACHE_USERNAME')
 def buildCachePassword = System.getenv('GRADLE_BUILD_CACHE_PASSWORD')
 
-println "buildCacheUrl = ${buildCacheUrl}"
-println "buildCacheUsername = ${buildCacheUsername}"
-println "buildCachePassword = ${buildCachePassword}"
-
-
 buildCache {
     local {
         enabled = true

@@ -109,7 +109,9 @@ jobs:
           username: ubuntu
           host: ${{ secrets.EC2_HOST }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: ./docker-compose.yml
+          source: |
+            ./docker-compose.yml
+            ./deploy.sh
           target: /home/ubuntu/cicd/
 
       - name: Deploy Blue-Green
