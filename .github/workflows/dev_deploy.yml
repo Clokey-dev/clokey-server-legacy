@@ -103,13 +103,22 @@ jobs:
           source: ./temp_secret/application-secret.yml
           target: /home/ubuntu/secret/
 
-      - name: Copy docker-compose.yml and deploy.sh to remote
+      - name: Copy docker-compose.yml to remote
         uses: appleboy/scp-action@v0.1.3
         with:
           username: ubuntu
           host: ${{ secrets.EC2_HOST }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "./docker-compose.yml ./deploy.sh"
+          source: ./docker-compose.yml
+          target: /home/ubuntu/cicd/
+
+      - name: Copy deploy.sh to remote
+        uses: appleboy/scp-action@v0.1.3
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_HOST }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: ./deploy.sh
           target: /home/ubuntu/cicd/
 
       - name: Deploy Blue-Green
