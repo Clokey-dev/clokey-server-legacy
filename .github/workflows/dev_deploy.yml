@@ -32,8 +32,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           install: true
-          driver-opts: |
-            \network=host
+          driver-opts: network=host
           buildkitd-flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
 
       - name: Create and use buildx builder
