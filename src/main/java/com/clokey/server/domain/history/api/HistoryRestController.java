@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -227,7 +228,7 @@ public class HistoryRestController {
             @Parameter(name = "page", description = "페이징 관련 query parameter. 1부터 시작합니다.")
     })
     public BaseResponse<HistoryResponseDTO.HistoryLikedListResult> getLikedHistories(@Parameter(name = "user", hidden = true) @AuthUser Member member,
-                                                                             @RequestParam(value = "page") @Valid @CheckPage int page) {
+                                                                                     @RequestParam(value = "page") @Valid @CheckPage int page) {
         HistoryResponseDTO.HistoryLikedListResult result = historyService.getLikedHistories(member.getId(), page - 1);
 
         return BaseResponse.onSuccess(SuccessStatus.HISTORY_SUCCESS, result);
@@ -242,7 +243,7 @@ public class HistoryRestController {
             @Parameter(name = "page", description = "페이징 관련 query parameter. 1부터 시작합니다.")
     })
     public BaseResponse<HistoryResponseDTO.HistoryMyCommentListResult> getMyComments(@Parameter(name = "user", hidden = true) @AuthUser Member member,
-                                                                                       @RequestParam(value = "page") @Valid @CheckPage int page) {
+                                                                                     @RequestParam(value = "page") @Valid @CheckPage int page) {
         HistoryResponseDTO.HistoryMyCommentListResult result = historyService.getMyComments(member.getId(), page - 1);
 
         return BaseResponse.onSuccess(SuccessStatus.HISTORY_SUCCESS, result);

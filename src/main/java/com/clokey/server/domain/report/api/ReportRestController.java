@@ -48,7 +48,7 @@ public class ReportRestController {
     public BaseResponse<ReportResponseDTO.HistoryReportResult> reportHistory(@Parameter(name = "user", hidden = true) @AuthUser Member member,
                                                                              @RequestBody @Valid ReportRequestDTO.HistoryReportRequest historyReportRequest) {
 
-        ReportResponseDTO.HistoryReportResult result = reportService.getHistoryReportResult(historyReportRequest,member.getId());
+        ReportResponseDTO.HistoryReportResult result = reportService.getHistoryReportResult(historyReportRequest, member.getId());
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_HISTORY_SUCCESS, result);
     }
@@ -114,7 +114,7 @@ public class ReportRestController {
             @RequestParam(required = false) Long reporterId,
             @RequestParam(required = false) Long reportedInstanceId) {
 
-        ReportResponseDTO.AdminReportViewResults result = reportService.getAdminReportViewResults(reportStatus,reportType,reporterId,reportedInstanceId);
+        ReportResponseDTO.AdminReportViewResults result = reportService.getAdminReportViewResults(reportStatus, reportType, reporterId, reportedInstanceId);
 
         return BaseResponse.onSuccess(SuccessStatus.REPORT_ADMIN_VIEW_SUCCESS, result);
     }
@@ -128,7 +128,7 @@ public class ReportRestController {
             @RequestParam ReportType reportType,
             @RequestParam Long reportId,
             @RequestParam Boolean ban) {
-        reportService.processReport(reportType,reportId,ban);
+        reportService.processReport(reportType, reportId, ban);
         return BaseResponse.onSuccess(SuccessStatus.REPORT_ADMIN_PROCESSED, null);
     }
 
