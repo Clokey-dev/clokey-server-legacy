@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.history.dto.HistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -164,7 +165,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         //Clokey ID를 제공하지 않았다면 자기 자신의 기록 확인으로 전부 반환.
         if (clokeyId == null) {
-            List<History> histories = historyRepositoryService.findHistoriesByMemberAndYearMonth(myMemberId, month);
+            List<HistoryProjectionDTO.monthlyHistory> histories = historyRepositoryService.findHistoriesByMemberAndYearMonth(myMemberId, month);
 
 
             List<String> firstImageUrlsOfHistory = histories.stream()
@@ -186,7 +187,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         historyAccessibleValidator.validateMemberAccessOfMember(memberId, myMemberId);
 
-        List<History> histories = historyRepositoryService.findHistoriesByMemberAndYearMonth(memberId, month);
+        List<HistoryProjectionDTO.monthlyHistory> histories = historyRepositoryService.findHistoriesByMemberAndYearMonth(memberId, month);
         List<String> firstImageUrlsOfHistory = histories.stream()
                 .map(history -> {
                     Optional<String> firstImageUrl = historyImageRepositoryService.findByHistoryId(history.getId()).stream()
@@ -199,7 +200,7 @@ public class HistoryServiceImpl implements HistoryService {
                 .collect(Collectors.toList());
 
         for (int i = 0; i < histories.size(); i++) {
-            History history = histories.get(i);
+            HistoryProjectionDTO.monthlyHistory history = histories.get(i);
 
             if (history.getVisibility().equals(Visibility.PRIVATE)) {
                 firstImageUrlsOfHistory.set(i, "비공개입니다");

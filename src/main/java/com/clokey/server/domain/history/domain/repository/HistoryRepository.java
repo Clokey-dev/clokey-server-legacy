@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.history.dto.HistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,8 +18,20 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 
 public interface HistoryRepository extends JpaRepository<History, Long> {
 
-    @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND FUNCTION('DATE_FORMAT', h.historyDate, '%Y-%m') = :yearMonth")
-    List<History> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
+    @Query("""
+    SELECT new com.clokey.server.domain.history.dto.HistoryProjectionDTO.HistoryIdAndDate(
+        h.id, h.historyDate, h.visibility
+    )
+    FROM History h
+    WHERE h.member.id = :memberId
+      AND FUNCTION('DATE_FORMAT', h.historyDate, '%Y-%m') = :yearMonth
+""")
+    List<HistoryProjectionDTO.monthlyHistory> findHistoriesByMemberAndYearMonth(
+            @Param("memberId") Long memberId,
+            @Param("yearMonth") String yearMonth
+    );
+
+
 
     @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND h.historyDate >= :monthAgo")
     List<History> findHistoriesWithinMonth(@Param("memberId") Long memberId, @Param("monthAgo") LocalDate monthAgo);

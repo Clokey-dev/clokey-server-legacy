@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.history.dto.HistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     private final HistoryRepository historyRepository;
 
     @Override
-    public List<History> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
+    public List<HistoryProjectionDTO.monthlyHistory> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
         return historyRepository.findHistoriesByMemberAndYearMonth(memberId, yearMonth);
     }
 

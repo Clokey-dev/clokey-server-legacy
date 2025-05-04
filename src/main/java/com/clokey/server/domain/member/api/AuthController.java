@@ -1,6 +1,5 @@
 package com.clokey.server.domain.member.api;
 
-import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

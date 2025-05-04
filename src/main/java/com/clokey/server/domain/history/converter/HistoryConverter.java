@@ -1,8 +1,6 @@
 package com.clokey.server.domain.history.converter;
 
-import com.clokey.server.domain.folder.domain.entity.Folder;
-import com.clokey.server.domain.folder.dto.FolderResponseDTO;
-import com.clokey.server.domain.history.domain.entity.HistoryImage;
+import com.clokey.server.domain.history.dto.HistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -94,12 +92,12 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.MonthViewResult toMonthViewResult(Long memberId, String nickName, List<History> histories, List<String> historyFirstImageUrls) {
+    public static HistoryResponseDTO.MonthViewResult toMonthViewResult(Long memberId, String nickName, List<HistoryProjectionDTO.monthlyHistory> histories, List<String> historyFirstImageUrls) {
 
         List<HistoryResponseDTO.HistoryResult> HistoryResults = new ArrayList<>();
 
         for (int i = 0; i < histories.size(); i++) {
-            History history = histories.get(i);
+            HistoryProjectionDTO.monthlyHistory history = histories.get(i);
             String historyImageUrl = historyFirstImageUrls.get(i);
 
             HistoryResults.add(toHistoryResult(history, historyImageUrl));
@@ -112,7 +110,7 @@ public class HistoryConverter {
                 .build();
     }
 
-    private static HistoryResponseDTO.HistoryResult toHistoryResult(History history, String historyImageUrl) {
+    private static HistoryResponseDTO.HistoryResult toHistoryResult(HistoryProjectionDTO.monthlyHistory history, String historyImageUrl) {
         return HistoryResponseDTO.HistoryResult.builder()
                 .historyId(history.getId())
                 .date(history.getHistoryDate())
