@@ -79,6 +79,14 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
             @Param("historyDate") LocalDate historyDate,
             @Param("memberIds") List<Long> memberIds);
 
+    @Query("""
+    SELECT CASE WHEN COUNT(h) > 0 THEN true ELSE false END
+    FROM History h
+    WHERE h.id = :historyId AND h.member.id = :memberId
+""")
+    boolean checkMyHistory(@Param("historyId") Long historyId,
+                           @Param("memberId") Long memberId);
+
 
     Optional<History> findByHistoryDateAndMember_Id(LocalDate historyDate, Long memberId);
 

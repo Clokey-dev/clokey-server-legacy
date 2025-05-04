@@ -132,4 +132,9 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     public Page<History> findHistoriesByMemberIdAndMemberLike(Long memberId, Pageable pageable) {
         return historyRepository.findLikedHistories(memberId, pageable);
     }
+
+    @Override
+    public boolean checkMyHistory(Long historyId, Long memberId) {
+        return historyRepository.checkMyHistory(historyId,memberId);
+    }
 }
