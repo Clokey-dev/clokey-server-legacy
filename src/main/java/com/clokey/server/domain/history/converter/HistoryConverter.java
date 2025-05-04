@@ -1,6 +1,9 @@
 package com.clokey.server.domain.history.converter;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
+import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -63,32 +66,32 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.DailyHistoryResult toDayViewResult(History history, List<String> imageUrl, List<String> hashtags, int likeCount, boolean isLiked, List<Cloth> cloths, Long commentCount) {
+    public static HistoryResponseDTO.DailyHistoryResult toDayViewResult(DailyHistoryProjectionDTO dailyHistoryProjectionDTO, DailyHistoryMemberProjectionDTO dailyHistoryMemberProjectionDTO, List<String> imageUrl, List<String> hashtags, int likeCount, boolean isLiked, List<DailyHistoryClothProjectionDTO> cloths, Long commentCount) {
         return HistoryResponseDTO.DailyHistoryResult.builder()
-                .memberId(history.getMember().getId())
-                .historyId(history.getId())
-                .contents(history.getContent())
-                .memberImageUrl(history.getMember().getProfileImageUrl())
+                .memberId(dailyHistoryProjectionDTO.getMemberId())
+                .historyId(dailyHistoryProjectionDTO.getHistoryId())
+                .contents(dailyHistoryProjectionDTO.getHistoryContent())
+                .memberImageUrl(dailyHistoryMemberProjectionDTO.getProfileUrl())
                 .imageUrl(imageUrl)
                 .hashtags(hashtags)
-                .visibility(history.getVisibility().equals(Visibility.PUBLIC))
+                .visibility(dailyHistoryProjectionDTO.getVisibility().equals(Visibility.PUBLIC))
                 .likeCount(likeCount)
                 .commentCount(commentCount)
                 .isLiked(isLiked)
-                .date(history.getHistoryDate())
-                .nickName(history.getMember().getNickname())
-                .clokeyId(history.getMember().getClokeyId())
+                .date(dailyHistoryProjectionDTO.getHistoryDate())
+                .nickName(dailyHistoryMemberProjectionDTO.getNickname())
+                .clokeyId(dailyHistoryMemberProjectionDTO.getClokeyId())
                 .cloths(cloths.stream()
                         .map(HistoryConverter::toHistoryCloth)
                         .toList())
                 .build();
     }
 
-    private static HistoryResponseDTO.HistoryClothResult toHistoryCloth(Cloth cloth) {
+    private static HistoryResponseDTO.HistoryClothResult toHistoryCloth(DailyHistoryClothProjectionDTO dailyHistoryClothProjectionDTO) {
         return HistoryResponseDTO.HistoryClothResult.builder()
-                .clothId(cloth.getId())
-                .clothImageUrl(cloth.getImage().getImageUrl())
-                .clothName(cloth.getName())
+                .clothId(dailyHistoryClothProjectionDTO.getClothId())
+                .clothImageUrl(dailyHistoryClothProjectionDTO.getClothImageUrl())
+                .clothName(dailyHistoryClothProjectionDTO.getClothName())
                 .build();
     }
 

@@ -38,14 +38,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("DELETE FROM Comment c WHERE c.history.id = :historyId")
     void deleteParentCommentsByHistoryId(@Param("historyId") Long historyId);
 
-
     boolean existsByIdAndMemberId(Long id, Long memberId);
 
     boolean existsByIdAndHistoryId(Long id, Long historyId);
 
-
-    @Transactional(readOnly = true)
-    Long countByHistoryId(Long historyId);
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.history.id = :historyId")
+    Long countByHistoryId(@Param("historyId") Long historyId);
 
     @Modifying
     @Transactional

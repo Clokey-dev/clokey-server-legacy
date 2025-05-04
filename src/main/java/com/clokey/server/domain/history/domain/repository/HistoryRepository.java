@@ -1,5 +1,7 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +33,28 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
             @Param("yearMonth") String yearMonth
     );
 
+    @Query("""
+    SELECT new com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO(
+        h.member.id,
+        h.visibility
+    )
+    FROM History h
+    WHERE h.id = :historyId
+""")
+    Optional<HistoryAccessCheckProjectionDTO> findAccessInfoByHistoryId(@Param("historyId") Long historyId);
 
+    @Query("""
+    SELECT new com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO(
+        h.id,
+        h.content,
+        h.visibility,
+        h.historyDate,
+        h.member.id
+    )
+    FROM History h
+    WHERE h.id = :historyId
+""")
+    Optional<DailyHistoryProjectionDTO> getDailyHistoryProjectionDTO(@Param("historyId") Long historyId);
 
     @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND h.historyDate >= :monthAgo")
     List<History> findHistoriesWithinMonth(@Param("memberId") Long memberId, @Param("monthAgo") LocalDate monthAgo);

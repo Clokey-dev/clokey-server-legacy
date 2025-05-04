@@ -1,5 +1,9 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +51,16 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     @Override
     public History findById(Long historyId) {
         return historyRepository.findById(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
+    }
+
+    @Override
+    public HistoryAccessCheckProjectionDTO findAccessInfoByHistoryId(Long historyId) {
+        return historyRepository.findAccessInfoByHistoryId(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
+    }
+
+    @Override
+    public DailyHistoryProjectionDTO getDailyHistoryProjectionDTO(Long historyId) {
+        return historyRepository.getDailyHistoryProjectionDTO(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
     }
 
     @Override

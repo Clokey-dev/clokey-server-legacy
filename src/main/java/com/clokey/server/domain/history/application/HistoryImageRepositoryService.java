@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.history.dto.projection.HistoryImageUrlProjectionDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -11,6 +12,8 @@ import com.clokey.server.domain.history.domain.entity.HistoryImage;
 public interface HistoryImageRepositoryService {
 
     List<HistoryImage> findByHistoryId(Long historyId);
+
+    List<HistoryImageUrlProjectionDTO> getHistoryImageUrlProjectionDTO(Long historyId);
 
     void save(MultipartFile historyImage, History history);
 

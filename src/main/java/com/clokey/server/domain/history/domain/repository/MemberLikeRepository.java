@@ -12,9 +12,18 @@ import com.clokey.server.domain.member.domain.entity.Member;
 
 public interface MemberLikeRepository extends JpaRepository<MemberLike, Long> {
 
-    int countByHistory_Id(Long historyId);
+    @Query("SELECT COUNT(h) FROM HistoryCloth h WHERE h.history.id = :historyId")
+    int countByHistoryId(@Param("historyId") Long historyId);
 
-    boolean existsByMember_IdAndHistory_Id(Long memberId, Long historyId);
+    @Query("""
+    SELECT CASE WHEN COUNT(ml) > 0 THEN true ELSE false END
+    FROM MemberLike ml
+    WHERE ml.member.id = :memberId
+      AND ml.history.id = :historyId
+""")
+    boolean existsByMemberIdAndHistoryId(@Param("memberId") Long memberId,
+                                         @Param("historyId") Long historyId);
+
 
     void deleteByMember_IdAndHistory_Id(Long memberId, Long historyId);
 

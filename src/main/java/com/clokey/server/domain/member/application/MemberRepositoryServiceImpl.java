@@ -1,5 +1,6 @@
 package com.clokey.server.domain.member.application;
 
+import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
 import com.clokey.server.domain.model.entity.enums.SocialType;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +67,11 @@ public class MemberRepositoryServiceImpl implements MemberRepositoryService {
     @Override
     public boolean existsByClokeyId(String clokeyId) {
         return memberRepository.existsByClokeyId(clokeyId);
+    }
+
+    @Override
+    public DailyHistoryMemberProjectionDTO getDailyHistoryMemberProjectionDTO(Long memberId) {
+        return memberRepository.getDailyHistoryMemberProjectionDTO(memberId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_MEMBER));
     }
 
     @Override

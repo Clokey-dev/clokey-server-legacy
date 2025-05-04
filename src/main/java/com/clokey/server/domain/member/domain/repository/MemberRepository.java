@@ -1,5 +1,6 @@
 package com.clokey.server.domain.member.domain.repository;
 
+import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
 import com.clokey.server.domain.model.entity.enums.SocialType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,18 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("SELECT m FROM Member m WHERE m.id = :id")
     Optional<Member> findMemberById(@Param("id") Long id);
+
+    @Query("""
+    SELECT new com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO(
+        m.profileImageUrl,
+        m.nickname,
+        m.clokeyId
+    )
+    FROM Member m
+    WHERE m.id = :memberId
+""")
+    Optional<DailyHistoryMemberProjectionDTO> getDailyHistoryMemberProjectionDTO(@Param("memberId") Long memberId);
+
 
     @Override
     Member getReferenceById(Long aLong);

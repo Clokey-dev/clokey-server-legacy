@@ -1,5 +1,6 @@
 package com.clokey.server.domain.cloth.application;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -118,6 +119,11 @@ public class ClothRepositoryServiceImpl implements ClothRepositoryService{
             cloths.add(null);
         }
         return cloths;
+    }
+
+    @Override
+    public List<DailyHistoryClothProjectionDTO> getDailyHistoryClothProjectionsDTO(Long historyId) {
+        return clothRepository.getDailyHistoryClothProjectionDTO(historyId);
     }
 
 }

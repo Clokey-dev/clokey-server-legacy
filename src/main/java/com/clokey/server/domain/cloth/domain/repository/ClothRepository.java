@@ -1,5 +1,6 @@
 package com.clokey.server.domain.cloth.domain.repository;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -94,4 +95,18 @@ public interface ClothRepository extends JpaRepository<Cloth, Long> {
     LIMIT 3
 """)
     List<Cloth> getTop3PublicCloths(@Param("member") Member member);
+
+    @Query("""
+    SELECT new com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO(
+        c.id,
+        ci.imageUrl,
+        c.name,
+        c.visibility
+    )
+    FROM HistoryCloth hc
+    JOIN hc.cloth c
+    LEFT JOIN c.image ci
+    WHERE hc.history.id = :historyId
+""")
+    List<DailyHistoryClothProjectionDTO> getDailyHistoryClothProjectionDTO(@Param("historyId") Long historyId);
 }

@@ -1,6 +1,10 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryImageUrlProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
+import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -125,23 +129,24 @@ public class HistoryServiceImpl implements HistoryService {
     public HistoryResponseDTO.DailyHistoryResult getDaily(Long historyId, Long memberId) {
         historyAccessibleValidator.validateHistoryAccessOfMember(historyId, memberId);
 
-        History history = historyRepositoryService.findById(historyId);
-        List<String> imageUrl = historyImageRepositoryService.findByHistoryId(historyId).stream()
-                .map(HistoryImage::getImageUrl)
+        DailyHistoryProjectionDTO dailyHistoryProjectionDTO = historyRepositoryService.getDailyHistoryProjectionDTO(historyId);
+        List<String> imageUrl = historyImageRepositoryService.getHistoryImageUrlProjectionDTO(historyId).stream()
+                .map(HistoryImageUrlProjectionDTO::getUrl)
                 .toList();
         List<String> hashtags = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(historyId);
         int likeCount = memberLikeRepositoryService.countByHistory_Id(historyId);
         boolean isLiked = memberLikeRepositoryService.existsByMember_IdAndHistory_Id(memberId, historyId);
         Long commentCount = commentRepositoryService.countByHistoryId(historyId);
-        List<Cloth> cloths = historyClothRepositoryService.findAllClothByHistoryId(historyId);
+        DailyHistoryMemberProjectionDTO dailyHistoryMemberProjectionDTO = memberRepositoryService.getDailyHistoryMemberProjectionDTO(dailyHistoryProjectionDTO.getMemberId());
+        List<DailyHistoryClothProjectionDTO> dailyHistoryClothProjectionDTOS = clothRepositoryService.getDailyHistoryClothProjectionsDTO(historyId);
 
-        if (memberId.equals(history.getMember().getId())) {
-            return HistoryConverter.toDayViewResult(history, imageUrl, hashtags, likeCount, isLiked, cloths, commentCount);
+        if (memberId.equals(dailyHistoryProjectionDTO.getMemberId())) {
+            return HistoryConverter.toDayViewResult(dailyHistoryProjectionDTO,dailyHistoryMemberProjectionDTO, imageUrl, hashtags, likeCount, isLiked, dailyHistoryClothProjectionDTOS, commentCount);
         } else {
-            cloths = cloths.stream()
+            dailyHistoryClothProjectionDTOS = dailyHistoryClothProjectionDTOS.stream()
                     .filter(cloth -> cloth.getVisibility() == Visibility.PUBLIC)
                     .collect(Collectors.toList());
-            return HistoryConverter.toDayViewResult(history, imageUrl, hashtags, likeCount, isLiked, cloths, commentCount);
+            return HistoryConverter.toDayViewResult(dailyHistoryProjectionDTO,dailyHistoryMemberProjectionDTO, imageUrl, hashtags, likeCount, isLiked, dailyHistoryClothProjectionDTOS, commentCount);
         }
     }
 
