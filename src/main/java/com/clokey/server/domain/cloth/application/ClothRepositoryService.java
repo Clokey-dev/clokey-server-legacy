@@ -57,4 +57,6 @@ public interface ClothRepositoryService {
     List<Cloth> getTop3PublicCloths(Member member);
 
     List<DailyHistoryClothProjectionDTO> getDailyHistoryClothProjectionsDTO(Long historyId);
+
+    List<Long> getClothOwners(List<Long> clothIds);
 }

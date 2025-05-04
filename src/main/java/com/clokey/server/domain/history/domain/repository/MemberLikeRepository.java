@@ -23,9 +23,13 @@ public interface MemberLikeRepository extends JpaRepository<MemberLike, Long> {
 """)
     boolean existsByMemberIdAndHistoryId(@Param("memberId") Long memberId,
                                          @Param("historyId") Long historyId);
-
-
-    void deleteByMember_IdAndHistory_Id(Long memberId, Long historyId);
+    @Modifying
+    @Query("""
+    DELETE FROM MemberLike ml
+    WHERE ml.member.id = :memberId AND ml.history.id = :historyId
+""")
+    void deleteByMemberIdAndHistoryId(@Param("memberId") Long memberId,
+                                      @Param("historyId") Long historyId);
 
     @Modifying  // 수정/삭제 작업을 나타냄
     @Query("DELETE FROM MemberLike ml WHERE ml.history.id = :historyId")

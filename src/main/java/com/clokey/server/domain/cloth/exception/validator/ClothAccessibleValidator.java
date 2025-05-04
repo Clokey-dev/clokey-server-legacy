@@ -48,9 +48,13 @@ public class ClothAccessibleValidator {
     //다른 입력 인자로 오버로딩
     public void validateClothOfMember(List<Long> clothIds, Long memberId) {
 
-        clothIds.forEach(clothId -> {
-            validateClothOfMember(clothId,memberId);
-        });
+        List<Long> clothOwners = clothRepositoryService.getClothOwners(clothIds);
+        boolean hasInvalidOwner = clothOwners.stream()
+                .anyMatch(ownerId -> !ownerId.equals(memberId));
+
+        if (hasInvalidOwner) {
+            throw new ClothException(ErrorStatus.NOT_MY_CLOTH);
+        }
     }
 
     // 유저가 다른 유저의 옷을 조회하려할 때를 검증 -> 비공개 유저의 옷을 조회하지 못하도록 함

@@ -71,7 +71,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         if (isLiked) {
             historyRepositoryService.decrementLikes(historyId);
-            memberLikeRepositoryService.deleteByMember_IdAndHistory_Id(memberId, historyId);
+            memberLikeRepositoryService.deleteByMemberIdAndHistoryId(memberId, historyId);
         } else {
             historyRepositoryService.incrementLikes(historyId);
             MemberLike memberLike = MemberLike.builder()

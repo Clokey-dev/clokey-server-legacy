@@ -126,4 +126,9 @@ public class ClothRepositoryServiceImpl implements ClothRepositoryService{
         return clothRepository.getDailyHistoryClothProjectionDTO(historyId);
     }
 
+    @Override
+    public List<Long> getClothOwners(List<Long> clothIds) {
+        return clothRepository.findMemberIdsByClothIds(clothIds);
+    }
+
 }

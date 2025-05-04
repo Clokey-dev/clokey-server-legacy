@@ -109,4 +109,11 @@ public interface ClothRepository extends JpaRepository<Cloth, Long> {
     WHERE hc.history.id = :historyId
 """)
     List<DailyHistoryClothProjectionDTO> getDailyHistoryClothProjectionDTO(@Param("historyId") Long historyId);
+
+    @Query("""
+    SELECT c.member.id
+    FROM Cloth c
+    WHERE c.id IN :clothIds
+""")
+    List<Long> findMemberIdsByClothIds(@Param("clothIds") List<Long> clothIds);
 }

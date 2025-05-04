@@ -17,6 +17,7 @@ import java.util.Optional;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.Visibility;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface HistoryRepository extends JpaRepository<History, Long> {
 
@@ -59,14 +60,21 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
     @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND h.historyDate >= :monthAgo")
     List<History> findHistoriesWithinMonth(@Param("memberId") Long memberId, @Param("monthAgo") LocalDate monthAgo);
 
+    @Transactional
     @Query("UPDATE History h SET h.likes = h.likes + 1 WHERE h.id = :historyId")
     @Modifying(clearAutomatically = true)
     void incrementLikes(Long historyId);
 
+    @Transactional
     @Query("UPDATE History h SET h.likes = h.likes - 1 WHERE h.id = :historyId")
     @Modifying(clearAutomatically = true)
     void decrementLikes(Long historyId);
 
+    @Query("""
+    SELECT CASE WHEN COUNT(h) > 0 THEN true ELSE false END
+    FROM History h
+    WHERE h.historyDate = :historyDate AND h.member.id = :memberId
+""")
     boolean existsByHistoryDateAndMember_Id(LocalDate historyDate, Long memberId);
 
     @Query("SELECT CASE WHEN COUNT(h) > 0 THEN TRUE ELSE FALSE END " +

@@ -29,8 +29,8 @@ public class MemberLikeRepositoryServiceImpl implements MemberLikeRepositoryServ
     }
 
     @Override
-    public void deleteByMember_IdAndHistory_Id(Long memberId, Long historyId) {
-        memberLikeRepository.deleteByMember_IdAndHistory_Id(memberId, historyId);
+    public void deleteByMemberIdAndHistoryId(Long memberId, Long historyId) {
+        memberLikeRepository.deleteByMemberIdAndHistoryId(memberId, historyId);
     }
 
     @Override
