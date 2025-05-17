@@ -9,9 +9,6 @@ import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.error.exception.DatabaseException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -190,19 +187,19 @@ class HistoryReadTest {
 
     @DisplayName("비공개 유저가 자신의 비공개 기록을 열람하는 케이스, 모든 정보가 정확하게 보인다. (기본 기능 + 열람 권한 테스트)")
     @Test
-    void 일별_기록_조회_성공_1(){
+    void 일별_기록_조회_성공_1() {
         // given
         Long memberId = 2L; // 비공개인 2번 멤버
         Long historyId = 3L; // 2번 멤버의 비공개 기록
 
         // when
-        HistoryResponseDTO.DailyHistoryResult result = historyService.getDaily(historyId,memberId);
+        HistoryResponseDTO.DailyHistoryResult result = historyService.getDaily(historyId, memberId);
 
         // then
         // 단일 필드값 검증
         assertThat(result)
-                .extracting("memberId","historyId","memberImageUrl","nickName","clokeyId","contents","visibility","likeCount","date","commentCount","isLiked")
-                .containsExactly(2L,3L,"https://example.com/user2.png","User2","clokey2","새해를 맞아 여행을 다녀왔습니다.", false,1,LocalDate.of(2025,1,1),4L,true);
+                .extracting("memberId", "historyId", "memberImageUrl", "nickName", "clokeyId", "contents", "visibility", "likeCount", "date", "commentCount", "isLiked")
+                .containsExactly(2L, 3L, "https://example.com/user2.png", "User2", "clokey2", "새해를 맞아 여행을 다녀왔습니다.", false, 1, LocalDate.of(2025, 1, 1), 4L, true);
 
         // 컬랙션 필드 순차적 검증
         assertThat(result.getImageUrl().size()).isEqualTo(1);
@@ -212,8 +209,8 @@ class HistoryReadTest {
 
         assertThat(result.getCloths().size()).isEqualTo(1);
         assertThat(result.getCloths().get(0))
-                .extracting("clothId","clothImageUrl","clothName")
-                .containsExactly(3L,"https://example.com/images/cloth3_1.jpg","검은색 셔츠");
+                .extracting("clothId", "clothImageUrl", "clothName")
+                .containsExactly(3L, "https://example.com/images/cloth3_1.jpg", "검은색 셔츠");
     }
 
     @DisplayName("공개 유저인 타인의 공개 기록은 볼 수 있지만, 비공개 옷은 보이지 않는다.")
@@ -224,7 +221,7 @@ class HistoryReadTest {
         Long historyId = 7L; // 공개 유저인 4번 멤버의 공개인 7번 기록.
 
         // when
-        HistoryResponseDTO.DailyHistoryResult result = historyService.getDaily(historyId,memberId);
+        HistoryResponseDTO.DailyHistoryResult result = historyService.getDaily(historyId, memberId);
 
         // then
         assertThat(result.getCloths().size()).isEqualTo(0);
@@ -238,7 +235,7 @@ class HistoryReadTest {
         Member member = memberRepository.findById(1L).get();
 
         // then
-        assertThatThrownBy(() -> historyRestController.getDailyHistory(historyId,member))
+        assertThatThrownBy(() -> historyRestController.getDailyHistory(historyId, member))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
                 );
@@ -256,7 +253,7 @@ class HistoryReadTest {
     void 일별_기록_조회_예외_2(Long memberId, Long historyId) {
 
         // then
-        assertThatThrownBy(() -> historyService.getDaily(historyId,memberId))
+        assertThatThrownBy(() -> historyService.getDaily(historyId, memberId))
                 .isInstanceOfSatisfying(HistoryException.class, ex ->
                         assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY)
                 );
@@ -278,7 +275,7 @@ class HistoryReadTest {
     void 나의_기록인지_확인하기_성공_1(Long memberId, Long historyId, boolean expected) {
 
         //when
-        boolean result = historyService.checkIfHistoryIsMine(historyId,memberId).getIsMyHistory();
+        boolean result = historyService.checkIfHistoryIsMine(historyId, memberId).getIsMyHistory();
 
         // then
         assertThat(result).isEqualTo(expected);
@@ -286,14 +283,14 @@ class HistoryReadTest {
 
     @DisplayName("존재하지 않는 historyId를 입력할 경우 Controller단에서 에러가 발생한다.")
     @ParameterizedTest
-    @ValueSource(longs = {100L,2000L,1234L})
-    void 나의_기록인지_확인하기_에외_1(Long historyId){
+    @ValueSource(longs = {100L, 2000L, 1234L})
+    void 나의_기록인지_확인하기_에외_1(Long historyId) {
 
         // given
         Member member = memberRepository.findById(1L).get();
 
         // then
-        assertThatThrownBy(() -> historyRestController.checkIfHistoryIsMine(historyId,member))
+        assertThatThrownBy(() -> historyRestController.checkIfHistoryIsMine(historyId, member))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
                 );
@@ -321,28 +318,28 @@ class HistoryReadTest {
         HistoryResponseDTO.LikedUserResult result3 = result.get(2);
 
         assertThat(result1)
-                .extracting("memberId", "clokeyId", "ImageUrl","nickname","followStatus","isMe")
-                .containsExactly(1L,"clokey1","https://example.com/user1.png","User1",false,true);
+                .extracting("memberId", "clokeyId", "ImageUrl", "nickname", "followStatus", "isMe")
+                .containsExactly(1L, "clokey1", "https://example.com/user1.png", "User1", false, true);
 
         assertThat(result2)
-                .extracting("memberId", "clokeyId", "ImageUrl","nickname","followStatus","isMe")
-                .containsExactly(2L,"clokey2","https://example.com/user2.png","User2",true,false);
+                .extracting("memberId", "clokeyId", "ImageUrl", "nickname", "followStatus", "isMe")
+                .containsExactly(2L, "clokey2", "https://example.com/user2.png", "User2", true, false);
 
         assertThat(result3)
-                .extracting("memberId", "clokeyId", "ImageUrl","nickname","followStatus","isMe")
-                .containsExactly(4L,"clokey4","https://example.com/user4.png","User4",true,false);
+                .extracting("memberId", "clokeyId", "ImageUrl", "nickname", "followStatus", "isMe")
+                .containsExactly(4L, "clokey4", "https://example.com/user4.png", "User4", true, false);
     }
 
     @DisplayName("존재하지 않는 historyId를 입력할 경우 Controller단에서 에러가 발생한다.")
     @ParameterizedTest
-    @ValueSource(longs = {100L,2000L,1234L})
-    void 좋아요_누른_사람들_확인하기_예외_1(Long historyId){
+    @ValueSource(longs = {100L, 2000L, 1234L})
+    void 좋아요_누른_사람들_확인하기_예외_1(Long historyId) {
 
         // given
         Member member = memberRepository.findById(1L).get();
 
         // then
-        assertThatThrownBy(() -> historyRestController.getLikedUsers(historyId,member))
+        assertThatThrownBy(() -> historyRestController.getLikedUsers(historyId, member))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
                 );
@@ -360,7 +357,7 @@ class HistoryReadTest {
     void 좋아요_누른_사람들_확인하기_예외_2(Long memberId, Long historyId) {
 
         // then
-        assertThatThrownBy(() -> historyService.getLikedUsers(memberId,historyId))
+        assertThatThrownBy(() -> historyService.getLikedUsers(memberId, historyId))
                 .isInstanceOfSatisfying(HistoryException.class, ex ->
                         assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY)
                 );
@@ -377,14 +374,14 @@ class HistoryReadTest {
         int page = 0;
 
         // when
-        HistoryResponseDTO.HistoryCommentResult result = historyService.getComments(historyId,page);
+        HistoryResponseDTO.HistoryCommentResult result = historyService.getComments(historyId, page);
 
         // then
         // 결과 내용을 순차적으로 확인
         // HistoryResponseDTO.HistoryCommentResult 내용 확인
         assertThat(result)
-                .extracting("totalPage","totalElements","isFirst","isLast")
-                .containsExactly(1,4,true,true);
+                .extracting("totalPage", "totalElements", "isFirst", "isLast")
+                .containsExactly(1, 4, true, true);
         assertThat(result.getComments().size()).isEqualTo(2);
 
         // HistoryResponseDTO.CommentResult (각각 댓글의 내용 확인)
@@ -392,13 +389,13 @@ class HistoryReadTest {
         HistoryResponseDTO.CommentResult commentResult2 = result.getComments().get(1);
 
         assertThat(commentResult1)
-                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
-                .containsExactly(1L,"clokey1","User1","https://example.com/user1.png","첫 번째 댓글");
+                .extracting("commentId", "clokeyId", "nickName", "userImageUrl", "content")
+                .containsExactly(1L, "clokey1", "User1", "https://example.com/user1.png", "첫 번째 댓글");
         assertThat(commentResult1.getReplyResults().size()).isEqualTo(2);
 
         assertThat(commentResult2)
-                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
-                .containsExactly(11L,"clokey1","User1","https://example.com/user1.png","첫 번째 댓글");
+                .extracting("commentId", "clokeyId", "nickName", "userImageUrl", "content")
+                .containsExactly(11L, "clokey1", "User1", "https://example.com/user1.png", "첫 번째 댓글");
         assertThat(commentResult2.getReplyResults().size()).isEqualTo(0);
 
         // HistoryResponseDTO.ReplyResult (각각 댓글의 대댓글 확인)
@@ -406,25 +403,25 @@ class HistoryReadTest {
         HistoryResponseDTO.ReplyResult replyResult2 = commentResult1.getReplyResults().get(1);
 
         assertThat(replyResult1)
-                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
-                .containsExactly(6L,"clokey2","User2","https://example.com/user2.png","첫 번째 댓글에 대한 대댓글");
+                .extracting("commentId", "clokeyId", "nickName", "userImageUrl", "content")
+                .containsExactly(6L, "clokey2", "User2", "https://example.com/user2.png", "첫 번째 댓글에 대한 대댓글");
 
         assertThat(replyResult2)
-                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
-                .containsExactly(16L,"clokey2","User2","https://example.com/user2.png","첫 번째 댓글에 대한 대댓글");
+                .extracting("commentId", "clokeyId", "nickName", "userImageUrl", "content")
+                .containsExactly(16L, "clokey2", "User2", "https://example.com/user2.png", "첫 번째 댓글에 대한 대댓글");
 
     }
 
     @DisplayName("존재하지 않는 historyId를 입력할 경우 Controller단에서 에러가 발생한다.")
     @ParameterizedTest
-    @ValueSource(longs = {100L,2000L,1234L})
-    void 댓글_조회_예외_1(Long historyId){
+    @ValueSource(longs = {100L, 2000L, 1234L})
+    void 댓글_조회_예외_1(Long historyId) {
 
         // given
         int page = 1;
 
         // then
-        assertThatThrownBy(() -> historyRestController.getComments(historyId,page))
+        assertThatThrownBy(() -> historyRestController.getComments(historyId, page))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
                 );
@@ -433,13 +430,13 @@ class HistoryReadTest {
     @DisplayName("0보다 작은 페이지 값을 입력할 경우 Controller단에서 에러가 발생한다.")
     @ParameterizedTest
     @ValueSource(ints = {-1000, -10, 0})
-    void 댓글_조회_예외_2(int page){
+    void 댓글_조회_예외_2(int page) {
 
         // given
         Long historyId = 1L;
 
         // then
-        assertThatThrownBy(() -> historyRestController.getComments(historyId,page))
+        assertThatThrownBy(() -> historyRestController.getComments(historyId, page))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.PAGE_UNDER_ONE.name())
                 );
