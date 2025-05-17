@@ -16,8 +16,6 @@ import com.clokey.server.domain.history.domain.entity.History;
 
 public interface HashtagHistoryRepository extends JpaRepository<HashtagHistory, Long> {
 
-    boolean existsByHistory_Id(Long historyId);
-
     List<HashtagHistory> findByHistory_Id(Long historyId);
 
     @Query("SELECT h.name FROM HashtagHistory hh JOIN hh.hashtag h WHERE hh.history.id = :historyId")
@@ -64,5 +62,8 @@ public interface HashtagHistoryRepository extends JpaRepository<HashtagHistory, 
             @Param("hashtagName") String hashtagName,
             @Param("categoryName") String categoryName,
             Pageable pageable);
+
+    //for test
+    boolean existsByHashtagIdAndHistoryId(Long hashtagId, Long historyId);
 
 }

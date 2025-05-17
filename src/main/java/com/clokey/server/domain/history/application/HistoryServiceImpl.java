@@ -120,7 +120,7 @@ public class HistoryServiceImpl implements HistoryService {
         Long parentHistoryId = commentRepositoryService.findById(parentCommentId).getHistory().getId();
 
         if (!parentHistoryId.equals(historyId)) {
-            throw new GeneralException(ErrorStatus.PARENT_COMMENT_HISTORY_ERROR);
+            throw new HistoryException(ErrorStatus.PARENT_COMMENT_HISTORY_ERROR);
         }
     }
 
