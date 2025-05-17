@@ -1,4 +1,4 @@
-package com.clokey.server.domain.history;
+package com.clokey.server.domain.history.unit;
 
 
 import com.clokey.server.domain.history.api.HistoryRestController;

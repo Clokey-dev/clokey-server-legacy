@@ -1,4 +1,4 @@
-package com.clokey.server.domain.history;
+package com.clokey.server.domain.history.unit;
 
 import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.cloth.exception.ClothException;
