@@ -9,6 +9,9 @@ import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.error.exception.DatabaseException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -360,6 +363,85 @@ class HistoryReadTest {
         assertThatThrownBy(() -> historyService.getLikedUsers(memberId,historyId))
                 .isInstanceOfSatisfying(HistoryException.class, ex ->
                         assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY)
+                );
+    }
+
+    /* 댓글 조회 API */
+
+    @DisplayName("정확한 댓글 조회 기능을 수행한다.")
+    @Test
+    void 댓글_조회_성공_1() {
+
+        // given
+        Long historyId = 1L;
+        int page = 0;
+
+        // when
+        HistoryResponseDTO.HistoryCommentResult result = historyService.getComments(historyId,page);
+
+        // then
+        // 결과 내용을 순차적으로 확인
+        // HistoryResponseDTO.HistoryCommentResult 내용 확인
+        assertThat(result)
+                .extracting("totalPage","totalElements","isFirst","isLast")
+                .containsExactly(1,4,true,true);
+        assertThat(result.getComments().size()).isEqualTo(2);
+
+        // HistoryResponseDTO.CommentResult (각각 댓글의 내용 확인)
+        HistoryResponseDTO.CommentResult commentResult1 = result.getComments().get(0);
+        HistoryResponseDTO.CommentResult commentResult2 = result.getComments().get(1);
+
+        assertThat(commentResult1)
+                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
+                .containsExactly(1L,"clokey1","User1","https://example.com/user1.png","첫 번째 댓글");
+        assertThat(commentResult1.getReplyResults().size()).isEqualTo(2);
+
+        assertThat(commentResult2)
+                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
+                .containsExactly(11L,"clokey1","User1","https://example.com/user1.png","첫 번째 댓글");
+        assertThat(commentResult2.getReplyResults().size()).isEqualTo(0);
+
+        // HistoryResponseDTO.ReplyResult (각각 댓글의 대댓글 확인)
+        HistoryResponseDTO.ReplyResult replyResult1 = commentResult1.getReplyResults().get(0);
+        HistoryResponseDTO.ReplyResult replyResult2 = commentResult1.getReplyResults().get(1);
+
+        assertThat(replyResult1)
+                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
+                .containsExactly(6L,"clokey2","User2","https://example.com/user2.png","첫 번째 댓글에 대한 대댓글");
+
+        assertThat(replyResult2)
+                .extracting("commentId","clokeyId","nickName","userImageUrl","content")
+                .containsExactly(16L,"clokey2","User2","https://example.com/user2.png","첫 번째 댓글에 대한 대댓글");
+
+    }
+
+    @DisplayName("존재하지 않는 historyId를 입력할 경우 Controller단에서 에러가 발생한다.")
+    @ParameterizedTest
+    @ValueSource(longs = {100L,2000L,1234L})
+    void 댓글_조회_예외_1(Long historyId){
+
+        // given
+        int page = 1;
+
+        // then
+        assertThatThrownBy(() -> historyRestController.getComments(historyId,page))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
+                );
+    }
+
+    @DisplayName("0보다 작은 페이지 값을 입력할 경우 Controller단에서 에러가 발생한다.")
+    @ParameterizedTest
+    @ValueSource(ints = {-1000, -10, 0})
+    void 댓글_조회_예외_2(int page){
+
+        // given
+        Long historyId = 1L;
+
+        // then
+        assertThatThrownBy(() -> historyRestController.getComments(historyId,page))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.PAGE_UNDER_ONE.name())
                 );
     }
 
