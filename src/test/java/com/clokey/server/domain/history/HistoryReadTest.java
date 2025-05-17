@@ -442,4 +442,57 @@ class HistoryReadTest {
                 );
     }
 
+    @DisplayName("내가 좋아요한 기록을 정확하게 조회한다.")
+    @Test
+    void 내가_좋아요한_기록_조회_성공1() {
+
+        // given
+        Long memberId = 1L;
+        int page = 0;
+
+        // when
+        HistoryResponseDTO.HistoryLikedListResult result = historyService.getLikedHistories(memberId, page);
+
+        // then
+        // HistoryLikedListResult 내용 확인
+        assertThat(result)
+                .extracting("totalPage", "totalElements", "isFirst", "isLast")
+                .containsExactly(1, 3L, true, true);
+        assertThat(result.getHistoryPreviews().size()).isEqualTo(3);
+
+        // HistoryLikedPreview 내용 확인
+        HistoryResponseDTO.HistoryLikedPreview preview1 = result.getHistoryPreviews().get(0);
+        HistoryResponseDTO.HistoryLikedPreview preview2 = result.getHistoryPreviews().get(1);
+        HistoryResponseDTO.HistoryLikedPreview preview3 = result.getHistoryPreviews().get(2);
+
+        assertThat(preview1)
+                .extracting("id", "imageUrl", "isMine")
+                .containsExactly(1L,"https://example.com/images/new_year.jpg",true);
+
+        assertThat(preview2)
+                .extracting("id", "imageUrl", "isMine")
+                .containsExactly(2L,"https://example.com/images/reading.jpg",true);
+
+        assertThat(preview3)
+                .extracting("id", "imageUrl", "isMine")
+                .containsExactly(10L,"https://example.com/images/bookclub.jpg",false);
+
+    }
+
+    @DisplayName("0보다 작은 페이지 값을 입력할 경우 Controller단에서 에러가 발생한다.")
+    @ParameterizedTest
+    @ValueSource(ints = {-1000, -10, 0})
+    void 내가_좋아요한_기록_조회_예외1(int page) {
+
+        // given
+        Member member = memberRepository.findById(1L).get();
+
+        // then
+        assertThatThrownBy(() -> historyRestController.getLikedHistories(member, page))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.PAGE_UNDER_ONE.name())
+                );
+    }
+
+
 }
