@@ -41,7 +41,9 @@ class HistoryReadTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    /*월별 기록 조회 TEST*/
+    /**
+     * 월별 기록 조회 API TEST
+     */
 
     @DisplayName("나와 타인의 월별 기록의 개수를 정확하게 반환한다.")
     @ParameterizedTest(name = "clokeyId={0}, 기대 기록 수={1}, 조회 월={2}")
@@ -183,7 +185,9 @@ class HistoryReadTest {
                 );
     }
 
-    /*일별 기록 조회 TEST*/
+    /**
+     * 일별 기록 조회 API TEST
+     */
 
     @DisplayName("비공개 유저가 자신의 비공개 기록을 열람하는 케이스, 모든 정보가 정확하게 보인다. (기본 기능 + 열람 권한 테스트)")
     @Test
@@ -259,7 +263,9 @@ class HistoryReadTest {
                 );
     }
 
-    /* 나의 기록인지 확인하기 API TEST*/
+    /**
+     * 나의 기록인지 확인하기 API TEST
+     */
 
     @DisplayName("나와 타인의 기록을 정확하게 판정한다.")
     @ParameterizedTest(name = "memberId={0}, historyId={1}, expected={2}")
@@ -296,7 +302,9 @@ class HistoryReadTest {
                 );
     }
 
-    /* 좋아요 누른 사람들 정보 확인하기 API TEST*/
+    /**
+     * 좋아요 누른 사람들 정보 확인하기 API TEST
+     */
 
     @DisplayName("좋아요 누른 사람들 정보를 정확하게 반환합니다.")
     @Test
@@ -363,7 +371,9 @@ class HistoryReadTest {
                 );
     }
 
-    /* 댓글 조회 API */
+    /**
+     * 댓글 조회 API TEST
+     */
 
     @DisplayName("정확한 댓글 조회 기능을 수행한다.")
     @Test
@@ -442,6 +452,10 @@ class HistoryReadTest {
                 );
     }
 
+    /**
+     * 내가 좋아요한 기록 조회 API TEST
+     */
+
     @DisplayName("내가 좋아요한 기록을 정확하게 조회한다.")
     @Test
     void 내가_좋아요한_기록_조회_성공1() {
@@ -494,5 +508,63 @@ class HistoryReadTest {
                 );
     }
 
+    /**
+     * 내가 남긴 댓글 조회 API TEST
+     */
+
+    @DisplayName("내가 남긴 댓글을 정확하게 조회한다.")
+    @Test
+    void 내가_남긴_댓글_조회_성공1(){
+
+        // given
+        Long memberId = 1L;
+        int page = 0;
+
+        // when
+        HistoryResponseDTO.HistoryMyCommentListResult result = historyService.getMyComments(memberId,page);
+
+        //then
+        // HistoryMyCommentListResult 내용 확인
+        assertThat(result)
+                .extracting("totalPage","totalElements","isFirst","isLast")
+                .containsExactly(1,5L,true,true);
+        assertThat(result.getHistories().size()).isEqualTo(3);
+
+        // HistoryMyCommentResult 내용 확인
+        HistoryResponseDTO.HistoryMyCommentResult historyCommentResult1 = result.getHistories().get(0);
+        HistoryResponseDTO.HistoryMyCommentResult historyCommentResult2 = result.getHistories().get(1);
+        HistoryResponseDTO.HistoryMyCommentResult historyCommentResult3 = result.getHistories().get(2);
+
+        assertThat(historyCommentResult1)
+                .extracting("historyId","nickname","imageUrl","date")
+                .containsExactly(1L,"User1", "https://example.com/images/new_year.jpg", LocalDate.of(2025,1,1));
+        assertThat(historyCommentResult1.getComments().size()).isEqualTo(2);
+
+        assertThat(historyCommentResult2)
+                .extracting("historyId","nickname","imageUrl","date")
+                .containsExactly(2L,"User1", "https://example.com/images/reading.jpg", LocalDate.of(2025,1,2));
+        assertThat(historyCommentResult2.getComments().size()).isEqualTo(1);
+
+        assertThat(historyCommentResult3)
+                .extracting("historyId","nickname","imageUrl","date")
+                .containsExactly(5L,"User3", "https://example.com/images/christmas.jpg", LocalDate.of(2024,12,25));
+        assertThat(historyCommentResult3.getComments().size()).isEqualTo(2);
+
+        // MyCommentResult 확인
+        HistoryResponseDTO.MyCommentResult history1Comment1 = historyCommentResult1.getComments().get(0);
+        assertThat(history1Comment1.getContent()).isEqualTo("첫 번째 댓글");
+
+        HistoryResponseDTO.MyCommentResult history1Comment2 = historyCommentResult1.getComments().get(1);
+        assertThat(history1Comment2.getContent()).isEqualTo("첫 번째 댓글");
+
+        HistoryResponseDTO.MyCommentResult history2Comment1 = historyCommentResult2.getComments().get(0);
+        assertThat(history2Comment1.getContent()).isEqualTo("hi");
+
+        HistoryResponseDTO.MyCommentResult history3Comment1 = historyCommentResult3.getComments().get(0);
+        assertThat(history3Comment1.getContent()).isEqualTo("다섯 번째 댓글에 대한 대댓글");
+
+        HistoryResponseDTO.MyCommentResult history3Comment2 = historyCommentResult3.getComments().get(1);
+        assertThat(history3Comment2.getContent()).isEqualTo("다섯 번째 댓글에 대한 대댓글");
+    }
 
 }
