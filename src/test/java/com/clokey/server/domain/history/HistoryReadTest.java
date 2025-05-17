@@ -258,6 +258,41 @@ class HistoryReadTest {
                 );
     }
 
+    /* 나의 기록인지 확인하기 API TEST*/
 
+    @DisplayName("나와 타인의 기록을 정확하게 판정한다.")
+    @ParameterizedTest(name = "memberId={0}, historyId={1}, expected={2}")
+    @CsvSource(
+            nullValues = "null",
+            value = {
+                    "1, 1, true",
+                    "1, 2, true",
+                    "1, 3, false",
+                    "1, 5, false"
+            }
+    )
+    void 나의_기록인지_확인하기_성공_1(Long memberId, Long historyId, boolean expected) {
+
+        //when
+        boolean result = historyService.checkIfHistoryIsMine(historyId,memberId).getIsMyHistory();
+
+        // then
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @DisplayName("존재하지 않는 historyId를 입력할 경우 Controller단에서 에러가 발생한다.")
+    @ParameterizedTest
+    @ValueSource(longs = {100L,2000L,1234L})
+    void 나의_기록인지_확인하기_에외_1(Long historyId){
+
+        // given
+        Member member = memberRepository.findById(1L).get();
+
+        // then
+        assertThatThrownBy(() -> historyRestController.checkIfHistoryIsMine(historyId,member))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
+                );
+    }
 
 }
