@@ -31,7 +31,7 @@ public interface HistoryService {
 
     HistoryResponseDTO.CheckMyHistoryResult checkIfHistoryIsMine(Long historyId, Long memberId);
 
-    HistoryResponseDTO.LikedUserResults getLikedUser(Long memberId, Long historyId);
+    HistoryResponseDTO.LikedUserResults getLikedUsers(Long memberId, Long historyId);
 
 
     @Async

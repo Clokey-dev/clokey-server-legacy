@@ -21,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
@@ -292,6 +293,73 @@ class HistoryReadTest {
         assertThatThrownBy(() -> historyRestController.checkIfHistoryIsMine(historyId,member))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
+                );
+    }
+
+    /* 좋아요 누른 사람들 정보 확인하기 API TEST*/
+
+    @DisplayName("좋아요 누른 사람들 정보를 정확하게 반환합니다.")
+    @Test
+    void 좋아요_누른_사람들_확인하기_성공_1() {
+
+        // given
+        Long checkingMemberId = 1L;
+        Long historyId = 2L;
+
+        // when
+        List<HistoryResponseDTO.LikedUserResult> result = historyService.getLikedUsers(checkingMemberId, historyId).getLikedUsers();
+
+        //then
+        // 결과와 내용을 순차적으로 확인
+        assertThat(result.size()).isEqualTo(3);
+
+        HistoryResponseDTO.LikedUserResult result1 = result.get(0);
+        HistoryResponseDTO.LikedUserResult result2 = result.get(1);
+        HistoryResponseDTO.LikedUserResult result3 = result.get(2);
+
+        assertThat(result1)
+                .extracting("memberId", "clokeyId", "ImageUrl","nickname","followStatus","isMe")
+                .containsExactly(1L,"clokey1","https://example.com/user1.png","User1",false,true);
+
+        assertThat(result2)
+                .extracting("memberId", "clokeyId", "ImageUrl","nickname","followStatus","isMe")
+                .containsExactly(2L,"clokey2","https://example.com/user2.png","User2",true,false);
+
+        assertThat(result3)
+                .extracting("memberId", "clokeyId", "ImageUrl","nickname","followStatus","isMe")
+                .containsExactly(4L,"clokey4","https://example.com/user4.png","User4",true,false);
+    }
+
+    @DisplayName("존재하지 않는 historyId를 입력할 경우 Controller단에서 에러가 발생한다.")
+    @ParameterizedTest
+    @ValueSource(longs = {100L,2000L,1234L})
+    void 좋아요_누른_사람들_확인하기_예외_1(Long historyId){
+
+        // given
+        Member member = memberRepository.findById(1L).get();
+
+        // then
+        assertThatThrownBy(() -> historyRestController.getLikedUsers(historyId,member))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
+                );
+    }
+
+    @DisplayName("비공개인 유저의 게시물 또는 공개인 유저의 비공개 게시물의 좋아요 목록을 조회할 경우 서비스단에서 에러가 발생합니다.")
+    @ParameterizedTest(name = "memberId={0}, targetHistoryID={1}")
+    @CsvSource(
+            nullValues = "null",
+            value = {
+                    "1, 4",     // 1번 Member가 2번 Member(비공개)가 작성한 공개 기록을 조회하려는 경우
+                    "1, 8" // 1번 Member가 공개 Member인 4번의 비공개 기록 8번을 조회하려는 경우
+            }
+    )
+    void 좋아요_누른_사람들_확인하기_예외_2(Long memberId, Long historyId) {
+
+        // then
+        assertThatThrownBy(() -> historyService.getLikedUsers(memberId,historyId))
+                .isInstanceOfSatisfying(HistoryException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY)
                 );
     }
 
