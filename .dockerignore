@@ -11,6 +11,7 @@ target/
 
 # 민감 파일 무시
 src/main/resources/application-secret.yml
+src/test/resources/application-test.yml
 
 #도커 관련 파일
 docker-compose.yml
