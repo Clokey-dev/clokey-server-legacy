@@ -1,5 +1,7 @@
 package com.clokey.server.global.infra.s3.config;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,11 +23,12 @@ public class S3Config {
     private String region;
 
     @Bean
-    public AmazonS3Client amazonS3Client() {
-        BasicAWSCredentials awsCredentials= new BasicAWSCredentials(accessKey, secretKey);
-        return (AmazonS3Client)AmazonS3ClientBuilder.standard()
-                .withRegion(region)
+    public AmazonS3 amazonS3Client() {
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
+        return AmazonS3ClientBuilder.standard()
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:9000", region))
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                .withPathStyleAccessEnabled(true)
                 .build();
     }
 }

@@ -1,0 +1,182 @@
+package com.clokey.server.domain.history;
+
+
+import com.clokey.server.domain.history.api.HistoryRestController;
+import com.clokey.server.domain.history.application.HistoryService;
+import com.clokey.server.domain.history.dto.HistoryResponseDTO;
+import com.clokey.server.domain.history.exception.HistoryException;
+import com.clokey.server.domain.member.domain.entity.Member;
+import com.clokey.server.domain.member.domain.repository.MemberRepository;
+import com.clokey.server.global.error.code.status.ErrorStatus;
+import com.clokey.server.global.error.exception.DatabaseException;
+import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
+@SpringBootTest
+@Transactional
+@ActiveProfiles("local")
+class HistoryReadTest {
+
+    @Autowired
+    private HistoryService historyService;
+
+    @Autowired
+    private HistoryRestController historyRestController;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    /*월별 기록 조회 TEST*/
+
+    @DisplayName("나와 타인의 월별 기록의 개수를 정확하게 반환한다.")
+    @ParameterizedTest(name = "clokeyId={0}, 기대 기록 수={1}, 조회 월={2}")
+    @CsvSource(
+            nullValues = "null",
+            value = {
+                    "null, 2, 2025-01",     // 자기 자신
+                    "clokey3, 1, 2024-12"   // 타인
+            }
+    )
+    void 월별_기록_조회_성공_1(String clokeyId, int expectedSize, String month) {
+        // given
+        Long myMemberId = 1L;
+
+        // when
+        HistoryResponseDTO.MonthViewResult result = historyService.getMonthlyHistories(myMemberId, clokeyId, month);
+
+        // then
+        assertThat(result.getHistories().size()).isEqualTo(expectedSize);
+    }
+
+    @DisplayName("기록의 내용을 정확하게 반환한다.")
+    @Test
+    void 월별_기록_조회_성공_2() {
+        // given
+        Long myMemberId = 1L;
+        String target = null;
+        String month = "2025-01";
+
+        // when
+        HistoryResponseDTO.MonthViewResult monthViewResult = historyService.getMonthlyHistories(myMemberId, target, month);
+        HistoryResponseDTO.HistoryResult result1 = monthViewResult.getHistories().get(0);
+        HistoryResponseDTO.HistoryResult result2 = monthViewResult.getHistories().get(1);
+
+        // then
+        assertThat(result1)
+                .extracting("historyId", "date", "imageUrl")
+                .containsExactly(1L, LocalDate.of(2025, 1, 1), "https://example.com/images/new_year.jpg");
+
+        assertThat(result2)
+                .extracting("historyId", "date", "imageUrl")
+                .containsExactly(2L, LocalDate.of(2025, 1, 2), "https://example.com/images/reading.jpg");
+    }
+
+
+    @DisplayName("비공개 기록의 url은 주인이 볼경우 보이고 아닌 경우 '비공개입니다'로 표시됩니다.")
+    @ParameterizedTest(name = "myMemberId={0}, targetClokeyId={1}, 조회 월={2}, 결과 url={3}")
+    @CsvSource(
+            nullValues = "null",
+            value = {
+                    "1, clokey3, 2025-01, 비공개입니다", //1이 3번 Member의 비공개 history 조회
+                    "3, null, 2025-01, https://example.com/imagefor6.jpg" //3번 Member가 자신의 비공개 history 조회
+            }
+    )
+    void 월별_기록_조회_성공_3(Long myMemberId, String targetClokeyId, String month, String expectedUrl) {
+        // given
+        HistoryResponseDTO.MonthViewResult result = historyService.getMonthlyHistories(myMemberId, targetClokeyId, month);
+
+        // when
+        String historyImageUrl = result.getHistories()
+                .get(0)
+                .getImageUrl();
+
+        // then
+        assertThat(historyImageUrl).isEqualTo(expectedUrl);
+    }
+
+    @DisplayName("비공개 계정에서 본인은 본인의 기록을 열람할 수 있어야 한다.")
+    @Test
+    void 월별_기록_조회_성공_4(){
+        // given
+        Long myMemberId = 2L;
+        String targetClokeyId = null;
+        String month = "2025-01";
+
+        //then
+        assertThatCode(() ->
+                historyService.getMonthlyHistories(myMemberId, targetClokeyId, month)
+        ).doesNotThrowAnyException();
+    }
+
+    @DisplayName("존재하지 않는 clokeyId를 입력하면 Service단에서 예외가 발생합니다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"없는ClokeyId", "예외", "", "  "})
+    void 월별_기록_조회_예외_1(String targetClokeyId) {
+        // given
+        Long myId = 1L;
+        String month = "2025-01";
+
+        assertThatThrownBy(() -> historyService.getMonthlyHistories(myId, targetClokeyId, month))
+                .isInstanceOfSatisfying(DatabaseException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_SUCH_MEMBER)
+                );
+    }
+
+    @DisplayName("존재하지 않는 clokeyId를 입력하면 Controller단에서 예외가 발생합니다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"없는ClokeyId", "예외", "", "  "})
+    void 월별_기록_조회_예외_2(String targetClokeyId) {
+        // given
+        Member currentMember = memberRepository.findById(1L).get();
+        String month = "2025-01";
+
+        assertThatThrownBy(() -> historyRestController.getMonthlyHistories(currentMember, targetClokeyId, month))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_MEMBER.name())
+                );
+    }
+
+    @DisplayName("날짜 형식이 'YYYY-MM'에 맞지 않으면 Controller단에서 예외가 발생합니다.")
+    @ParameterizedTest
+    @ValueSource(strings = {"2025-1", "2025년 1월", "2025/1", "2025-11-01"})
+    void 월별_기록_조회_예외_3(String month) {
+        // given
+        Member currentMember = memberRepository.findById(1L).get();
+        String targetMember = null; // 자기 자신의 기록을 본다.
+
+        assertThatThrownBy(() -> historyRestController.getMonthlyHistories(currentMember, targetMember, month))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.DATE_INVALID.name())
+                );
+    }
+
+    @DisplayName("비공개 멤버를 타인이 조회하려고 시도하는 경우 service단에서 에러가 발생합니다.")
+    @Test
+    void 월별_기록_조회_예외_4() {
+        // given
+        Long myMemberId = 1L;
+        String targetMemberClokeyId = "clokey2";
+        String month = "2025-01";
+
+        assertThatThrownBy(() -> historyService.getMonthlyHistories(myMemberId, targetMemberClokeyId, month))
+                .isInstanceOfSatisfying(HistoryException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY)
+                );
+    }
+
+
+}
