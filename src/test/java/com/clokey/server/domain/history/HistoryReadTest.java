@@ -110,7 +110,7 @@ class HistoryReadTest {
 
     @DisplayName("비공개 계정에서 본인은 본인의 기록을 열람할 수 있어야 한다.")
     @Test
-    void 월별_기록_조회_성공_4(){
+    void 월별_기록_조회_성공_4() {
         // given
         Long myMemberId = 2L;
         String targetClokeyId = null;
@@ -130,6 +130,7 @@ class HistoryReadTest {
         Long myId = 1L;
         String month = "2025-01";
 
+        // then
         assertThatThrownBy(() -> historyService.getMonthlyHistories(myId, targetClokeyId, month))
                 .isInstanceOfSatisfying(DatabaseException.class, ex ->
                         assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_SUCH_MEMBER)
@@ -144,6 +145,7 @@ class HistoryReadTest {
         Member currentMember = memberRepository.findById(1L).get();
         String month = "2025-01";
 
+        // then
         assertThatThrownBy(() -> historyRestController.getMonthlyHistories(currentMember, targetClokeyId, month))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_MEMBER.name())
@@ -158,6 +160,7 @@ class HistoryReadTest {
         Member currentMember = memberRepository.findById(1L).get();
         String targetMember = null; // 자기 자신의 기록을 본다.
 
+        // then
         assertThatThrownBy(() -> historyRestController.getMonthlyHistories(currentMember, targetMember, month))
                 .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
                         assertThat(ex.getMessage()).contains(ErrorStatus.DATE_INVALID.name())
@@ -172,11 +175,89 @@ class HistoryReadTest {
         String targetMemberClokeyId = "clokey2";
         String month = "2025-01";
 
+        // then
         assertThatThrownBy(() -> historyService.getMonthlyHistories(myMemberId, targetMemberClokeyId, month))
                 .isInstanceOfSatisfying(HistoryException.class, ex ->
                         assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY)
                 );
     }
+
+    /*일별 기록 조회 TEST*/
+
+    @DisplayName("비공개 유저가 자신의 비공개 기록을 열람하는 케이스, 모든 정보가 정확하게 보인다. (기본 기능 + 열람 권한 테스트)")
+    @Test
+    void 일별_기록_조회_성공_1(){
+        // given
+        Long memberId = 2L; // 비공개인 2번 멤버
+        Long historyId = 3L; // 2번 멤버의 비공개 기록
+
+        // when
+        HistoryResponseDTO.DailyHistoryResult result = historyService.getDaily(historyId,memberId);
+
+        // then
+        // 단일 필드값 검증
+        assertThat(result)
+                .extracting("memberId","historyId","memberImageUrl","nickName","clokeyId","contents","visibility","likeCount","date","commentCount","isLiked")
+                .containsExactly(2L,3L,"https://example.com/user2.png","User2","clokey2","새해를 맞아 여행을 다녀왔습니다.", false,1,LocalDate.of(2025,1,1),4L,true);
+
+        // 컬랙션 필드 순차적 검증
+        assertThat(result.getImageUrl().size()).isEqualTo(1);
+        assertThat(result.getImageUrl().get(0)).isEqualTo("https://example.com/images/travel.jpg");
+
+        assertThat(result.getHashtags().size()).isEqualTo(0);
+
+        assertThat(result.getCloths().size()).isEqualTo(1);
+        assertThat(result.getCloths().get(0))
+                .extracting("clothId","clothImageUrl","clothName")
+                .containsExactly(3L,"https://example.com/images/cloth3_1.jpg","검은색 셔츠");
+    }
+
+    @DisplayName("공개 유저인 타인의 공개 기록은 볼 수 있지만, 비공개 옷은 보이지 않는다.")
+    @Test
+    void 일별_기록_조회_성공_2() {
+        // given
+        Long memberId = 1L;
+        Long historyId = 7L; // 공개 유저인 4번 멤버의 공개인 7번 기록.
+
+        // when
+        HistoryResponseDTO.DailyHistoryResult result = historyService.getDaily(historyId,memberId);
+
+        // then
+        assertThat(result.getCloths().size()).isEqualTo(0);
+    }
+
+    @DisplayName("존재하지 않는 historyId를 입력하면 Controller단에서 에러가 발생합니다.")
+    @ParameterizedTest
+    @ValueSource(longs = {100L, 2000L, 1234L})
+    void 일별_기록_조회_예외_1(Long historyId) {
+        // given
+        Member member = memberRepository.findById(1L).get();
+
+        // then
+        assertThatThrownBy(() -> historyRestController.getDailyHistory(historyId,member))
+                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
+                        assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
+                );
+    }
+
+    @DisplayName("비공개인 유저의 게시물 또는 공개인 유저의 비공개 게시물을 조회할 경우 서비스단에서 에러가 발생합니다.")
+    @ParameterizedTest(name = "memberId={0}, targetHistoryID={1}")
+    @CsvSource(
+            nullValues = "null",
+            value = {
+                    "1, 4",     // 1번 Member가 2번 Member(비공개)가 작성한 공개 기록을 조회하려는 경우
+                    "1, 8" // 1번 Member가 공개 Member인 4번의 비공개 기록 8번을 조회하려는 경우
+            }
+    )
+    void 일별_기록_조회_예외_2(Long memberId, Long historyId) {
+
+        // then
+        assertThatThrownBy(() -> historyService.getDaily(historyId,memberId))
+                .isInstanceOfSatisfying(HistoryException.class, ex ->
+                        assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY)
+                );
+    }
+
 
 
 }
