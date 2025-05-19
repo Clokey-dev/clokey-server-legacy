@@ -8,9 +8,12 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile({"dev", "green","blue"})
 public class S3Config {
+
     @Value("${cloud.aws.credentials.access-key}")
     private String accessKey;
 
@@ -28,4 +31,5 @@ public class S3Config {
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
                 .build();
     }
+
 }

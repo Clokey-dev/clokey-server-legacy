@@ -13,5 +13,4 @@ public interface ClothImageRepositoryService {
     void deleteByClothId(Long clothId);
 
     void deleteAllByClothIds(List<Long> ClothIds);
-
 }

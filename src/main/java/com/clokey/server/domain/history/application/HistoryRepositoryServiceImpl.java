@@ -1,5 +1,10 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,7 +28,7 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     private final HistoryRepository historyRepository;
 
     @Override
-    public List<History> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
+    public List<MonthlyHistoryProjectionDTO> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
         return historyRepository.findHistoriesByMemberAndYearMonth(memberId, yearMonth);
     }
 
@@ -46,6 +51,16 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     @Override
     public History findById(Long historyId) {
         return historyRepository.findById(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
+    }
+
+    @Override
+    public HistoryAccessCheckProjectionDTO findAccessInfoByHistoryId(Long historyId) {
+        return historyRepository.findAccessInfoByHistoryId(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
+    }
+
+    @Override
+    public DailyHistoryProjectionDTO getDailyHistoryProjectionDTO(Long historyId) {
+        return historyRepository.getDailyHistoryProjectionDTO(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
     }
 
     @Override
@@ -116,5 +131,10 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     @Override
     public Page<History> findHistoriesByMemberIdAndMemberLike(Long memberId, Pageable pageable) {
         return historyRepository.findLikedHistories(memberId, pageable);
+    }
+
+    @Override
+    public boolean checkMyHistory(Long historyId, Long memberId) {
+        return historyRepository.checkMyHistory(historyId,memberId);
     }
 }

@@ -38,20 +38,17 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("DELETE FROM Comment c WHERE c.history.id = :historyId")
     void deleteParentCommentsByHistoryId(@Param("historyId") Long historyId);
 
-
     boolean existsByIdAndMemberId(Long id, Long memberId);
 
     boolean existsByIdAndHistoryId(Long id, Long historyId);
 
-
-    @Transactional(readOnly = true)
-    Long countByHistoryId(Long historyId);
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.history.id = :historyId")
+    Long countByHistoryId(@Param("historyId") Long historyId);
 
     @Modifying
     @Transactional
     @Query("SELECT c.id FROM Comment c WHERE c.history.id IN :historyIds")
     List<Long> selectCommentsByHistoryIds(@Param("historyIds") List<Long> historyIds);
-
 
     @Modifying
     @Transactional
@@ -67,10 +64,14 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("DELETE FROM Comment c WHERE c.comment.id IN :commentIds")
     void deleteChildrenByCommentIds(@Param("commentIds") List<Long> commentIds);
 
-
     @Modifying
     @Query("DELETE FROM Comment c WHERE c.id IN :commentIds")
     void deleteCommentsByCommentIds(@Param("commentIds") List<Long> commentIds);
 
     Page<Comment> findByMember_Id(Long memberId, PageRequest pageRequest);
+
+    //for test
+    boolean existsByHistoryIdAndCommentIsNull(Long historyId);
+    boolean existsByHistoryIdAndCommentIsNotNull(Long historyId);
+    boolean existsByComment_Id(Long parentId);
 }

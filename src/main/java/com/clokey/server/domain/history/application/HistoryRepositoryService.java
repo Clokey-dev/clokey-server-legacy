@@ -1,5 +1,9 @@
 package com.clokey.server.domain.history.application;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -12,7 +16,7 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 
 public interface HistoryRepositoryService {
 
-    List<History> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
+    List<MonthlyHistoryProjectionDTO> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
 
     List<History> findHistoriesByMemberWithinMonth(Long memberId);
 
@@ -21,6 +25,10 @@ public interface HistoryRepositoryService {
     void decrementLikes(Long historyId);
 
     History findById(Long historyId);
+
+    HistoryAccessCheckProjectionDTO findAccessInfoByHistoryId(Long historyId);
+
+    DailyHistoryProjectionDTO getDailyHistoryProjectionDTO(Long historyId);
 
     boolean existsById(Long historyId);
 
@@ -49,4 +57,6 @@ public interface HistoryRepositoryService {
     List<History> findHistoriesByMemberIdsAndDateRange(List<Long> memberIds, LocalDate from, LocalDate to);
 
     Page<History> findHistoriesByMemberIdAndMemberLike(Long memberId, Pageable pageable);
+
+    boolean checkMyHistory(Long historyId, Long memberId);
 }

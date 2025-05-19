@@ -111,7 +111,7 @@ public class HistoryRestController {
     public BaseResponse<HistoryResponseDTO.LikedUserResults> getLikedUsers(@PathVariable @HistoryExist Long historyId,
                                                                            @Parameter(name = "user", hidden = true) @AuthUser Member member) {
 
-        HistoryResponseDTO.LikedUserResults result = historyService.getLikedUser(member.getId(), historyId);
+        HistoryResponseDTO.LikedUserResults result = historyService.getLikedUsers(member.getId(), historyId);
 
         return BaseResponse.onSuccess(SuccessStatus.HISTORY_LIKE_USER, result);
     }

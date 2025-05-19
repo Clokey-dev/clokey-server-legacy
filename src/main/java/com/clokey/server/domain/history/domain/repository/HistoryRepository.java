@@ -1,5 +1,8 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,23 +17,64 @@ import java.util.Optional;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.Visibility;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface HistoryRepository extends JpaRepository<History, Long> {
 
-    @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND FUNCTION('DATE_FORMAT', h.historyDate, '%Y-%m') = :yearMonth")
-    List<History> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
+    @Query("""
+    SELECT new com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO(
+        h.id, h.historyDate, h.visibility
+    )
+    FROM History h
+    WHERE h.member.id = :memberId
+      AND FUNCTION('DATE_FORMAT', h.historyDate, '%Y-%m') = :yearMonth
+""")
+    List<MonthlyHistoryProjectionDTO> findHistoriesByMemberAndYearMonth(
+            @Param("memberId") Long memberId,
+            @Param("yearMonth") String yearMonth
+    );
+
+    @Query("""
+    SELECT new com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO(
+        h.member.id,
+        h.visibility
+    )
+    FROM History h
+    WHERE h.id = :historyId
+""")
+    Optional<HistoryAccessCheckProjectionDTO> findAccessInfoByHistoryId(@Param("historyId") Long historyId);
+
+    @Query("""
+    SELECT new com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO(
+        h.id,
+        h.content,
+        h.visibility,
+        h.historyDate,
+        h.member.id
+    )
+    FROM History h
+    WHERE h.id = :historyId
+""")
+    Optional<DailyHistoryProjectionDTO> getDailyHistoryProjectionDTO(@Param("historyId") Long historyId);
 
     @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND h.historyDate >= :monthAgo")
     List<History> findHistoriesWithinMonth(@Param("memberId") Long memberId, @Param("monthAgo") LocalDate monthAgo);
 
+    @Transactional
     @Query("UPDATE History h SET h.likes = h.likes + 1 WHERE h.id = :historyId")
     @Modifying(clearAutomatically = true)
     void incrementLikes(Long historyId);
 
+    @Transactional
     @Query("UPDATE History h SET h.likes = h.likes - 1 WHERE h.id = :historyId")
     @Modifying(clearAutomatically = true)
     void decrementLikes(Long historyId);
 
+    @Query("""
+    SELECT CASE WHEN COUNT(h) > 0 THEN true ELSE false END
+    FROM History h
+    WHERE h.historyDate = :historyDate AND h.member.id = :memberId
+""")
     boolean existsByHistoryDateAndMember_Id(LocalDate historyDate, Long memberId);
 
     @Query("SELECT CASE WHEN COUNT(h) > 0 THEN TRUE ELSE FALSE END " +
@@ -42,6 +86,14 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
     List<Boolean> existsByHistoryDateAndMemberIds(
             @Param("historyDate") LocalDate historyDate,
             @Param("memberIds") List<Long> memberIds);
+
+    @Query("""
+    SELECT CASE WHEN COUNT(h) > 0 THEN true ELSE false END
+    FROM History h
+    WHERE h.id = :historyId AND h.member.id = :memberId
+""")
+    boolean checkMyHistory(@Param("historyId") Long historyId,
+                           @Param("memberId") Long memberId);
 
 
     Optional<History> findByHistoryDateAndMember_Id(LocalDate historyDate, Long memberId);

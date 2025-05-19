@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.clokey.server.domain.member.domain.entity.Member;
+import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
 import com.clokey.server.domain.model.entity.enums.SocialType;
 
 public interface MemberRepositoryService {
@@ -26,6 +27,8 @@ public interface MemberRepositoryService {
     Member getReferencedById(Long memberId);
 
     boolean existsByClokeyId(String clokeyId);
+
+    DailyHistoryMemberProjectionDTO getDailyHistoryMemberProjectionDTO(Long memberId);
 
     Member findByClokeyId(String clokeyId);
 

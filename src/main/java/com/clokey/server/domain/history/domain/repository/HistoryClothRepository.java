@@ -45,4 +45,9 @@ public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long
     @Query("SELECT c.cloth.category.name FROM HistoryCloth c WHERE c.cloth.member.id = :memberId " +
             "GROUP BY c.cloth.category.name ORDER BY COUNT(c.id) DESC LIMIT 1")
     Optional<String> findMostWornCategory(@Param("memberId") Long memberId);
+
+    //for test
+    boolean existsByHistoryIdAndClothId(Long historyId, Long clothId);
+    boolean existsByHistoryId(Long historyId);
+
 }

@@ -1,5 +1,6 @@
 package com.clokey.server.domain.cloth.application;
 
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -54,4 +55,8 @@ public interface ClothRepositoryService {
     List<Cloth> getTop3Cloths(Member member);
 
     List<Cloth> getTop3PublicCloths(Member member);
+
+    List<DailyHistoryClothProjectionDTO> getDailyHistoryClothProjectionsDTO(Long historyId);
+
+    List<Long> getClothOwners(List<Long> clothIds);
 }

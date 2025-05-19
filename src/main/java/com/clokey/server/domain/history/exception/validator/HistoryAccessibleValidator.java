@@ -1,5 +1,7 @@
 package com.clokey.server.domain.history.exception.validator;
 
+import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
+import com.clokey.server.domain.member.domain.entity.Member;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,21 @@ public class HistoryAccessibleValidator {
     private final MemberRepositoryService memberRepositoryService;
 
     public void validateHistoryAccessOfMember(Long historyId, Long memberId) {
-        History history = historyRepositoryService.findById(historyId);
+        HistoryAccessCheckProjectionDTO accessInfo = historyRepositoryService.findAccessInfoByHistoryId(historyId);
 
         //접근 권한 확인 - 나의 기록이 아니고 비공개일 경우 접근 불가.
-        boolean isPrivate = history.getVisibility().equals(Visibility.PRIVATE);
-        boolean isNotMyHistory = !history.getMember().getId().equals(memberId);
+        boolean isPrivate = accessInfo.getVisibility().equals(Visibility.PRIVATE);
+        boolean isNotMyHistory = !accessInfo.getWriterId().equals(memberId);
 
         if (isPrivate && isNotMyHistory) {
+            throw new HistoryException(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY);
+        }
+
+        //접근 권한 확인 - 나의 기록이 아니고 기록의 주인이 비공개일 경우 접근 불가.
+        Member writer = memberRepositoryService.findMemberById(accessInfo.getWriterId());
+
+        boolean writerIsPrivate = writer.getVisibility().equals(Visibility.PRIVATE);
+        if(writerIsPrivate && isNotMyHistory){
             throw new HistoryException(ErrorStatus.NO_PERMISSION_TO_ACCESS_HISTORY);
         }
     }

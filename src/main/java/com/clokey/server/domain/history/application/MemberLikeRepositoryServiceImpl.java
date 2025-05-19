@@ -20,17 +20,17 @@ public class MemberLikeRepositoryServiceImpl implements MemberLikeRepositoryServ
 
     @Override
     public int countByHistory_Id(Long historyId) {
-        return memberLikeRepository.countByHistory_Id(historyId);
+        return memberLikeRepository.countByHistoryId(historyId);
     }
 
     @Override
     public boolean existsByMember_IdAndHistory_Id(Long memberId, Long historyId) {
-        return memberLikeRepository.existsByMember_IdAndHistory_Id(memberId, historyId);
+        return memberLikeRepository.existsByMemberIdAndHistoryId(memberId, historyId);
     }
 
     @Override
-    public void deleteByMember_IdAndHistory_Id(Long memberId, Long historyId) {
-        memberLikeRepository.deleteByMember_IdAndHistory_Id(memberId, historyId);
+    public void deleteByMemberIdAndHistoryId(Long memberId, Long historyId) {
+        memberLikeRepository.deleteByMemberIdAndHistoryId(memberId, historyId);
     }
 
     @Override

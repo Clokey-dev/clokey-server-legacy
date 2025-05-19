@@ -1,6 +1,7 @@
 package com.clokey.server.domain.history.application;
 
 
+import com.clokey.server.domain.history.dto.projection.HistoryImageUrlProjectionDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,11 @@ public class HistoryImageRepositoryServiceImpl implements HistoryImageRepository
     @Override
     public List<HistoryImage> findByHistoryId(Long historyId) {
         return historyImageRepository.findByHistory_Id(historyId);
+    }
+
+    @Override
+    public List<HistoryImageUrlProjectionDTO> getHistoryImageUrlProjectionDTO(Long historyId) {
+        return historyImageRepository.getHistoryImageUrlProjectionDTO(historyId);
     }
 
     @Override
