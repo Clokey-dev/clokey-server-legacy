@@ -337,7 +337,6 @@ public class HistoryServiceImpl implements HistoryService {
         historyAccessibleValidator.validateMyHistory(historyId, memberId);
 
         commentRepositoryService.deleteAllComments(historyId);
-        commentRepositoryService.deleteAllComments(historyId);
 
         //기록_옷 지우기
         List<Cloth> cloths = historyClothRepositoryService.findAllClothByHistoryId(historyId);

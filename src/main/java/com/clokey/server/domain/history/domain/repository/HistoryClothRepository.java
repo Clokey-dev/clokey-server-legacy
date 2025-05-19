@@ -48,4 +48,6 @@ public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long
 
     //for test
     boolean existsByHistoryIdAndClothId(Long historyId, Long clothId);
+    boolean existsByHistoryId(Long historyId);
+
 }

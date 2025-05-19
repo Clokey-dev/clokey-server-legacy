@@ -36,4 +36,6 @@ public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long
 
     List<HistoryImage> findByHistoryIdIn(List<Long> historyIds);
 
+    //for test
+    boolean existsByHistoryId(Long historyId);
 }

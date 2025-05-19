@@ -46,4 +46,6 @@ public interface MemberLikeRepository extends JpaRepository<MemberLike, Long> {
     @Query("DELETE FROM MemberLike ml WHERE ml.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
+    //for test
+    boolean existsByHistoryId(Long historyId);
 }

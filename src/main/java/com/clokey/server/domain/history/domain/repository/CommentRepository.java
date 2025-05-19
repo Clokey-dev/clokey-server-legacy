@@ -50,7 +50,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT c.id FROM Comment c WHERE c.history.id IN :historyIds")
     List<Long> selectCommentsByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
-
     @Modifying
     @Transactional
     @Query("DELETE FROM Comment c WHERE c.history.id IN :historyIds")
@@ -65,10 +64,14 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("DELETE FROM Comment c WHERE c.comment.id IN :commentIds")
     void deleteChildrenByCommentIds(@Param("commentIds") List<Long> commentIds);
 
-
     @Modifying
     @Query("DELETE FROM Comment c WHERE c.id IN :commentIds")
     void deleteCommentsByCommentIds(@Param("commentIds") List<Long> commentIds);
 
     Page<Comment> findByMember_Id(Long memberId, PageRequest pageRequest);
+
+    //for test
+    boolean existsByHistoryIdAndCommentIsNull(Long historyId);
+    boolean existsByHistoryIdAndCommentIsNotNull(Long historyId);
+    boolean existsByComment_Id(Long parentId);
 }
