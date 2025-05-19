@@ -1,7 +1,5 @@
 package com.clokey.server.global.infra.s3.config;
 
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,8 +8,10 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile({"dev", "green","blue"})
 public class S3Config {
 
     @Value("${cloud.aws.credentials.access-key}")
@@ -32,14 +32,4 @@ public class S3Config {
                 .build();
     }
 
-    // 테스트 시에 아래 Config를 활성화 해주세요.
-    /*@Bean
-    public AmazonS3 amazonS3Client() {
-        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
-        return AmazonS3ClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:9000", region))
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-                .withPathStyleAccessEnabled(true)
-                .build();
-    }*/
 }
