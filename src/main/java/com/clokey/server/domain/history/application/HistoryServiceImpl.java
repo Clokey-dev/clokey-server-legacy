@@ -49,7 +49,6 @@ public class HistoryServiceImpl implements HistoryService {
     private final HistoryLikedValidator historyLikedValidator;
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepositoryService memberLikeRepositoryService;
-    private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
     private final ClothAccessibleValidator clothAccessibleValidator;
     private final HistoryAccessibleValidator historyAccessibleValidator;
@@ -140,7 +139,7 @@ public class HistoryServiceImpl implements HistoryService {
                 .orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
 
         List<String> imageUrl = historyImageRepository.getImageUrlsByHistoryIdOrderByCreatedAtAsc(historyId);
-        List<String> hashtags = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(historyId);
+        List<String> hashtags = hashtagHistoryRepository.findHashtagNamesByHistoryId(historyId);
         boolean isLiked = memberLikeRepositoryService.existsByMember_IdAndHistory_Id(memberId, historyId);
         Long commentCount = commentRepository.countByHistoryId(historyId);
 
@@ -319,7 +318,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         updateHistoryHashtags(
                 historyUpdate.getHashtags(),
-                hashtagHistoryRepositoryService.findByHistory_Id(historyId).stream()
+                hashtagHistoryRepository.findByHistory_Id(historyId).stream()
                         .map(hashtagHistory -> hashtagHistory.getHashtag().getName())
                         .toList(),
                 history);
@@ -473,10 +472,19 @@ public class HistoryServiceImpl implements HistoryService {
             throw new HistoryException(ErrorStatus.TOO_MANY_HASHTAGS);
         }
 
-        hashtagToAdd.forEach(hashtag -> hashtagHistoryRepositoryService.addHashtagHistory(hashtag, history));
-        hashtagToDelete.forEach(hashtag -> hashtagHistoryRepositoryService.deleteHashtagHistory(hashtag, history));
+        hashtagToAdd.forEach(hashtag -> addHashtagHistory(hashtag, history));
+        hashtagToDelete.forEach(hashtag -> hashtagHistoryRepository.deleteByHashtagAndHistory(hashtag, history));
     }
 
+    private void addHashtagHistory(Hashtag hashtag, History history) {
+
+        HashtagHistory hashtagHistory = HashtagHistory.builder()
+                .hashtag(hashtag)
+                .history(history)
+                .build();
+
+        hashtagHistoryRepository.save(hashtagHistory);
+    }
     
     // 비동기 방식으로 Elasticsearch 수정 요청
     @Override

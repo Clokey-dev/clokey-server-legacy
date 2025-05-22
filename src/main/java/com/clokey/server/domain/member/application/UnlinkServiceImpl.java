@@ -1,8 +1,6 @@
 package com.clokey.server.domain.member.application;
 
-import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
-import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
-import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.member.scheduler.InactiveUserCleanupTask;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -28,7 +26,6 @@ import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
 import com.clokey.server.domain.folder.application.FolderRepositoryService;
 import com.clokey.server.domain.history.application.*;
-import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import com.clokey.server.domain.history.exception.validator.HistoryAccessibleValidator;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.exception.MemberException;
@@ -52,7 +49,7 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final HistoryRepository historyRepository;
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepositoryService memberLikeRepositoryService;
-    private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
+    private final HashtagHistoryRepository hashtagHistoryRepository;
     private final ClothRepositoryService clothRepositoryService;
     private final HistoryClothRepository historyClothRepository;
     public final HistoryAccessibleValidator historyAccessibleValidator;
@@ -179,7 +176,7 @@ public class UnlinkServiceImpl implements UnlinkService {
         commentRepository.deleteChildrenByHistoryIds(historyIds);
         commentRepository.deleteCommentsByHistoryIds(historyIds);
         historyClothRepository.deleteAllByHistoryIds(historyIds);
-        hashtagHistoryRepositoryService.deleteAllByHistoryIds(historyIds);
+        hashtagHistoryRepository.deleteAllByHistoryIds(historyIds);
         memberLikeRepositoryService.deleteAllByHistoryIds(historyIds);
         historyImageRepository.deleteAllByHistoryIds(historyIds);
         historyRepository.deleteByHistoryIds(historyIds);

@@ -1,10 +1,6 @@
 package com.clokey.server.domain.recommendation.application;
 
-import com.clokey.server.domain.history.application.*;
-import com.clokey.server.domain.history.domain.repository.HashtagRepository;
-import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
-import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
-import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.application.BlockRepositoryService;
 import org.springframework.data.domain.Page;
@@ -51,7 +47,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final MemberRepositoryService memberRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
     private final FollowRepositoryService followRepositoryService;
-    private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
+    private final HashtagHistoryRepository hashtagHistoryRepository;
     private final BlockRepositoryService blockRepositoryService;
     private final HistoryClothRepository historyClothRepository;
     private final HistoryRepository historyRepository;
@@ -238,7 +234,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 unusedHashtag
         ));
 
-        String recentHashtag = hashtagHistoryRepositoryService.findLatestTaggedHashtag(member.getId());
+        String recentHashtag = hashtagHistoryRepository.findLatestTaggedHashtag(member.getId()).orElse(null);
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
                 getHistoryImageUrlByHashtagName(recentHashtag, blockingMembers),
                 member.getId(),
@@ -382,11 +378,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     public String getHistoryImageUrlByHashtagName(String hashtagName, Set<Long> blockingMembers) {
-        return getHistoryImageUrl(() -> hashtagHistoryRepositoryService.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName), blockingMembers);
+        return getHistoryImageUrl(() -> hashtagHistoryRepository.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName,PageRequest.of(0, 5)), blockingMembers);
     }
 
     public String getHistoryImageUrlByCategoryName(String categoryName, Set<Long> blockingMembers) {
-        return getHistoryImageUrl(() -> hashtagHistoryRepositoryService.findTop5HistoriesByCategoryNameOrderByDateDesc(categoryName), blockingMembers);
+        return getHistoryImageUrl(() -> hashtagHistoryRepository.findTop5HistoriesByCategoryNameOrderByDateDesc("#"+categoryName, categoryName, PageRequest.of(0, 5)), blockingMembers);
     }
 
 

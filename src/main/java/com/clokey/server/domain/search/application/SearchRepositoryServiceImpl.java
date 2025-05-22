@@ -2,6 +2,7 @@ package com.clokey.server.domain.search.application;
 
 import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
 import com.clokey.server.domain.cloth.application.ClothImageRepositoryServiceImpl;
+import com.clokey.server.domain.history.domain.repository.HashtagHistoryRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
@@ -28,7 +29,6 @@ import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
 import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.document.ClothDocument;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
-import com.clokey.server.domain.history.application.HashtagHistoryRepositoryService;
 import com.clokey.server.domain.history.domain.document.HistoryDocument;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
@@ -53,7 +53,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private final MemberRepositoryService memberRepositoryService;
     private static final String MEMBER_INDEX_NAME = "user";
 
-    private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
+    private final HashtagHistoryRepository hashtagHistoryRepository;
     private final HistoryClothRepository historyClothRepository;
     private static final String HISTORY_INDEX_NAME = "history";
 
@@ -194,7 +194,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     @Override
     public void updateHistoryDataToElasticsearch(History history) throws IOException {
 
-        List<String> hashtagNames = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(history.getId());
+        List<String> hashtagNames = hashtagHistoryRepository.findHashtagNamesByHistoryId(history.getId());
 
         List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
 
@@ -260,7 +260,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
         List<BulkOperation> bulkOperations = historyList.stream()
                 .map(history -> {
 
-                    List<String> hashtagNames = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(history.getId());
+                    List<String> hashtagNames = hashtagHistoryRepository.findHashtagNamesByHistoryId(history.getId());
 
                     List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
 
