@@ -7,6 +7,7 @@ import com.clokey.server.domain.history.dto.HistoryResponseDTO;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
+import com.clokey.server.domain.member.exception.MemberException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.error.exception.DatabaseException;
 import jakarta.validation.ConstraintViolationException;
@@ -135,7 +136,7 @@ class HistoryReadTest {
 
         // then
         assertThatThrownBy(() -> historyService.getMonthlyHistories(myId, targetClokeyId, month))
-                .isInstanceOfSatisfying(DatabaseException.class, ex ->
+                .isInstanceOfSatisfying(MemberException.class, ex ->
                         assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_SUCH_MEMBER)
                 );
     }
