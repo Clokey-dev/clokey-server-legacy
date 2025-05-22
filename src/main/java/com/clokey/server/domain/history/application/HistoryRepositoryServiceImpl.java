@@ -1,6 +1,5 @@
 package com.clokey.server.domain.history.application;
 
-import com.clokey.server.domain.history.dto.projection.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -112,10 +111,5 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     @Override
     public Page<History> findHistoriesByMemberIdAndMemberLike(Long memberId, Pageable pageable) {
         return historyRepository.findLikedHistories(memberId, pageable);
-    }
-
-    @Override
-    public boolean checkMyHistory(Long historyId, Long memberId) {
-        return historyRepository.checkMyHistory(historyId,memberId);
     }
 }

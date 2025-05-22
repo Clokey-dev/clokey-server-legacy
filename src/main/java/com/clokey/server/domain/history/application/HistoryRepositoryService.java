@@ -48,6 +48,4 @@ public interface HistoryRepositoryService {
     List<History> findHistoriesByMemberIdsAndDateRange(List<Long> memberIds, LocalDate from, LocalDate to);
 
     Page<History> findHistoriesByMemberIdAndMemberLike(Long memberId, Pageable pageable);
-
-    boolean checkMyHistory(Long historyId, Long memberId);
 }

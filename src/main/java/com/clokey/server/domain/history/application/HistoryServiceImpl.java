@@ -4,7 +4,6 @@ import com.clokey.server.domain.history.domain.repository.HistoryImageRepository
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.history.dto.projection.*;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
-import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
 import com.clokey.server.domain.member.exception.MemberException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -361,7 +360,7 @@ public class HistoryServiceImpl implements HistoryService {
     public HistoryResponseDTO.CheckMyHistoryResult checkIfHistoryIsMine(Long historyId, Long memberId) {
 
         return HistoryResponseDTO.CheckMyHistoryResult.builder()
-                .isMyHistory(historyRepositoryService.checkMyHistory(historyId,memberId))
+                .isMyHistory(historyRepository.checkMyHistory(historyId,memberId))
                 .build();
     }
 
