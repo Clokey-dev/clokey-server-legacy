@@ -2,6 +2,7 @@ package com.clokey.server.domain.member.application;
 
 import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.member.scheduler.InactiveUserCleanupTask;
+import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,11 @@ import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
 import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
 import com.clokey.server.domain.folder.application.FolderRepositoryService;
-import com.clokey.server.domain.history.application.*;
 import com.clokey.server.domain.history.exception.validator.HistoryAccessibleValidator;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.exception.MemberException;
 import com.clokey.server.domain.model.entity.enums.MemberStatus;
 import com.clokey.server.domain.model.entity.enums.SocialType;
-import com.clokey.server.domain.notification.application.NotificationRepositoryService;
 import com.clokey.server.domain.search.application.SearchRepositoryService;
 import com.clokey.server.domain.search.exception.SearchException;
 import com.clokey.server.domain.term.application.MemberTermRepositoryService;
@@ -56,7 +55,7 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final ClothImageRepositoryService clothImageRepositoryService;
     private final ClothFolderRepositoryService clothFolderRepositoryService;
     private final FolderRepositoryService folderRepositoryService;
-    private final NotificationRepositoryService notificationRepositoryService;
+    private final NotificationRepository notificationRepository;
     private final SearchRepositoryService searchRepositoryService;
     private final AuthService authService;
     private final HistoryImageRepository historyImageRepository;
@@ -209,7 +208,7 @@ public class UnlinkServiceImpl implements UnlinkService {
         //알람 삭제
         List<Long> notificationIds = memberRepositoryService.findNotificationIdsByMemberId(memberId);
 
-        notificationRepositoryService.deleteByClokeyNotificationIds(notificationIds);
+        notificationRepository.deleteByClokeyNotificationIds(notificationIds);
 
         //좋아요 삭제
         memberLikeRepository.deleteAllByMemberId(memberId);

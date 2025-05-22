@@ -3,8 +3,8 @@ package com.clokey.server.domain.notification.application;
 import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.history.exception.HistoryException;
+import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
 import com.clokey.server.domain.term.application.MemberTermRepositoryService;
-import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,10 +40,10 @@ public class NotificationServiceImpl implements NotificationService {
     private final HistoryLikedValidator historyLikedValidator;
     private final MemberRepositoryService memberRepositoryService;
     private final FirebaseMessaging firebaseMessaging;
-    private final NotificationRepositoryService notificationRepositoryService;
     private final FollowRepositoryService followRepositoryService;
     private final MemberTermRepositoryService memberTermRepositoryService;
     private final HistoryRepository historyRepository;
+    private final NotificationRepository notificationRepository;
 
     private static final Long NOTIFICATION_MEMBER_TERM_NUM = 5L;
 
@@ -71,7 +71,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public NotificationResponseDTO.UnReadNotificationCheckResult checkUnReadNotifications(Long memberId) {
         return NotificationResponseDTO.UnReadNotificationCheckResult.builder()
-                .unReadNotificationExist(notificationRepositoryService.existsByMemberIdAndReadStatus(memberId, ReadStatus.NOT_READ))
+                .unReadNotificationExist(notificationRepository.existsByMemberIdAndReadStatus(memberId, ReadStatus.NOT_READ))
                 .build();
     }
 
@@ -79,18 +79,18 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void readNotification(Long notificationId, Long memberId) {
         checkMyNotification(notificationId, memberId);
-        ClokeyNotification notification = notificationRepositoryService.findById(notificationId);
+        ClokeyNotification notification = notificationRepository.findById(notificationId).orElseThrow(()-> new NotificationException(ErrorStatus.NO_SUCH_NOTIFICATION));
         notification.readNotification();
     }
 
     @Override
     @Transactional
     public void readAllNotification(Long memberId) {
-        notificationRepositoryService.readAllByMemberId(memberId);
+        notificationRepository.readAllByMemberId(memberId);
     }
 
     private void checkMyNotification(Long notificationId, Long memberId) {
-        if (!notificationRepositoryService.findById(notificationId).getMember().getId().equals(memberId)) {
+        if (!notificationRepository.findById(notificationId).orElseThrow(()-> new NotificationException(ErrorStatus.NO_SUCH_NOTIFICATION)).getMember().getId().equals(memberId)) {
             throw new NotificationException(ErrorStatus.NOT_MY_NOTIFICATION);
         }
     }
@@ -138,7 +138,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.HistoryLikeNotificationResult.builder()
                     .content(content)
@@ -188,7 +188,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.NewFollowerNotificationResult.builder()
                     .content(content)
@@ -251,7 +251,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.HistoryCommentNotificationResult.builder()
                     .content(content)
@@ -324,7 +324,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.ReplyNotificationResult.builder()
                     .content(content)
@@ -398,7 +398,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationResponseDTO.GetNotificationResult getNotifications(Long memberId, Integer page) {
         // memberId로 알림을 조회해서 반환
         Pageable pageable = PageRequest.of(page - 1, 30);
-        List<ClokeyNotification> notificationList = notificationRepositoryService.findNotificationsByMemberId(memberId, pageable);
+        List<ClokeyNotification> notificationList = notificationRepository.findNotificationsByMemberId(memberId, pageable);
         return NotificationConverter.toNotificationResult(notificationList, pageable);
     }
 
