@@ -67,6 +67,8 @@ public class HistoryServiceImpl implements HistoryService {
     private final HistoryClothRepository historyClothRepository;
     private final HashtagHistoryRepository hashtagHistoryRepository;
     private final HashtagRepository hashtagRepository;
+    private final CommentRepository commentRepository;
+    private final MemberLikeRepository memberLikeRepository;
 
     private static final String FAILED_ES_UPDATE_SYNC_HISTORY_KEY = "failed_es_update_sync_history";
     private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
@@ -365,21 +367,29 @@ public class HistoryServiceImpl implements HistoryService {
     public void deleteHistory(Long historyId, Long memberId) {
         historyAccessibleValidator.validateMyHistory(historyId, memberId);
 
-        commentRepositoryService.deleteAllComments(historyId);
+        commentRepository.deleteRepliesByHistoryId(historyId);
+        commentRepository.deleteParentCommentsByHistoryId(historyId);
 
         //기록_옷 지우기
-        List<Cloth> cloths = historyClothRepositoryService.findAllClothByHistoryId(historyId);
+        List<Cloth> cloths = historyClothRepository.findAllClothsByHistoryId(historyId);
         cloths.forEach(Cloth::decreaseWearNum);
-        historyClothRepositoryService.deleteAllByHistoryId(historyId);
+        historyClothRepository.deleteAllByHistoryId(historyId);
 
         //기록-해시태그 지우기
-        hashtagHistoryRepositoryService.deleteAllByHistoryId(historyId);
+        hashtagHistoryRepository.deleteAllByHistoryId(historyId);
 
         //좋아요 기록 삭제
-        memberLikeRepositoryService.deleteAllByHistoryId(historyId);
+        memberLikeRepository.deleteAllByHistoryId(historyId);
 
         //기록 사진 삭제
-        historyImageRepositoryService.deleteAllByHistoryId(historyId);
+        List<HistoryImage> historyImagesToDelete = historyImageRepository.findByHistory_Id(historyId);
+
+        if (historyImagesToDelete != null && !historyImagesToDelete.isEmpty()) {
+            s3ImageService.deleteAllFromS3(historyImagesToDelete.stream()
+                    .map(HistoryImage::getImageUrl)
+                    .toList());
+            historyImageRepository.deleteAll(historyImagesToDelete);
+        }
 
         //기록 삭제
         historyRepositoryService.deleteById(historyId);
