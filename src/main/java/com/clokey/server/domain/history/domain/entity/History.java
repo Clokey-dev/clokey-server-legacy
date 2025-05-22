@@ -18,7 +18,8 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 @Table(
         name = "history",
         indexes = {
-                @Index(name = "idx_member_date", columnList = "member_id, history_date")
+                @Index(name = "idx_member_date", columnList = "member_id, history_date"),
+                @Index(name = "idx_member_id_id", columnList = "member_id, id")
         }
 )
 public class History extends BaseEntity {

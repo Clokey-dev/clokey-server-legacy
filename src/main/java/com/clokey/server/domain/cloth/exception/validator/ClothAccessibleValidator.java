@@ -1,5 +1,6 @@
 package com.clokey.server.domain.cloth.exception.validator;
 
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class ClothAccessibleValidator {
 
     private final MemberRepositoryService memberRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
+    private final ClothRepository clothRepository;
 
     // 유저가 옷에 대한 접근 권한이 있는지 검증 -> 비공개 옷을 조회하지 못하도록 함
     public void validateClothAccessOfMember(Long clothId, Long memberId) {
@@ -48,7 +50,7 @@ public class ClothAccessibleValidator {
     //다른 입력 인자로 오버로딩
     public void validateClothOfMember(List<Long> clothIds, Long memberId) {
 
-        List<Long> clothOwners = clothRepositoryService.getClothOwners(clothIds);
+        List<Long> clothOwners = clothRepository.findMemberIdsByClothIds(clothIds);
         boolean hasInvalidOwner = clothOwners.stream()
                 .anyMatch(ownerId -> !ownerId.equals(memberId));
 

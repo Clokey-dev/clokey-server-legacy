@@ -1,10 +1,11 @@
 package com.clokey.server.domain.history.application;
 
-import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
-import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.history.dto.projection.*;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import com.clokey.server.domain.member.exception.MemberException;
+import com.clokey.server.global.infra.s3.S3ImageService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -61,6 +62,11 @@ public class HistoryServiceImpl implements HistoryService {
     private final HistoryRepository historyRepository;
     private final HistoryImageRepository historyImageRepository;
     private final MemberRepository memberRepository;
+    private final S3ImageService s3ImageService;
+    private final ClothRepository clothRepository;
+    private final HistoryClothRepository historyClothRepository;
+    private final HashtagHistoryRepository hashtagHistoryRepository;
+    private final HashtagRepository hashtagRepository;
 
     private static final String FAILED_ES_UPDATE_SYNC_HISTORY_KEY = "failed_es_update_sync_history";
     private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
@@ -219,17 +225,25 @@ public class HistoryServiceImpl implements HistoryService {
         clothAccessibleValidator.validateClothOfMember(historyCreateRequest.getClothes(), memberId);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        boolean historyExist = historyRepositoryService.checkHistoryExistOfDate(LocalDate.parse(historyCreateRequest.getDate(), formatter), memberId);
+        boolean historyExist = historyRepository.existsByHistoryDateAndMember_Id(LocalDate.parse(historyCreateRequest.getDate(), formatter), memberId);
 
         if (historyExist) {
             return updateHistory(historyCreateRequest, memberId, historyRepositoryService.getHistoryOfDate(LocalDate.parse(historyCreateRequest.getDate()), memberId).getId(), imageFiles);
         } else {
 
-            History history = historyRepositoryService.save(HistoryConverter.toHistory(historyCreateRequest, memberRepositoryService.findMemberById(memberId)));
-            historyImageRepositoryService.save(imageFiles, history);
+            History history = historyRepositoryService.save(HistoryConverter.toHistory(historyCreateRequest, memberRepository.findById(memberId).orElseThrow(()-> new MemberException(ErrorStatus.NO_SUCH_MEMBER))));
 
+            //사진 저장
+            List<String> uploadedImageUrls = s3ImageService.uploadAll(imageFiles);
+            List<HistoryImage> historyImages = uploadedImageUrls.stream()
+                    .map(url -> HistoryImage.builder()
+                            .history(history)
+                            .imageUrl(url)
+                            .build())
+                    .collect(Collectors.toList());
+            historyImageRepository.saveAll(historyImages);
 
-            List<Cloth> cloths = clothRepositoryService.findAllById(historyCreateRequest.getClothes());
+            List<Cloth> cloths = clothRepository.findAllById(historyCreateRequest.getClothes());
             List<HistoryCloth> historyCloths = cloths.stream()
                     .map(cloth -> {
                         cloth.increaseWearNum();
@@ -238,14 +252,14 @@ public class HistoryServiceImpl implements HistoryService {
                                 .cloth(cloth)
                                 .build();
                     }).toList();
-            historyClothRepositoryService.saveAll(historyCloths);
+            historyClothRepository.saveAll(historyCloths);
 
             historyCreateRequest.getHashtags()
                     .forEach(hashtagNames -> {
                         //존재하는 해시태그라면 매핑 테이블에 추가
                         //아니라면 새로운 해시태그를 만들고 매핑 테이블에 추가
                         if (hashtagRepositoryService.existByName(hashtagNames)) {
-                            hashtagHistoryRepositoryService.save(HashtagHistory.builder()
+                            hashtagHistoryRepository.save(HashtagHistory.builder()
                                     .history(history)
                                     .hashtag(hashtagRepositoryService.findByName(hashtagNames))
                                     .build()
@@ -254,9 +268,9 @@ public class HistoryServiceImpl implements HistoryService {
                             Hashtag newHashtag = Hashtag.builder()
                                     .name(hashtagNames)
                                     .build();
-                            hashtagRepositoryService.save(newHashtag);
+                            hashtagRepository.save(newHashtag);
 
-                            hashtagHistoryRepositoryService.save(HashtagHistory.builder()
+                            hashtagHistoryRepository.save(HashtagHistory.builder()
                                     .history(history)
                                     .hashtag(newHashtag)
                                     .build()
@@ -277,33 +291,52 @@ public class HistoryServiceImpl implements HistoryService {
 
         historyAccessibleValidator.validateMyHistory(historyId, memberId);
 
-        historyImageRepositoryService.deleteAllByHistoryId(historyId);
+        List<HistoryImage> historyImagesToDelete = historyImageRepository.findByHistory_Id(historyId);
 
-        historyImageRepositoryService.save(images, historyRepositoryService.findById(historyId));
+        if (historyImagesToDelete != null && !historyImagesToDelete.isEmpty()) {
+            s3ImageService.deleteAllFromS3(historyImagesToDelete.stream()
+                    .map(HistoryImage::getImageUrl)
+                    .toList());
+            historyImageRepository.deleteAll(historyImagesToDelete);
+        }
+
+
+        History history = historyRepository.findById(historyId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
+
+        //사진 저장
+        List<String> uploadedImageUrls = s3ImageService.uploadAll(images);
+        List<HistoryImage> historyImages = uploadedImageUrls.stream()
+                .map(url -> HistoryImage.builder()
+                        .history(history)
+                        .imageUrl(url)
+                        .build())
+                .collect(Collectors.toList());
+        historyImageRepository.saveAll(historyImages);
 
         updateHistoryClothes(
                 historyUpdate.getClothes(),
-                historyClothRepositoryService.findClothIdsByHistoryId(historyId),
-                historyRepositoryService.findById(historyId));
+                historyClothRepository.findClothIdsByHistoryId(historyId),
+                history);
 
         updateHistoryHashtags(
                 historyUpdate.getHashtags(),
                 hashtagHistoryRepositoryService.findByHistory_Id(historyId).stream()
                         .map(hashtagHistory -> hashtagHistory.getHashtag().getName())
                         .toList(),
-                historyRepositoryService.findById(historyId));
+                history);
 
-        History historyToUpdate = historyRepositoryService.findById(historyId);
-        historyToUpdate.updateHistory(historyUpdate.getContent(), historyUpdate.getVisibility());
+        history.updateHistory(historyUpdate.getContent(), historyUpdate.getVisibility());
 
         // ES 동기화
-        asyncUpdatedHistoryFromES(historyToUpdate);
+        asyncUpdatedHistoryFromES(history);
 
-        return HistoryConverter.toHistoryCreateResult(historyRepositoryService.findById(historyId));
+        return HistoryConverter.toHistoryCreateResult(history);
     }
 
     private void validateVisualizeBannedHistory(Long historyId, HistoryRequestDTO.HistoryCreate historyUpdate){
-        boolean banned = historyRepositoryService.findById(historyId).isBanned();
+        boolean banned = historyRepository.findById(historyId)
+                .orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))
+                .isBanned();
         boolean changeToPublic = historyUpdate.getVisibility().equals(Visibility.PUBLIC);
 
         if(banned && changeToPublic){
