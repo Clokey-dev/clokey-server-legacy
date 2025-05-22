@@ -48,7 +48,7 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final FollowRepositoryService followRepositoryService;
     private final HistoryRepository historyRepository;
     private final MemberRepositoryService memberRepositoryService;
-    private final MemberLikeRepositoryService memberLikeRepositoryService;
+    private final MemberLikeRepository memberLikeRepository;
     private final HashtagHistoryRepository hashtagHistoryRepository;
     private final ClothRepositoryService clothRepositoryService;
     private final HistoryClothRepository historyClothRepository;
@@ -177,7 +177,7 @@ public class UnlinkServiceImpl implements UnlinkService {
         commentRepository.deleteCommentsByHistoryIds(historyIds);
         historyClothRepository.deleteAllByHistoryIds(historyIds);
         hashtagHistoryRepository.deleteAllByHistoryIds(historyIds);
-        memberLikeRepositoryService.deleteAllByHistoryIds(historyIds);
+        memberLikeRepository.deleteAllByHistoryIds(historyIds);
         historyImageRepository.deleteAllByHistoryIds(historyIds);
         historyRepository.deleteByHistoryIds(historyIds);
 
@@ -212,7 +212,7 @@ public class UnlinkServiceImpl implements UnlinkService {
         notificationRepositoryService.deleteByClokeyNotificationIds(notificationIds);
 
         //좋아요 삭제
-        memberLikeRepositoryService.deleteAllByMemberId(memberId);
+        memberLikeRepository.deleteAllByMemberId(memberId);
 
         memberRepositoryService.deleteMemberById(memberId);  // 최종적으로 회원 삭제
 

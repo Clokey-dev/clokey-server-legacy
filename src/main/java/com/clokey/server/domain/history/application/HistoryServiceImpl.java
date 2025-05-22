@@ -48,7 +48,6 @@ public class HistoryServiceImpl implements HistoryService {
     private final FollowRepositoryService followRepositoryService;
     private final HistoryLikedValidator historyLikedValidator;
     private final MemberRepositoryService memberRepositoryService;
-    private final MemberLikeRepositoryService memberLikeRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
     private final ClothAccessibleValidator clothAccessibleValidator;
     private final HistoryAccessibleValidator historyAccessibleValidator;
@@ -83,7 +82,7 @@ public class HistoryServiceImpl implements HistoryService {
                     .history(history)
                     .member(memberRepositoryService.findMemberById(memberId))
                     .build();
-            memberLikeRepositoryService.save(memberLike);
+            memberLikeRepository.save(memberLike);
         }
 
         return HistoryConverter.toLikeResult(history, isLiked);
@@ -140,7 +139,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         List<String> imageUrl = historyImageRepository.getImageUrlsByHistoryIdOrderByCreatedAtAsc(historyId);
         List<String> hashtags = hashtagHistoryRepository.findHashtagNamesByHistoryId(historyId);
-        boolean isLiked = memberLikeRepositoryService.existsByMember_IdAndHistory_Id(memberId, historyId);
+        boolean isLiked = memberLikeRepository.existsByMemberIdAndHistoryId(memberId, historyId);
         Long commentCount = commentRepository.countByHistoryId(historyId);
 
         Member historyWriter = history.getMember();
@@ -409,7 +408,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         historyAccessibleValidator.validateHistoryAccessOfMember(historyId, memberId);
 
-        List<Member> likedMembers = memberLikeRepositoryService.findMembersByHistory(historyId);
+        List<Member> likedMembers = memberLikeRepository.findMembersByHistoryId(historyId);
         List<Boolean> followStatus = followRepositoryService.checkFollowingStatus(memberId, likedMembers);
         List<Boolean> isMySelf = likedMembers.stream()
                 .map(Member::getId)
@@ -439,12 +438,19 @@ public class HistoryServiceImpl implements HistoryService {
                 .filter(clothId -> !updatedClothes.contains(clothId))
                 .toList());
 
-        clothesToAdd.forEach(cloth -> historyClothRepository.save(HistoryCloth.builder()
-                                .history(history)
-                                .cloth(cloth)
-                        .build()));
+        clothesToAdd.forEach(cloth -> {
+            historyClothRepository.save(HistoryCloth.builder()
+                    .history(history)
+                    .cloth(cloth)
+                    .build()
+            );
+            cloth.increaseWearNum();
+        });
 
-        clothesToDelete.forEach(cloth -> historyClothRepository.deleteByHistoryAndCloth(history, cloth));
+        clothesToDelete.forEach(cloth -> {
+            historyClothRepository.deleteByHistoryAndCloth(history, cloth);
+            cloth.decreaseWearNum();
+        });
     }
 
     private void updateHistoryHashtags(List<String> updatedHashtags, List<String> savedHashtags, History history) {

@@ -608,7 +608,7 @@ public class HistoryCreateTest {
 
         // then
         assertThatThrownBy(() -> historyService.writeComment(historyToWriteComment, parentCommentId, commentWriter, content))
-                .isInstanceOf(DatabaseException.class);
+                .isInstanceOf(HistoryException.class);
     }
 
     @DisplayName("부모 댓글과 대댓글로 작성하는 댓글의 historyId가 다른 경우 Service단에서 에러를 던진다.")
