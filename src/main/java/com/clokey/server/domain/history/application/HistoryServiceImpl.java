@@ -50,11 +50,9 @@ public class HistoryServiceImpl implements HistoryService {
     private final CommentRepositoryService commentRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepositoryService memberLikeRepositoryService;
-    private final HistoryImageRepositoryService historyImageRepositoryService;
     private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
     private final ClothAccessibleValidator clothAccessibleValidator;
-    private final HistoryClothRepositoryService historyClothRepositoryService;
     private final HistoryAccessibleValidator historyAccessibleValidator;
     private final SearchRepositoryService searchRepositoryService;
     private final HistoryRepository historyRepository;
@@ -441,8 +439,12 @@ public class HistoryServiceImpl implements HistoryService {
                 .filter(clothId -> !updatedClothes.contains(clothId))
                 .toList());
 
-        clothesToAdd.forEach(cloth -> historyClothRepositoryService.save(history, cloth));
-        clothesToDelete.forEach(cloth -> historyClothRepositoryService.delete(history, cloth));
+        clothesToAdd.forEach(cloth -> historyClothRepository.save(HistoryCloth.builder()
+                                .history(history)
+                                .cloth(cloth)
+                        .build()));
+
+        clothesToDelete.forEach(cloth -> historyClothRepository.deleteByHistoryAndCloth(history, cloth));
     }
 
     private void updateHistoryHashtags(List<String> updatedHashtags, List<String> savedHashtags, History history) {
@@ -501,8 +503,23 @@ public class HistoryServiceImpl implements HistoryService {
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryLikedListResult getLikedHistories(Long memberId, int page) {
         Page<History> histories = historyRepository.findLikedHistories(memberId, PageRequest.of(page, 15));
-        Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
+        Map<Long, String> historyImageMap = findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
         return HistoryConverter.toHistoryLikedListResult(histories, historyImageMap, memberId);
+    }
+
+    private Map<Long, String> findFirstImagesByHistoryIds(List<Long> historyIds){
+        if (historyIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<HistoryImage> result = historyImageRepository.findByHistoryIdIn(historyIds);
+
+        return result.stream()
+                .collect(Collectors.toMap(
+                        hi -> hi.getHistory().getId(),
+                        HistoryImage::getImageUrl,
+                        (existing, replacement) -> existing
+                ));
     }
     
     @Override
@@ -525,7 +542,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         Map<Long, History> historyMap = histories.stream().collect(Collectors.toMap(History::getId, history -> history));
 
-        Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
+        Map<Long, String> historyImageMap = findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
 
         List<HistoryResponseDTO.HistoryMyCommentResult> historyMyCommentResults = groupedComments.entrySet().stream()
                 .map(entry -> {

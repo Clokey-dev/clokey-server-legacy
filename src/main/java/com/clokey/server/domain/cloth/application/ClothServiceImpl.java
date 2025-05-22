@@ -1,5 +1,6 @@
 package com.clokey.server.domain.cloth.application;
 
+import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +25,6 @@ import com.clokey.server.domain.cloth.domain.entity.ClothImage;
 import com.clokey.server.domain.cloth.dto.ClothRequestDTO;
 import com.clokey.server.domain.cloth.dto.ClothResponseDTO;
 import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
-import com.clokey.server.domain.history.application.HistoryClothRepositoryService;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.model.entity.enums.ClothSort;
@@ -42,7 +42,7 @@ public class ClothServiceImpl implements ClothService {
     private final ClothRepositoryService clothRepositoryService;
     private final ClothImageRepositoryService clothImageRepositoryService;
     private final ClothFolderRepositoryService clothFolderRepositoryService;
-    private final HistoryClothRepositoryService historyClothRepositoryService;
+    private final HistoryClothRepository historyClothRepository;
     private final HistoryRepository historyRepository;
     private final S3ImageService s3ImageService;
     private final SearchRepositoryService searchRepositoryService;
@@ -105,15 +105,15 @@ public class ClothServiceImpl implements ClothService {
         List<History> histories = historyRepository.findHistoriesWithinMonth(memberId, monthAgo);
 
         List<Cloth> clothes = histories.stream()
-                .flatMap(history -> historyClothRepositoryService.findAllClothByHistoryId(history.getId()).stream())
-                .collect(Collectors.toList());
+                .flatMap(history -> historyClothRepository.findAllClothsByHistoryId(history.getId()).stream())
+                .toList();
 
         Map<Category, Long> categoryCountMap = clothes.stream()
                 .collect(Collectors.groupingBy(Cloth::getCategory, Collectors.counting()));
 
         List<Map.Entry<Category, Long>> filteredEntries = categoryCountMap.entrySet().stream()
                 .filter(entry -> entry.getKey().getParent() != null)
-                .collect(Collectors.toList());
+                .toList();
 
         if (filteredEntries.isEmpty()) {
             throw new CategoryException(ErrorStatus.CATEGORY_NOT_FOUND_IN_SUMMARY);
@@ -197,7 +197,7 @@ public class ClothServiceImpl implements ClothService {
     @Override
     @Transactional
     public void deleteClothById(Long clothId){
-        historyClothRepositoryService.deleteAllByClothId(clothId);
+        historyClothRepository.deleteAllByClothId(clothId);
         clothFolderRepositoryService.deleteAllByClothId(clothId);
         clothImageRepositoryService.deleteByClothId(clothId);
         clothRepositoryService.deleteById(clothId);

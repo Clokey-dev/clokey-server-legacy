@@ -2,6 +2,8 @@ package com.clokey.server.domain.search.application;
 
 import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
 import com.clokey.server.domain.cloth.application.ClothImageRepositoryServiceImpl;
+import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,8 +29,6 @@ import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.document.ClothDocument;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.history.application.HashtagHistoryRepositoryService;
-import com.clokey.server.domain.history.application.HistoryClothRepositoryService;
-import com.clokey.server.domain.history.application.HistoryImageRepositoryService;
 import com.clokey.server.domain.history.domain.document.HistoryDocument;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
@@ -42,6 +42,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class SearchRepositoryServiceImpl implements SearchRepositoryService {
 
+    private final HistoryImageRepository historyImageRepository;
     private final HistoryRepository historyRepository;
     private final ElasticsearchClient elasticsearchClient;
 
@@ -53,8 +54,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private static final String MEMBER_INDEX_NAME = "user";
 
     private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
-    private final HistoryClothRepositoryService historyClothRepositoryService;
-    private final HistoryImageRepositoryService historyImageRepositoryService;
+    private final HistoryClothRepository historyClothRepository;
     private static final String HISTORY_INDEX_NAME = "history";
 
     @Autowired
@@ -196,14 +196,14 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
 
         List<String> hashtagNames = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(history.getId());
 
-        List<Cloth> clothes = historyClothRepositoryService.findAllClothByHistoryId(history.getId());
+        List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
 
         List<String> categoryNames = clothes.stream()
                 .map(cloth -> cloth.getCategory().getName())
                 .distinct()
                 .collect(Collectors.toList());
 
-        String imageUrl = historyImageRepositoryService.findByHistoryId(history.getId()).stream()
+        String imageUrl = historyImageRepository.findByHistory_Id(history.getId()).stream()
                 .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
                 .map(HistoryImage::getImageUrl)
                 .findFirst()
@@ -262,14 +262,14 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
 
                     List<String> hashtagNames = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(history.getId());
 
-                    List<Cloth> clothes = historyClothRepositoryService.findAllClothByHistoryId(history.getId());
+                    List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
 
                     List<String> categoryNames = clothes.stream()
                             .map(cloth -> cloth.getCategory().getName())
                             .distinct()
                             .collect(Collectors.toList());
 
-                    String imageUrl = historyImageRepositoryService.findByHistoryId(history.getId()).stream()
+                    String imageUrl = historyImageRepository.findByHistory_Id(history.getId()).stream()
                             .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
                             .map(HistoryImage::getImageUrl)
                             .findFirst()
