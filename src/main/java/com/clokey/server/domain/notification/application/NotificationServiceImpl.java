@@ -1,5 +1,6 @@
 package com.clokey.server.domain.notification.application;
 
+import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.term.application.MemberTermRepositoryService;
@@ -13,7 +14,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.history.application.CommentRepositoryService;
 import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.exception.validator.HistoryLikedValidator;
 import com.clokey.server.domain.member.application.FollowRepositoryService;
@@ -42,7 +42,6 @@ public class NotificationServiceImpl implements NotificationService {
     private final FirebaseMessaging firebaseMessaging;
     private final NotificationRepositoryService notificationRepositoryService;
     private final FollowRepositoryService followRepositoryService;
-    private final CommentRepositoryService commentRepositoryService;
     private final MemberTermRepositoryService memberTermRepositoryService;
     private final HistoryRepository historyRepository;
 
@@ -66,6 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String WARMER_THAN_YESTERDAY_NOTIFICATION = "기온이 어제보다 %d도 높아요!\n오늘은 더 얇은 옷을 입어볼까요?";
     private static final String SAME_AS_YESTERDAY_NOTIFICATION = "기온이 어제와 동일해요!\n어제와 비슷하게 입어볼까요?";
     private static final String TODAY_TEMPERATURE_NOTIFICATION_URL = "https://clokeybucket.s3.ap-northeast-2.amazonaws.com/temperature.png";
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -220,7 +220,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (historyWriter.equals(commentWriter)) {
             return null;
         }
-        Comment writtenComment = commentRepositoryService.findById(commentId);
+        Comment writtenComment = commentRepository.findById(commentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
 
         if (ableToSendNotification(historyWriter)) {
             String content = String.format(HISTORY_COMMENT_NOTIFICATION_CONTENT, commentWriter.getNickname(), writtenComment.getContent());
@@ -266,13 +266,13 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkMyComment(Long commentId, Long memberId) {
-        if (!commentRepositoryService.existsByIdAndMemberId(commentId, memberId)) {
+        if (!commentRepository.existsByIdAndMemberId(commentId, memberId)) {
             throw new NotificationException(ErrorStatus.NOTIFICATION_NOT_MY_COMMENT);
         }
     }
 
     private void checkHistoryComment(Long commentId, Long historyId) {
-        if (!commentRepositoryService.existsByIdAndHistoryId(commentId, historyId)) {
+        if (!commentRepository.existsByIdAndHistoryId(commentId, historyId)) {
             throw new NotificationException(ErrorStatus.NOTIFICATION_COMMENT_NOT_FROM_HISTORY);
         }
     }
@@ -284,9 +284,9 @@ public class NotificationServiceImpl implements NotificationService {
         checkMyComment(replyId, memberId);
         checkParentComment(commentId, replyId);
 
-        Comment writtenComment = commentRepositoryService.findById(commentId);
+        Comment writtenComment = commentRepository.findById(commentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));
         Member commentWriter = writtenComment.getMember();
-        Comment writtenReply = commentRepositoryService.findById(replyId);
+        Comment writtenReply = commentRepository.findById(replyId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));
         Member replyWriter = writtenReply.getMember();
         if (commentWriter.equals(replyWriter)) {
             return null;
@@ -295,7 +295,9 @@ public class NotificationServiceImpl implements NotificationService {
         if (ableToSendNotification(commentWriter)) {
             String content = String.format(COMMENT_REPLY_CONTENT, replyWriter.getNickname(), writtenReply.getContent());
             String replyWriterProfileUrl = replyWriter.getProfileImageUrl();
-            Long historyId = commentRepositoryService.findById(commentId).getHistory().getId();
+            Long historyId = commentRepository.findById(commentId)
+                    .orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT))
+                    .getHistory().getId();
 
             Notification notification = Notification.builder()
                     .setBody(content)
@@ -336,7 +338,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkParentComment(Long commentId, Long replyId) {
-        Comment reply = commentRepositoryService.findById(replyId);
+        Comment reply = commentRepository.findById(replyId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
         if (!reply.getComment().getId().equals(commentId)) {
             throw new NotificationException(ErrorStatus.NOTIFICATION_NOT_PARENT_COMMENT_OF_REPLY);
         }

@@ -16,16 +16,9 @@ public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long
     @Query("SELECT hi.imageUrl FROM HistoryImage hi WHERE hi.history.id = :historyId ORDER BY hi.createdAt ASC")
     List<String> getImageUrlsByHistoryIdOrderByCreatedAtAsc(@Param("historyId") Long historyId);
 
-    List<HistoryImage> findByHistory_IdIn(List<Long> historyIds);
-
     @Modifying
     @Query("DELETE FROM HistoryImage hi WHERE hi.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
-
-
-    @Modifying
-    @Query("DELETE FROM HistoryImage hi WHERE hi.history.id IN :historyIds")
-    void deleteByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
     List<HistoryImage> findByHistoryIdIn(List<Long> historyIds);
 

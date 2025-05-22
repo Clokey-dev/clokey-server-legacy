@@ -50,7 +50,6 @@ public class UnlinkServiceImpl implements UnlinkService {
 
     private final FollowRepositoryService followRepositoryService;
     private final HistoryRepository historyRepository;
-    private final CommentRepositoryService commentRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepositoryService memberLikeRepositoryService;
     private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
@@ -64,6 +63,7 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final SearchRepositoryService searchRepositoryService;
     private final AuthService authService;
     private final HistoryImageRepository historyImageRepository;
+    private final CommentRepository commentRepository;
 
     private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
 
@@ -176,8 +176,8 @@ public class UnlinkServiceImpl implements UnlinkService {
         //기록 삭제
         List<Long> historyIds = memberRepositoryService.findHistoryIdsByMemberId(memberId);
 
-        commentRepositoryService.deleteChildrenByHistoryIds(historyIds);
-        commentRepositoryService.deleteCommentsByHistoryIds(historyIds);
+        commentRepository.deleteChildrenByHistoryIds(historyIds);
+        commentRepository.deleteCommentsByHistoryIds(historyIds);
         historyClothRepository.deleteAllByHistoryIds(historyIds);
         hashtagHistoryRepositoryService.deleteAllByHistoryIds(historyIds);
         memberLikeRepositoryService.deleteAllByHistoryIds(historyIds);
@@ -205,8 +205,8 @@ public class UnlinkServiceImpl implements UnlinkService {
         //댓글 삭제
         List<Long> commentIds = memberRepositoryService.findCommentIdsByMemberId(memberId);
 
-        commentRepositoryService.deleteChildrenByCommentIds(commentIds);
-        commentRepositoryService.deleteCommentsByCommentIds(commentIds);
+        commentRepository.deleteChildrenByCommentIds(commentIds);
+        commentRepository.deleteCommentsByCommentIds(commentIds);
 
 
         //알람 삭제

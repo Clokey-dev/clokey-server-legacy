@@ -1,8 +1,8 @@
 package com.clokey.server.domain.report.application;
 
-import com.clokey.server.domain.history.application.CommentRepositoryService;
 import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.domain.entity.History;
+import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
@@ -28,7 +28,7 @@ public class ReportServiceImpl implements ReportService{
 
     private final HistoryReportRepositoryService historyReportRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
-    private final CommentRepositoryService commentRepositoryService;
+    private final CommentRepository commentRepository;
     private final CommentReportRepositoryService commentReportRepositoryService;
     private final ProfileReportRepositoryService profileReportRepositoryService;
     private final HistoryRepository historyRepository;
@@ -65,7 +65,7 @@ public class ReportServiceImpl implements ReportService{
     @Override
     @Transactional(readOnly = true)
     public ReportResponseDTO.CommentReportInfoResult getCommentReportInfo(Long commentId) {
-        Comment comment = commentRepositoryService.findById(commentId);
+        Comment comment = commentRepository.findById(commentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));
         Member commentWriter = comment.getMember();
         return ReportConverter.getCommentReportInfoResult(commentWriter.getClokeyId(),
                 commentWriter.getNickname(),
@@ -76,7 +76,7 @@ public class ReportServiceImpl implements ReportService{
     @Override
     @Transactional
     public ReportResponseDTO.CommentReportResult getCommentReportResult(ReportRequestDTO.CommentReportRequest commentReportRequest, Long memberId) {
-        Comment reportedComment = commentRepositoryService.findById(commentReportRequest.getCommentId());
+        Comment reportedComment = commentRepository.findById(commentReportRequest.getCommentId()).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
 
         CommentReport commentReport = CommentReport.builder()
                 .commentReportType(commentReportRequest.getCommentReportType())
@@ -281,7 +281,7 @@ public class ReportServiceImpl implements ReportService{
         if (reportedInstanceId != null) {
             profilePredicate.and(QProfileReport.profileReport.reported.eq(memberRepositoryService.findMemberById(reportedInstanceId)));
             historyPredicate.and(QHistoryReport.historyReport.history.eq(historyRepository.findById(reportedInstanceId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))));
-            commentPredicate.and(QCommentReport.commentReport.comment.eq(commentRepositoryService.findById(reportedInstanceId)));
+            commentPredicate.and(QCommentReport.commentReport.comment.eq(commentRepository.findById(reportedInstanceId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT))));
         }
 
         List<ProfileReport> profileReports = profileReportRepositoryService.findAllByPredicate(profilePredicate);

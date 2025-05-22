@@ -47,7 +47,6 @@ public class HistoryServiceImpl implements HistoryService {
 
     private final FollowRepositoryService followRepositoryService;
     private final HistoryLikedValidator historyLikedValidator;
-    private final CommentRepositoryService commentRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepositoryService memberLikeRepositoryService;
     private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
@@ -103,7 +102,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         Comment parentComment = null;
         if (parentCommentId != null) {
-            parentComment = commentRepositoryService.findById(parentCommentId);
+            parentComment = commentRepository.findById(parentCommentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
         }
 
         Comment comment = Comment.builder()
@@ -113,7 +112,7 @@ public class HistoryServiceImpl implements HistoryService {
                 .member(member)
                 .build();
 
-        Comment savedComment = commentRepositoryService.save(comment);
+        Comment savedComment = commentRepository.save(comment);
 
         return HistoryConverter.toCommentWriteResult(savedComment);
     }
@@ -123,7 +122,9 @@ public class HistoryServiceImpl implements HistoryService {
             return;
         }
 
-        Long parentHistoryId = commentRepositoryService.findById(parentCommentId).getHistory().getId();
+        Long parentHistoryId = commentRepository.findById(parentCommentId)
+                .orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT))
+                .getHistory().getId();
 
         if (!parentHistoryId.equals(historyId)) {
             throw new HistoryException(ErrorStatus.PARENT_COMMENT_HISTORY_ERROR);
@@ -141,7 +142,7 @@ public class HistoryServiceImpl implements HistoryService {
         List<String> imageUrl = historyImageRepository.getImageUrlsByHistoryIdOrderByCreatedAtAsc(historyId);
         List<String> hashtags = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(historyId);
         boolean isLiked = memberLikeRepositoryService.existsByMember_IdAndHistory_Id(memberId, historyId);
-        Long commentCount = commentRepositoryService.countByHistoryId(historyId);
+        Long commentCount = commentRepository.countByHistoryId(historyId);
 
         Member historyWriter = history.getMember();
         List<DailyHistoryClothProjectionDTO> dailyHistoryClothProjectionDTOS = clothRepositoryService.getDailyHistoryClothProjectionsDTO(historyId);
@@ -160,9 +161,9 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryCommentResult getComments(Long historyId, int page) {
-        Page<Comment> comments = commentRepositoryService.findByHistoryParentCommentsNotBanned(historyId, PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt")));
+        Page<Comment> comments = commentRepository.findActiveRootComments(historyId, PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt")));
         List<List<Comment>> repliesForEachComment = comments.stream()
-                .map(comment -> commentRepositoryService.findByCommentId(comment.getId()).stream()
+                .map(comment -> commentRepository.findByCommentId(comment.getId()).stream()
                         .filter(reply -> !reply.isBanned())
                         .sorted(Comparator.comparing(Comment::getCreatedAt).reversed()) // 최신 순 정렬
                         .toList()
@@ -346,15 +347,15 @@ public class HistoryServiceImpl implements HistoryService {
     @Transactional
     public void deleteComment(Long commentId, Long memberId) {
         validateMyComment(commentId, memberId);
-        commentRepositoryService.deleteChildren(commentId);
-        commentRepositoryService.deleteById(commentId);
+        commentRepository.deleteChildren(commentId);
+        commentRepository.deleteById(commentId);
     }
 
     @Override
     @Transactional
     public void updateComment(HistoryRequestDTO.UpdateComment updateCommentRequest, Long commentId, Long memberId) {
         validateMyComment(commentId, memberId);
-        Comment commentToUpdate = commentRepositoryService.findById(commentId);
+        Comment commentToUpdate = commentRepository.findById(commentId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_COMMENT));
         commentToUpdate.updateContent(updateCommentRequest.getContent());
     }
 
@@ -420,7 +421,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     private void validateMyComment(Long commentId, Long memberId) {
-        Comment comment = commentRepositoryService.findById(commentId);
+        Comment comment = commentRepository.findById(commentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
         if (!comment.getMember().getId().equals(memberId)) {
             throw new HistoryException(ErrorStatus.NOT_MY_COMMENT);
         }
@@ -525,7 +526,7 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryMyCommentListResult getMyComments(Long memberId, int page) {
-        Page<Comment> commentsPage = commentRepositoryService.findByMemberId(memberId, PageRequest.of(page, 10));
+        Page<Comment> commentsPage = commentRepository.findByMember_Id(memberId, PageRequest.of(page, 10));
 
         Map<Long, List<HistoryResponseDTO.MyCommentResult>> groupedComments = commentsPage.getContent().stream()
                 .filter(comment -> comment.getHistory()!=null)
