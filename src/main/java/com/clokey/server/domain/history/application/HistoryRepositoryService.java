@@ -13,8 +13,6 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 
 public interface HistoryRepositoryService {
 
-    List<HistoryProjectionDTO> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
-
     List<History> findHistoriesByMemberWithinMonth(Long memberId);
 
     void incrementLikes(Long historyId);
@@ -22,10 +20,6 @@ public interface HistoryRepositoryService {
     void decrementLikes(Long historyId);
 
     History findById(Long historyId);
-
-    HistoryAccessCheckProjectionDTO findAccessInfoByHistoryId(Long historyId);
-
-    DailyHistoryProjectionDTO getDailyHistoryProjectionDTO(Long historyId);
 
     boolean existsById(Long historyId);
 

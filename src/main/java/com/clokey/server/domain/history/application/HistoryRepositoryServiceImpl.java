@@ -1,6 +1,5 @@
 package com.clokey.server.domain.history.application;
 
-import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.history.dto.projection.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,11 +24,6 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     private final HistoryRepository historyRepository;
 
     @Override
-    public List<HistoryProjectionDTO> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
-        return historyRepository.findHistoriesByMemberAndYearMonth(memberId, yearMonth);
-    }
-
-    @Override
     public List<History> findHistoriesByMemberWithinMonth(Long memberId) {
         LocalDate monthAgo = LocalDate.now().minusMonths(1);
         return historyRepository.findHistoriesWithinMonth(memberId, monthAgo);
@@ -48,16 +42,6 @@ public class HistoryRepositoryServiceImpl implements HistoryRepositoryService {
     @Override
     public History findById(Long historyId) {
         return historyRepository.findById(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
-    }
-
-    @Override
-    public HistoryAccessCheckProjectionDTO findAccessInfoByHistoryId(Long historyId) {
-        return historyRepository.findAccessInfoByHistoryId(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
-    }
-
-    @Override
-    public DailyHistoryProjectionDTO getDailyHistoryProjectionDTO(Long historyId) {
-        return historyRepository.getDailyHistoryProjectionDTO(historyId).orElseThrow(() -> new DatabaseException(ErrorStatus.NO_SUCH_HISTORY));
     }
 
     @Override

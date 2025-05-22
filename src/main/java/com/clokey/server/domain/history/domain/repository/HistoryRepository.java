@@ -1,8 +1,5 @@
 package com.clokey.server.domain.history.domain.repository;
 
-import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,28 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface HistoryRepository extends JpaRepository<History, Long>,HistoryProjectionRepository{
 
-    @Query("""
-    SELECT new com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO(
-        h.member.id,
-        h.visibility
-    )
-    FROM History h
-    WHERE h.id = :historyId
-""")
-    Optional<HistoryAccessCheckProjectionDTO> findAccessInfoByHistoryId(@Param("historyId") Long historyId);
-
-    @Query("""
-    SELECT new com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO(
-        h.id,
-        h.content,
-        h.visibility,
-        h.historyDate,
-        h.member.id
-    )
-    FROM History h
-    WHERE h.id = :historyId
-""")
-    Optional<DailyHistoryProjectionDTO> getDailyHistoryProjectionDTO(@Param("historyId") Long historyId);
 
     @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND h.historyDate >= :monthAgo")
     List<History> findHistoriesWithinMonth(@Param("memberId") Long memberId, @Param("monthAgo") LocalDate monthAgo);
@@ -144,4 +119,7 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
                 ORDER BY ml.createdAt DESC
             """)
     Page<History> findLikedHistories(@Param("memberId") Long memberId, Pageable pageable);
+
+    @Query("SELECT h FROM History h JOIN FETCH h.member WHERE h.id = :id")
+    Optional<History> findByIdWithWriter(@Param("id") Long id);
 }

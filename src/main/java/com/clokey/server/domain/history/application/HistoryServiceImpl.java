@@ -6,7 +6,6 @@ import com.clokey.server.domain.history.dto.projection.*;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
 import com.clokey.server.domain.member.exception.MemberException;
-import com.clokey.server.global.error.exception.DatabaseException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -39,7 +38,6 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.clokey.server.domain.search.application.SearchRepositoryService;
 import com.clokey.server.domain.search.exception.SearchException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
-import com.clokey.server.global.error.exception.GeneralException;
 
 import static com.clokey.server.domain.history.exception.validator.HashtagConditionValidator.MAXIMUM_HASHTAGS;
 
@@ -134,26 +132,27 @@ public class HistoryServiceImpl implements HistoryService {
     public HistoryResponseDTO.DailyHistoryResult getDaily(Long historyId, Long memberId) {
         historyAccessibleValidator.validateHistoryAccessOfMember(historyId, memberId);
 
-        DailyHistoryProjectionDTO dailyHistoryProjectionDTO = historyRepositoryService.getDailyHistoryProjectionDTO(historyId);
-        List<String> imageUrl = historyImageRepositoryService.getHistoryImageUrlProjectionDTO(historyId).stream()
-                .map(HistoryImageUrlProjectionDTO::getUrl)
-                .toList();
+        History history = historyRepository.findByIdWithWriter(historyId)
+                .orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
+
+        List<String> imageUrl = historyImageRepository.getImageUrlsByHistoryIdOrderByCreatedAtAsc(historyId);
         List<String> hashtags = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(historyId);
-        int likeCount = memberLikeRepositoryService.countByHistory_Id(historyId);
         boolean isLiked = memberLikeRepositoryService.existsByMember_IdAndHistory_Id(memberId, historyId);
         Long commentCount = commentRepositoryService.countByHistoryId(historyId);
-        DailyHistoryMemberProjectionDTO dailyHistoryMemberProjectionDTO = memberRepositoryService.getDailyHistoryMemberProjectionDTO(dailyHistoryProjectionDTO.getMemberId());
+
+        Member historyWriter = history.getMember();
         List<DailyHistoryClothProjectionDTO> dailyHistoryClothProjectionDTOS = clothRepositoryService.getDailyHistoryClothProjectionsDTO(historyId);
 
-        if (memberId.equals(dailyHistoryProjectionDTO.getMemberId())) {
-            return HistoryConverter.toDayViewResult(dailyHistoryProjectionDTO,dailyHistoryMemberProjectionDTO, imageUrl, hashtags, likeCount, isLiked, dailyHistoryClothProjectionDTOS, commentCount);
+        if (memberId.equals(historyWriter.getId())){
+            return HistoryConverter.toDayViewResult(history,historyWriter, imageUrl, hashtags, isLiked, dailyHistoryClothProjectionDTOS, commentCount);
         } else {
             dailyHistoryClothProjectionDTOS = dailyHistoryClothProjectionDTOS.stream()
                     .filter(cloth -> cloth.getVisibility() == Visibility.PUBLIC)
                     .collect(Collectors.toList());
-            return HistoryConverter.toDayViewResult(dailyHistoryProjectionDTO,dailyHistoryMemberProjectionDTO, imageUrl, hashtags, likeCount, isLiked, dailyHistoryClothProjectionDTOS, commentCount);
+            return HistoryConverter.toDayViewResult(history,historyWriter, imageUrl, hashtags, isLiked, dailyHistoryClothProjectionDTOS, commentCount);
         }
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -175,7 +174,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         //Clokey ID를 제공하지 않았다면 자기 자신의 기록 확인으로 전부 반환.
         if (clokeyId == null) {
-            List<HistoryProjectionDTO> histories = historyRepository.findHistoriesByMemberAndYearMonth(myMemberId, month);
+            List<HistoryProjectionDTO> histories = historyRepository.getHistoriesByMemberAndYearMonth(myMemberId, month);
 
             List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
                     histories.stream()
@@ -195,7 +194,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         historyAccessibleValidator.validateMemberAccessOfMember(member.getId(), myMemberId);
 
-        List<HistoryProjectionDTO> histories = historyRepository.findHistoriesByMemberAndYearMonth(member.getId(), month);
+        List<HistoryProjectionDTO> histories = historyRepository.getHistoriesByMemberAndYearMonth(member.getId(), month);
         List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
                 histories.stream()
                         .map(HistoryProjectionDTO::getId)

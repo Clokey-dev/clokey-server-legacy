@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.clokey.server.domain.cloth.domain.entity.ClothImage;
 
-public interface ClothImageRepository extends JpaRepository<ClothImage, Long> {
+public interface ClothImageRepository extends JpaRepository<ClothImage, Long> , ClothProjectionRepository {
 
     int deleteByClothId(Long clothId);
 

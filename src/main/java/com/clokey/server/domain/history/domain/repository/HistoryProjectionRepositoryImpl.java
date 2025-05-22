@@ -1,6 +1,10 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.cloth.domain.entity.QCloth;
+import com.clokey.server.domain.cloth.domain.entity.QClothImage;
 import com.clokey.server.domain.history.domain.entity.QHistory;
+import com.clokey.server.domain.history.domain.entity.QHistoryCloth;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
@@ -17,7 +21,7 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<HistoryProjectionDTO> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
+    public List<HistoryProjectionDTO> getHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
         QHistory history = QHistory.history;
 
         //입력 YYYY-MM을 기준으로 해당 달의 1일 부터 다음 달의 1일 전까지 범위 쿼리 수행
@@ -41,4 +45,51 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
                 .fetch();
     }
 
+    @Override
+    public HistoryProjectionDTO getDailyHistory(Long historyId) {
+        QHistory history = QHistory.history;
+
+        return queryFactory
+                .select(Projections.fields(
+                        HistoryProjectionDTO.class,
+                        history.id.as("historyId"),
+                        history.content.as("historyContent"),
+                        history.visibility,
+                        history.historyDate,
+                        history.member.id.as("memberId")
+                ))
+                .from(history)
+                .where(history.id.eq(historyId))
+                .fetchOne();
+    }
+
+    public List<DailyHistoryClothProjectionDTO> findClothesByHistoryId(Long historyId) {
+        QHistoryCloth hc = QHistoryCloth.historyCloth;
+        QCloth cloth = QCloth.cloth;
+        QClothImage image = QClothImage.clothImage;
+
+        List<Long> clothIds = queryFactory
+                .select(hc.cloth.id)
+                .from(hc)
+                .where(hc.history.id.eq(historyId))
+                .fetch();
+
+        if (clothIds.isEmpty()) {
+            return List.of(); // 조기 반환 : 에러로 대체해야함. -> 버그 데이터 거든요.
+        }
+
+        // 2단계: cloth + clothImage 조회
+        return queryFactory
+                .select(Projections.constructor(
+                        DailyHistoryClothProjectionDTO.class,
+                        cloth.id,
+                        image.imageUrl,
+                        cloth.name,
+                        cloth.visibility
+                ))
+                .from(cloth)
+                .leftJoin(cloth.image, image)
+                .where(cloth.id.in(clothIds))
+                .fetch();
+    }
 }
