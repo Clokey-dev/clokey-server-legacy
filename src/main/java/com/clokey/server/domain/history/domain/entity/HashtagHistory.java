@@ -11,6 +11,15 @@ import com.clokey.server.domain.model.entity.BaseEntity;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(
+        indexes = {
+                @Index(name = "idx_history_id", columnList = "history_id"),
+                @Index(name = "idx_hashtag_id", columnList = "hashtag_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_history_hashtag", columnNames = {"history_id", "hashtag_id"})
+        }
+)
 public class HashtagHistory extends BaseEntity {
 
     @Id
