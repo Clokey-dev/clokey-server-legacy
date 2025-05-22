@@ -1,5 +1,6 @@
 package com.clokey.server.domain.member.application;
 
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.member.scheduler.InactiveUserCleanupTask;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -46,7 +47,7 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final MemberTermRepositoryService memberTermRepositoryService;
 
     private final FollowRepositoryService followRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
+    private final HistoryRepository historyRepository;
     private final CommentRepositoryService commentRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepositoryService memberLikeRepositoryService;
@@ -179,7 +180,7 @@ public class UnlinkServiceImpl implements UnlinkService {
         hashtagHistoryRepositoryService.deleteAllByHistoryIds(historyIds);
         memberLikeRepositoryService.deleteAllByHistoryIds(historyIds);
         historyImageRepositoryService.deleteAllByHistoryIds(historyIds);
-        historyRepositoryService.deleteByHistoryIds(historyIds);
+        historyRepository.deleteByHistoryIds(historyIds);
 
 
         // 팔로우 삭제

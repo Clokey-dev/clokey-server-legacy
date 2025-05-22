@@ -1,9 +1,10 @@
 package com.clokey.server.domain.report.application;
 
 import com.clokey.server.domain.history.application.CommentRepositoryService;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.domain.entity.History;
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.ReportType;
@@ -15,29 +16,27 @@ import com.clokey.server.domain.report.dto.ReportResponseDTO;
 import com.clokey.server.domain.report.exception.ReportException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService{
 
     private final HistoryReportRepositoryService historyReportRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final CommentRepositoryService commentRepositoryService;
     private final CommentReportRepositoryService commentReportRepositoryService;
     private final ProfileReportRepositoryService profileReportRepositoryService;
+    private final HistoryRepository historyRepository;
 
     @Override
     @Transactional(readOnly = true)
     public ReportResponseDTO.HistoryReportInfoResult getHistoryReportInfo(Long historyId) {
-        History history = historyRepositoryService.findById(historyId);
+        History history = historyRepository.findById(historyId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
         Member historyWriter = history.getMember();
         return ReportConverter.getHistoryReportInfoResult(historyWriter.getClokeyId(),
                 historyWriter.getNickname(),
@@ -48,7 +47,7 @@ public class ReportServiceImpl implements ReportService{
     @Override
     @Transactional
     public ReportResponseDTO.HistoryReportResult getHistoryReportResult(ReportRequestDTO.HistoryReportRequest historyReportRequest, Long memberId) {
-        History reportedHistory = historyRepositoryService.findById(historyReportRequest.getHistoryId());
+        History reportedHistory = historyRepository.findById(historyReportRequest.getHistoryId()).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
 
         HistoryReport historyReport = HistoryReport.builder()
                 .historyReportType(historyReportRequest.getHistoryReportType())
@@ -281,7 +280,7 @@ public class ReportServiceImpl implements ReportService{
         }
         if (reportedInstanceId != null) {
             profilePredicate.and(QProfileReport.profileReport.reported.eq(memberRepositoryService.findMemberById(reportedInstanceId)));
-            historyPredicate.and(QHistoryReport.historyReport.history.eq(historyRepositoryService.findById(reportedInstanceId)));
+            historyPredicate.and(QHistoryReport.historyReport.history.eq(historyRepository.findById(reportedInstanceId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))));
             commentPredicate.and(QCommentReport.commentReport.comment.eq(commentRepositoryService.findById(reportedInstanceId)));
         }
 
@@ -326,7 +325,7 @@ public class ReportServiceImpl implements ReportService{
                 throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
             }
 
-            if (reportType.equals(ReportType.HISTORY) && !historyRepositoryService.existsById(reportedInstanceId)) {
+            if (reportType.equals(ReportType.HISTORY) && !historyRepository.existsById(reportedInstanceId)) {
                 throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
             }
 

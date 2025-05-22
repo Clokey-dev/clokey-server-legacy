@@ -2,6 +2,7 @@ package com.clokey.server.domain.search.application;
 
 import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
 import com.clokey.server.domain.cloth.application.ClothImageRepositoryServiceImpl;
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,6 @@ import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.history.application.HashtagHistoryRepositoryService;
 import com.clokey.server.domain.history.application.HistoryClothRepositoryService;
 import com.clokey.server.domain.history.application.HistoryImageRepositoryService;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.domain.document.HistoryDocument;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
@@ -42,6 +42,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class SearchRepositoryServiceImpl implements SearchRepositoryService {
 
+    private final HistoryRepository historyRepository;
     private final ElasticsearchClient elasticsearchClient;
 
     private final ClothRepositoryService clothRepositoryService;
@@ -51,7 +52,6 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private final MemberRepositoryService memberRepositoryService;
     private static final String MEMBER_INDEX_NAME = "user";
 
-    private final HistoryRepositoryService historyRepositoryService;
     private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
     private final HistoryClothRepositoryService historyClothRepositoryService;
     private final HistoryImageRepositoryService historyImageRepositoryService;
@@ -255,7 +255,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     // JPA에서 모든 History 데이터 가져와서 Elasticsearch로 저장하는 메서드
     @Override
     public void syncAllHistoriesDataToElasticsearch() throws IOException {
-        List<History> historyList = historyRepositoryService.findAll();
+        List<History> historyList = historyRepository.findAll();
 
         List<BulkOperation> bulkOperations = historyList.stream()
                 .map(history -> {

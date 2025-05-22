@@ -47,14 +47,12 @@ public class HistoryServiceImpl implements HistoryService {
 
     private final FollowRepositoryService followRepositoryService;
     private final HistoryLikedValidator historyLikedValidator;
-    private final HistoryRepositoryService historyRepositoryService;
     private final CommentRepositoryService commentRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepositoryService memberLikeRepositoryService;
     private final HistoryImageRepositoryService historyImageRepositoryService;
     private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
     private final ClothRepositoryService clothRepositoryService;
-    private final HashtagRepositoryService hashtagRepositoryService;
     private final ClothAccessibleValidator clothAccessibleValidator;
     private final HistoryClothRepositoryService historyClothRepositoryService;
     private final HistoryAccessibleValidator historyAccessibleValidator;
@@ -101,7 +99,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         validateParentCommentHistory(historyId, parentCommentId);
 
-        History history = historyRepositoryService.findById(historyId);
+        History history = historyRepository.findById(historyId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
 
         Member member = memberRepositoryService.findMemberById(memberId);
 
@@ -230,10 +228,10 @@ public class HistoryServiceImpl implements HistoryService {
         boolean historyExist = historyRepository.existsByHistoryDateAndMember_Id(LocalDate.parse(historyCreateRequest.getDate(), formatter), memberId);
 
         if (historyExist) {
-            return updateHistory(historyCreateRequest, memberId, historyRepositoryService.getHistoryOfDate(LocalDate.parse(historyCreateRequest.getDate()), memberId).getId(), imageFiles);
+            return updateHistory(historyCreateRequest, memberId, historyRepository.findByHistoryDateAndMember_Id(LocalDate.parse(historyCreateRequest.getDate()), memberId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_HISTORY)).getId(), imageFiles);
         } else {
 
-            History history = historyRepositoryService.save(HistoryConverter.toHistory(historyCreateRequest, memberRepository.findById(memberId).orElseThrow(()-> new MemberException(ErrorStatus.NO_SUCH_MEMBER))));
+            History history = historyRepository.save(HistoryConverter.toHistory(historyCreateRequest, memberRepository.findById(memberId).orElseThrow(()-> new MemberException(ErrorStatus.NO_SUCH_MEMBER))));
 
             //사진 저장
             List<String> uploadedImageUrls = s3ImageService.uploadAll(imageFiles);
@@ -260,10 +258,10 @@ public class HistoryServiceImpl implements HistoryService {
                     .forEach(hashtagNames -> {
                         //존재하는 해시태그라면 매핑 테이블에 추가
                         //아니라면 새로운 해시태그를 만들고 매핑 테이블에 추가
-                        if (hashtagRepositoryService.existByName(hashtagNames)) {
+                        if (hashtagRepository.existsByName(hashtagNames)) {
                             hashtagHistoryRepository.save(HashtagHistory.builder()
                                     .history(history)
-                                    .hashtag(hashtagRepositoryService.findByName(hashtagNames))
+                                    .hashtag(hashtagRepository.findByName(hashtagNames).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HASHTAG_NAME)))
                                     .build()
                             );
                         } else {
@@ -392,7 +390,7 @@ public class HistoryServiceImpl implements HistoryService {
         }
 
         //기록 삭제
-        historyRepositoryService.deleteById(historyId);
+        historyRepository.deleteById(historyId);
 
         // ES 삭제
         asyncDeletedHistoryFromES(historyId);
@@ -451,20 +449,20 @@ public class HistoryServiceImpl implements HistoryService {
 
         //존재하지 않는 해시태그는 만들어준다.
         updatedHashtags.forEach(hashtagName -> {
-            if (!hashtagRepositoryService.existByName(hashtagName)) {
+            if (!hashtagRepository.existsByName(hashtagName)) {
                 Hashtag newHashtag = Hashtag.builder()
                         .name(hashtagName)
                         .build();
-                hashtagRepositoryService.save(newHashtag);
+                hashtagRepository.save(newHashtag);
             }
         });
 
 
-        List<Hashtag> hashtagToAdd = hashtagRepositoryService.findHashtagsByNames(updatedHashtags.stream()
+        List<Hashtag> hashtagToAdd = hashtagRepository.findHashtagsByNames(updatedHashtags.stream()
                 .filter(hashtagNames -> !savedHashtags.contains(hashtagNames))
                 .toList());
 
-        List<Hashtag> hashtagToDelete = hashtagRepositoryService.findHashtagsByNames(savedHashtags.stream()
+        List<Hashtag> hashtagToDelete = hashtagRepository.findHashtagsByNames(savedHashtags.stream()
                 .filter(hashtagNames -> !updatedHashtags.contains(hashtagNames))
                 .toList());
 
@@ -502,7 +500,7 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryLikedListResult getLikedHistories(Long memberId, int page) {
-        Page<History> histories = historyRepositoryService.findHistoriesByMemberIdAndMemberLike(memberId, PageRequest.of(page, 15));
+        Page<History> histories = historyRepository.findLikedHistories(memberId, PageRequest.of(page, 15));
         Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
         return HistoryConverter.toHistoryLikedListResult(histories, historyImageMap, memberId);
     }

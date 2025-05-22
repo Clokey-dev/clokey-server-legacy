@@ -1,5 +1,6 @@
 package com.clokey.server.domain.cloth.application;
 
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,7 +25,6 @@ import com.clokey.server.domain.cloth.dto.ClothRequestDTO;
 import com.clokey.server.domain.cloth.dto.ClothResponseDTO;
 import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
 import com.clokey.server.domain.history.application.HistoryClothRepositoryService;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.model.entity.enums.ClothSort;
@@ -42,7 +43,7 @@ public class ClothServiceImpl implements ClothService {
     private final ClothImageRepositoryService clothImageRepositoryService;
     private final ClothFolderRepositoryService clothFolderRepositoryService;
     private final HistoryClothRepositoryService historyClothRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
+    private final HistoryRepository historyRepository;
     private final S3ImageService s3ImageService;
     private final SearchRepositoryService searchRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
@@ -100,7 +101,8 @@ public class ClothServiceImpl implements ClothService {
 
         String nickname = memberRepositoryService.findMemberById(memberId).getNickname();
 
-        List<History> histories = historyRepositoryService.findHistoriesByMemberWithinMonth(memberId);
+        LocalDate monthAgo = LocalDate.now().minusMonths(1);
+        List<History> histories = historyRepository.findHistoriesWithinMonth(memberId, monthAgo);
 
         List<Cloth> clothes = histories.stream()
                 .flatMap(history -> historyClothRepositoryService.findAllClothByHistoryId(history.getId()).stream())

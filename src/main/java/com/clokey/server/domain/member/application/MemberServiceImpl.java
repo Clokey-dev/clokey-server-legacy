@@ -1,5 +1,6 @@
 package com.clokey.server.domain.member.application;
 
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.member.domain.entity.Block;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 
 import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.member.converter.GetUserConverter;
 import com.clokey.server.domain.member.converter.ProfileConverter;
 import com.clokey.server.domain.member.domain.entity.Follow;
@@ -36,7 +36,7 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepositoryService memberRepositoryService;
     private final FollowRepositoryService followRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
+    private final HistoryRepository historyRepository;
     private final ClothRepositoryService clothRepositoryService;
     private final BlockRepositoryService blockRepositoryService;
 
@@ -114,7 +114,7 @@ public class MemberServiceImpl implements MemberService {
             }
         }
 
-        Long recordCount = historyRepositoryService.countHistoryByMember(member);
+        Long recordCount = historyRepository.countHistoryByMember(member);
         Long followerCount = followRepositoryService.countFollowersByMember(member);
         Long followingCount = followRepositoryService.countFollowingByMember(member);
 

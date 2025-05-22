@@ -1,5 +1,7 @@
 package com.clokey.server.domain.notification.application;
 
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.term.application.MemberTermRepositoryService;
 import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
 import org.springframework.data.domain.PageRequest;
@@ -12,7 +14,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import com.clokey.server.domain.history.application.CommentRepositoryService;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.exception.validator.HistoryLikedValidator;
 import com.clokey.server.domain.member.application.FollowRepositoryService;
@@ -37,13 +38,13 @@ import com.google.firebase.messaging.Notification;
 public class NotificationServiceImpl implements NotificationService {
 
     private final HistoryLikedValidator historyLikedValidator;
-    private final HistoryRepositoryService historyRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final FirebaseMessaging firebaseMessaging;
     private final NotificationRepositoryService notificationRepositoryService;
     private final FollowRepositoryService followRepositoryService;
     private final CommentRepositoryService commentRepositoryService;
     private final MemberTermRepositoryService memberTermRepositoryService;
+    private final HistoryRepository historyRepository;
 
     private static final Long NOTIFICATION_MEMBER_TERM_NUM = 5L;
 
@@ -100,7 +101,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         historyLikedValidator.validateIsLiked(historyId, memberId, true);
 
-        Member historyWriter = historyRepositoryService.findById(historyId).getMember();
+        Member historyWriter = historyRepository.findById(historyId)
+                .orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))
+                .getMember();
         Member likedMember = memberRepositoryService.findMemberById(memberId);
 
         if (historyWriter.equals(likedMember)) {
@@ -210,7 +213,9 @@ public class NotificationServiceImpl implements NotificationService {
         checkMyComment(commentId, memberId);
         checkHistoryComment(commentId, historyId);
 
-        Member historyWriter = historyRepositoryService.findById(historyId).getMember();
+        Member historyWriter = historyRepository.findById(historyId)
+                .orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))
+                .getMember();
         Member commentWriter = memberRepositoryService.findMemberById(memberId);
         if (historyWriter.equals(commentWriter)) {
             return null;
