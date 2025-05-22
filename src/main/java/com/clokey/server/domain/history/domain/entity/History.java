@@ -59,6 +59,14 @@ public class History extends BaseEntity {
         }
     }
 
+    public void decrementLikes() {
+        this.likes = likes-1;
+    }
+
+    public void incrementLikes() {
+        this.likes = likes+1;
+    }
+
     public void makePublic(){
         this.visibility = Visibility.PUBLIC;
     }

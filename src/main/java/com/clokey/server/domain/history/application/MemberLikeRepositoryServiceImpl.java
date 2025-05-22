@@ -35,7 +35,7 @@ public class MemberLikeRepositoryServiceImpl implements MemberLikeRepositoryServ
 
     @Override
     public void deleteAllByHistoryId(Long historyId) {
-        memberLikeRepository.deleteAllByHistoryId(historyId);
+        memberLikeRepository.deleteByHistoryId(historyId);
     }
 
     @Override

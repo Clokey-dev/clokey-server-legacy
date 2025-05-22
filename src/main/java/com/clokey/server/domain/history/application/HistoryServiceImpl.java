@@ -78,21 +78,21 @@ public class HistoryServiceImpl implements HistoryService {
     public HistoryResponseDTO.LikeResult changeLike(Long memberId, Long historyId, boolean isLiked) {
 
         historyLikedValidator.validateIsLiked(historyId, memberId, isLiked);
+        History history = historyRepository.findById(historyId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
 
         if (isLiked) {
-            historyRepositoryService.decrementLikes(historyId);
-            memberLikeRepositoryService.deleteByMemberIdAndHistoryId(memberId, historyId);
+            history.decrementLikes();
+            memberLikeRepository.deleteByMemberIdAndHistoryId(memberId, historyId);
         } else {
-            historyRepositoryService.incrementLikes(historyId);
+            history.incrementLikes();
             MemberLike memberLike = MemberLike.builder()
-                    .history(historyRepositoryService.findById(historyId))
+                    .history(history)
                     .member(memberRepositoryService.findMemberById(memberId))
                     .build();
             memberLikeRepositoryService.save(memberLike);
         }
-        History updatedHistory = historyRepositoryService.findById(historyId);
 
-        return HistoryConverter.toLikeResult(updatedHistory, isLiked);
+        return HistoryConverter.toLikeResult(history, isLiked);
     }
 
     @Override
@@ -379,7 +379,7 @@ public class HistoryServiceImpl implements HistoryService {
         hashtagHistoryRepository.deleteAllByHistoryId(historyId);
 
         //좋아요 기록 삭제
-        memberLikeRepository.deleteAllByHistoryId(historyId);
+        memberLikeRepository.deleteByHistoryId(historyId);
 
         //기록 사진 삭제
         List<HistoryImage> historyImagesToDelete = historyImageRepository.findByHistory_Id(historyId);
