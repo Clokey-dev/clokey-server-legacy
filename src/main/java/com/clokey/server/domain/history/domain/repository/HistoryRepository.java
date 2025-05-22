@@ -19,7 +19,7 @@ import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.Visibility;
 import org.springframework.transaction.annotation.Transactional;
 
-public interface HistoryRepository extends JpaRepository<History, Long> {
+public interface HistoryRepository extends JpaRepository<History, Long>,HistoryProjectionRepository{
 
     @Query("""
     SELECT new com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO(
