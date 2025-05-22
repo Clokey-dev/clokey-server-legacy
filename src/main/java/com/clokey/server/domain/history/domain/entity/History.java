@@ -15,6 +15,12 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(
+        name = "history",
+        indexes = {
+                @Index(name = "idx_member_date", columnList = "member_id, history_date")
+        }
+)
 public class History extends BaseEntity {
 
     @Id

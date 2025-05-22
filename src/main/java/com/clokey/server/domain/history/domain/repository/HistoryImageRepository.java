@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
 
-public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long> {
+public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long>, HistoryImageProjectionRepository {
 
     List<HistoryImage> findByHistory_Id(Long historyId);
 

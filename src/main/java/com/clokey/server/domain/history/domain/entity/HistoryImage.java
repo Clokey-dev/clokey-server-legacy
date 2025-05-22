@@ -11,6 +11,12 @@ import com.clokey.server.domain.model.entity.BaseEntity;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(
+        name = "history_image",
+        indexes = {
+                @Index(name = "idx_history_created_at", columnList = "history_id, created_at")
+        }
+)
 public class HistoryImage extends BaseEntity {
 
     @Id

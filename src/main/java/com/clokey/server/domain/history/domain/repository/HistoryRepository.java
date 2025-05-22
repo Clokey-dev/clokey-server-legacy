@@ -22,19 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 public interface HistoryRepository extends JpaRepository<History, Long>,HistoryProjectionRepository{
 
     @Query("""
-    SELECT new com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO(
-        h.id, h.historyDate, h.visibility
-    )
-    FROM History h
-    WHERE h.member.id = :memberId
-      AND FUNCTION('DATE_FORMAT', h.historyDate, '%Y-%m') = :yearMonth
-""")
-    List<MonthlyHistoryProjectionDTO> findHistoriesByMemberAndYearMonth(
-            @Param("memberId") Long memberId,
-            @Param("yearMonth") String yearMonth
-    );
-
-    @Query("""
     SELECT new com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO(
         h.member.id,
         h.visibility

@@ -1,10 +1,12 @@
 package com.clokey.server.domain.history.application;
 
-import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.HistoryImageUrlProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
+import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.history.dto.projection.*;
+import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
+import com.clokey.server.domain.member.exception.MemberException;
+import com.clokey.server.global.error.exception.DatabaseException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -59,6 +61,9 @@ public class HistoryServiceImpl implements HistoryService {
     private final HistoryClothRepositoryService historyClothRepositoryService;
     private final HistoryAccessibleValidator historyAccessibleValidator;
     private final SearchRepositoryService searchRepositoryService;
+    private final HistoryRepository historyRepository;
+    private final HistoryImageRepository historyImageRepository;
+    private final MemberRepository memberRepository;
 
     private static final String FAILED_ES_UPDATE_SYNC_HISTORY_KEY = "failed_es_update_sync_history";
     private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
@@ -170,49 +175,42 @@ public class HistoryServiceImpl implements HistoryService {
 
         //Clokey ID를 제공하지 않았다면 자기 자신의 기록 확인으로 전부 반환.
         if (clokeyId == null) {
-            List<MonthlyHistoryProjectionDTO> histories = historyRepositoryService.findHistoriesByMemberAndYearMonth(myMemberId, month);
+            List<HistoryProjectionDTO> histories = historyRepository.findHistoriesByMemberAndYearMonth(myMemberId, month);
 
+            List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
+                    histories.stream()
+                            .map(HistoryProjectionDTO::getId)
+                            .toList()
+            );
 
-            List<String> firstImageUrlsOfHistory = histories.stream()
-                    .map(history -> {
-                        Optional<String> firstImageUrl = historyImageRepositoryService.findByHistoryId(history.getId()).stream()
-                                .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
-                                .map(HistoryImage::getImageUrl)
-                                .findFirst();
+            String nickName = memberRepository.findById(myMemberId)
+                    .orElseThrow(() -> new MemberException(ErrorStatus.NO_SUCH_MEMBER))
+                    .getNickname();
 
-                        return firstImageUrl.orElse(null);
-                    })
-                    .collect(Collectors.toList());
-            String nickName = memberRepositoryService.findMemberById(myMemberId).getNickname();
             return HistoryConverter.toMonthViewResult(myMemberId, nickName, histories, firstImageUrlsOfHistory);
         }
 
-        Member member = memberRepositoryService.findMemberByClokeyId(clokeyId);
-        Long memberId = member.getId();
+        Member member = memberRepository.findByClokeyId(clokeyId)
+                .orElseThrow(() -> new MemberException(ErrorStatus.NO_SUCH_MEMBER));
 
-        historyAccessibleValidator.validateMemberAccessOfMember(memberId, myMemberId);
+        historyAccessibleValidator.validateMemberAccessOfMember(member.getId(), myMemberId);
 
-        List<MonthlyHistoryProjectionDTO> histories = historyRepositoryService.findHistoriesByMemberAndYearMonth(memberId, month);
-        List<String> firstImageUrlsOfHistory = histories.stream()
-                .map(history -> {
-                    Optional<String> firstImageUrl = historyImageRepositoryService.findByHistoryId(history.getId()).stream()
-                            .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
-                            .map(HistoryImage::getImageUrl)
-                            .findFirst();
-
-                    return firstImageUrl.orElse(null);
-                })
-                .collect(Collectors.toList());
+        List<HistoryProjectionDTO> histories = historyRepository.findHistoriesByMemberAndYearMonth(member.getId(), month);
+        List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
+                histories.stream()
+                        .map(HistoryProjectionDTO::getId)
+                        .toList()
+        );
 
         for (int i = 0; i < histories.size(); i++) {
-            MonthlyHistoryProjectionDTO history = histories.get(i);
+            HistoryProjectionDTO history = histories.get(i);
 
             if (history.getVisibility().equals(Visibility.PRIVATE)) {
                 firstImageUrlsOfHistory.set(i, "비공개입니다");
             }
 
         }
-        return HistoryConverter.toMonthViewResult(memberId, member.getNickname(), histories, firstImageUrlsOfHistory);
+        return HistoryConverter.toMonthViewResult(member.getId(), member.getNickname(), histories, firstImageUrlsOfHistory);
     }
 
     @Override

@@ -1,9 +1,6 @@
 package com.clokey.server.domain.history.application;
 
-import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.HistoryAccessCheckProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,7 +13,7 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 
 public interface HistoryRepositoryService {
 
-    List<MonthlyHistoryProjectionDTO> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
+    List<HistoryProjectionDTO> findHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
 
     List<History> findHistoriesByMemberWithinMonth(Long memberId);
 
