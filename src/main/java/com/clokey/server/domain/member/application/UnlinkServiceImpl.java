@@ -3,6 +3,7 @@ package com.clokey.server.domain.member.application;
 import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.member.scheduler.InactiveUserCleanupTask;
 import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
+import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,6 @@ import com.clokey.server.domain.model.entity.enums.MemberStatus;
 import com.clokey.server.domain.model.entity.enums.SocialType;
 import com.clokey.server.domain.search.application.SearchRepositoryService;
 import com.clokey.server.domain.search.exception.SearchException;
-import com.clokey.server.domain.term.application.MemberTermRepositoryService;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 
 
@@ -42,7 +42,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @Service
 public class UnlinkServiceImpl implements UnlinkService {
 
-    private final MemberTermRepositoryService memberTermRepositoryService;
+    private final MemberTermRepository memberTermRepository;
 
     private final FollowRepositoryService followRepositoryService;
     private final HistoryRepository historyRepository;
@@ -167,7 +167,7 @@ public class UnlinkServiceImpl implements UnlinkService {
         }
 
         // 멤버텀 삭제
-        memberTermRepositoryService.deleteByMemberId(memberId);
+        memberTermRepository.deleteByMemberId(memberId);
 
         //기록 삭제
         List<Long> historyIds = memberRepositoryService.findHistoryIdsByMemberId(memberId);

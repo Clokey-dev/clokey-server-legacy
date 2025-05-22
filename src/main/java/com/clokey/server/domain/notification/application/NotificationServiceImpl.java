@@ -4,7 +4,7 @@ import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
-import com.clokey.server.domain.term.application.MemberTermRepositoryService;
+import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final MemberRepositoryService memberRepositoryService;
     private final FirebaseMessaging firebaseMessaging;
     private final FollowRepositoryService followRepositoryService;
-    private final MemberTermRepositoryService memberTermRepositoryService;
+    private final MemberTermRepository memberTermRepository;
     private final HistoryRepository historyRepository;
     private final NotificationRepository notificationRepository;
 
@@ -420,6 +420,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private boolean ableToSendNotification(Member member) {
-        return member.getStatus() != MemberStatus.INACTIVE && memberTermRepositoryService.existsByMemberIdAndTermId(member.getId(),NOTIFICATION_MEMBER_TERM_NUM) && member.getRefreshToken() != null;
+        return member.getStatus() != MemberStatus.INACTIVE && memberTermRepository.existsByMemberIdAndTermId(member.getId(),NOTIFICATION_MEMBER_TERM_NUM) && member.getRefreshToken() != null;
     }
 }
