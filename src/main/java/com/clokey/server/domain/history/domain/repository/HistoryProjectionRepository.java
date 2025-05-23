@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface HistoryProjectionRepository {
 
-    List<HistoryProjectionDTO> getMontlyHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
+    List<HistoryProjectionDTO> getMonthlyHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
 
     List<DailyHistoryClothProjectionDTO> findClothesByHistoryId(Long historyId);
 }
