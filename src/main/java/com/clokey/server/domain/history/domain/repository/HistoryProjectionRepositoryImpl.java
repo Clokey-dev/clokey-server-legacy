@@ -21,7 +21,7 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<HistoryProjectionDTO> getMontlyHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
+    public List<HistoryProjectionDTO> getMonthlyHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
         QHistory history = QHistory.history;
 
         //입력 YYYY-MM을 기준으로 해당 달의 1일 부터 다음 달의 1일 전까지 범위 쿼리 수행
