@@ -3,6 +3,8 @@ package com.clokey.server.domain.member.application;
 import com.clokey.server.domain.cloth.domain.entity.ClothImage;
 import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
 import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.folder.domain.repository.ClothFolderRepository;
+import com.clokey.server.domain.folder.domain.repository.FolderRepository;
 import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
 import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
@@ -25,8 +27,6 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
-import com.clokey.server.domain.folder.application.FolderRepositoryService;
 import com.clokey.server.domain.history.exception.validator.HistoryAccessibleValidator;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.exception.MemberException;
@@ -53,8 +53,8 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final HistoryClothRepository historyClothRepository;
     public final HistoryAccessibleValidator historyAccessibleValidator;
     private final ClothImageRepository clothImageRepository;
-    private final ClothFolderRepositoryService clothFolderRepositoryService;
-    private final FolderRepositoryService folderRepositoryService;
+    private final ClothFolderRepository clothFolderRepository;
+    private final FolderRepository folderRepository;
     private final NotificationRepository notificationRepository;
     private final SearchRepositoryService searchRepositoryService;
     private final AuthService authService;
@@ -188,15 +188,15 @@ public class UnlinkServiceImpl implements UnlinkService {
         //옷 삭제
         List<Long> clothIds = memberRepositoryService.findClothIdsByMemberId(memberId);
 
-        clothFolderRepositoryService.deleteAllByClothIds(clothIds);
+        clothFolderRepository.deleteAllByClothIds(clothIds);
         deleteAllByClothIds(clothIds);
         clothRepository.deleteByClothIds(clothIds);
 
 
         //폴더 삭제
         List<Long> folderIds = memberRepositoryService.findFolderIdsByMemberId(memberId);
-        clothFolderRepositoryService.deleteAllByFolderIds(folderIds);
-        folderRepositoryService.deleteByFolderIds(folderIds);
+        clothFolderRepository.deleteAllByFolderIds(folderIds);
+        folderRepository.deleteByFolderIds(folderIds);
 
 
         //댓글 삭제

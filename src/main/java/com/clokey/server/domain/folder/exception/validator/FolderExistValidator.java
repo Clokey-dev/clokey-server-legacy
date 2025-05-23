@@ -1,5 +1,6 @@
 package com.clokey.server.domain.folder.exception.validator;
 
+import com.clokey.server.domain.folder.domain.repository.FolderRepository;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.ConstraintValidator;
@@ -7,7 +8,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.folder.application.FolderRepositoryService;
 import com.clokey.server.domain.folder.exception.annotation.FolderExist;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 
@@ -15,7 +15,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class FolderExistValidator implements ConstraintValidator<FolderExist, Long> {
 
-    private final FolderRepositoryService folderRepositoryService;
+    private final FolderRepository folderRepository;
 
     @Override
     public void initialize(FolderExist constraintAnnotation) {
@@ -24,7 +24,7 @@ public class FolderExistValidator implements ConstraintValidator<FolderExist, Lo
 
     @Override
     public boolean isValid(Long folderId, ConstraintValidatorContext context) {
-        boolean isValid = folderRepositoryService.existsById(folderId);
+        boolean isValid = folderRepository.existsById(folderId);
 
         if (!isValid) {
             context.disableDefaultConstraintViolation();

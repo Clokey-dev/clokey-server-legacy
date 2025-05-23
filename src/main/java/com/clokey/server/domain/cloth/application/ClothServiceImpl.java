@@ -2,7 +2,9 @@ package com.clokey.server.domain.cloth.application;
 
 import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
 import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.cloth.dto.ClothResponseDTO;
 import com.clokey.server.domain.cloth.exception.ClothException;
+import com.clokey.server.domain.folder.domain.repository.ClothFolderRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import org.springframework.data.domain.Page;
@@ -27,8 +29,6 @@ import com.clokey.server.domain.cloth.converter.ClothConverter;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.cloth.domain.entity.ClothImage;
 import com.clokey.server.domain.cloth.dto.ClothRequestDTO;
-import com.clokey.server.domain.cloth.dto.ClothResponseDTO;
-import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.model.entity.enums.ClothSort;
@@ -44,7 +44,7 @@ import com.clokey.server.global.infra.s3.S3ImageService;
 public class ClothServiceImpl implements ClothService {
 
     private final ClothImageRepository clothImageRepository;
-    private final ClothFolderRepositoryService clothFolderRepositoryService;
+    private final ClothFolderRepository clothFolderRepository;
     private final HistoryClothRepository historyClothRepository;
     private final HistoryRepository historyRepository;
     private final S3ImageService s3ImageService;
@@ -202,7 +202,7 @@ public class ClothServiceImpl implements ClothService {
     @Transactional
     public void deleteClothById(Long clothId){
         historyClothRepository.deleteAllByClothId(clothId);
-        clothFolderRepositoryService.deleteAllByClothId(clothId);
+        clothFolderRepository.deleteAllByClothId(clothId);
         clothImageRepository.deleteByClothId(clothId);
         clothRepository.deleteById(clothId);
 
