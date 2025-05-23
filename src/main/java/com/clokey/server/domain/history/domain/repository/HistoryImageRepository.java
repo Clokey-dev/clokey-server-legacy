@@ -24,4 +24,16 @@ public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long
 
     //for test
     boolean existsByHistoryId(Long historyId);
+
+    @Query(value = """
+    SELECT image_url
+    FROM (
+        SELECT *,
+               ROW_NUMBER() OVER (PARTITION BY history_id ORDER BY created_at ASC) AS rn
+        FROM history_image
+        WHERE history_id IN :historyIds
+    ) sub
+    WHERE rn = 1
+""", nativeQuery = true)
+    List<String> getFirstImageUrlsOfHistories(@Param("historyIds") List<Long> historyIds);
 }
