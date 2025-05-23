@@ -157,15 +157,9 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryCommentResult getComments(Long historyId, int page) {
-        Page<Comment> comments = commentRepository.findActiveRootComments(historyId, PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt")));
-        List<List<Comment>> repliesForEachComment = comments.stream()
-                .map(comment -> commentRepository.findByCommentId(comment.getId()).stream()
-                        .filter(reply -> !reply.isBanned())
-                        .sorted(Comparator.comparing(Comment::getCreatedAt).reversed()) // 최신 순 정렬
-                        .toList()
-                )
-                .toList();
-        return HistoryConverter.toHistoryCommentResult(comments, repliesForEachComment);
+        List<HistoryCommentProjectionDTO> commentsDTO = historyRepository.findFlatCommentsByHistoryId(historyId,page,20);
+        int totalRootCount = commentRepository.countActiveRootComments(historyId);
+        return HistoryConverter.toHistoryCommentResult(commentsDTO,page,20,totalRootCount);
     }
 
     @Override

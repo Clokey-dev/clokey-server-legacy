@@ -1,6 +1,7 @@
 package com.clokey.server.domain.history.converter;
 
 import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryCommentProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
 import org.springframework.data.domain.Page;
 
@@ -128,20 +129,66 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.HistoryCommentResult toHistoryCommentResult(Page<Comment> comments, List<List<Comment>> replies) {
+//    public static HistoryResponseDTO.HistoryCommentResult toHistoryCommentResult(Page<Comment> comments, List<List<Comment>> replies) {
+//        return HistoryResponseDTO.HistoryCommentResult.builder()
+//                .comments(toCommentResultList(comments, replies))
+//                .totalPage(comments.getTotalPages())
+//                .totalElements(comments.getNumberOfElements()
+//                        + replies.stream()
+//                        .mapToInt(List::size)
+//                        .sum())
+//                .isFirst(comments.isFirst())
+//                .isLast(comments.isLast())
+//                .build();
+//    }
+
+    public static HistoryResponseDTO.HistoryCommentResult toHistoryCommentResult(
+            List<HistoryCommentProjectionDTO> flatComments,
+            int page,
+            int pageSize,
+            int totalRootCount
+    ) {
+        // Group replies by parentId
+        Map<Long, List<HistoryCommentProjectionDTO>> repliesGrouped = flatComments.stream()
+                .filter(dto -> !dto.isRoot()) // reply
+                .collect(Collectors.groupingBy(HistoryCommentProjectionDTO::getParentId));
+
+        // Convert root comments with their replies
+        List<HistoryResponseDTO.CommentResult> rootResults = flatComments.stream()
+                .filter(HistoryCommentProjectionDTO::isRoot)
+                .map(root -> HistoryResponseDTO.CommentResult.builder()
+                        .commentId(root.getCommentId())
+                        .content(root.getContent())
+                        .clokeyId(root.getClokeyId())
+                        .nickName(root.getNickname())
+                        .userImageUrl(root.getProfileImageUrl())
+                        .replyResults(
+                                repliesGrouped.getOrDefault(root.getCommentId(), List.of()).stream()
+                                        .map(reply -> HistoryResponseDTO.ReplyResult.builder()
+                                                .commentId(reply.getCommentId())
+                                                .content(reply.getContent())
+                                                .clokeyId(reply.getClokeyId())
+                                                .nickName(reply.getNickname())
+                                                .userImageUrl(reply.getProfileImageUrl())
+                                                .build())
+                                        .toList()
+                        )
+                        .build())
+                .toList();
+
+        int totalPage = (int) Math.ceil((double) totalRootCount / pageSize);
+        int totalElements = rootResults.stream()
+                .mapToInt(r -> 1 + (r.getReplyResults() != null ? r.getReplyResults().size() : 0))
+                .sum();
+
         return HistoryResponseDTO.HistoryCommentResult.builder()
-                .comments(toCommentResultList(comments, replies))
-                .totalPage(comments.getTotalPages())
-                .totalElements(comments.getNumberOfElements()
-                        + replies.stream()
-                        .mapToInt(List::size)
-                        .sum())
-                .isFirst(comments.isFirst())
-                .isLast(comments.isLast())
+                .comments(rootResults)
+                .totalPage(totalPage)
+                .totalElements(totalElements)
+                .isFirst(page == 0)
+                .isLast(page + 1 == totalPage)
                 .build();
     }
-
-    ;
 
 
     private static List<HistoryResponseDTO.CommentResult> toCommentResultList(Page<Comment> comments, List<List<Comment>> replies) {

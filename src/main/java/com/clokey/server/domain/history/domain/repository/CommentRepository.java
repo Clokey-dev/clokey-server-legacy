@@ -14,11 +14,8 @@ import com.clokey.server.domain.history.domain.entity.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("SELECT c FROM Comment c WHERE c.history.id = :historyId AND c.comment IS NULL AND c.banned = false")
-    Page<Comment> findActiveRootComments(@Param("historyId") Long historyId, PageRequest pageRequest);
-
-
-    List<Comment> findByCommentId(Long parentId);
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.history.id = :historyId AND c.comment IS NULL AND c.banned = false")
+    int countActiveRootComments(@Param("historyId") Long historyId);
 
     //햐나의 댓글을 기준으로 대댓글을 삭제합니다.
     @Transactional
@@ -44,11 +41,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.history.id = :historyId")
     Long countByHistoryId(@Param("historyId") Long historyId);
-
-    @Modifying
-    @Transactional
-    @Query("SELECT c.id FROM Comment c WHERE c.history.id IN :historyIds")
-    List<Long> selectCommentsByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
     @Modifying
     @Transactional

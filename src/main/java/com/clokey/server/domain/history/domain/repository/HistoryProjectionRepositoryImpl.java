@@ -2,12 +2,14 @@ package com.clokey.server.domain.history.domain.repository;
 
 import com.clokey.server.domain.cloth.domain.entity.QCloth;
 import com.clokey.server.domain.cloth.domain.entity.QClothImage;
+import com.clokey.server.domain.history.domain.entity.QComment;
 import com.clokey.server.domain.history.domain.entity.QHistory;
 import com.clokey.server.domain.history.domain.entity.QHistoryCloth;
 import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryCommentProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
+import com.clokey.server.domain.member.domain.entity.QMember;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
@@ -72,6 +74,35 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
                 .from(cloth)
                 .leftJoin(cloth.image, image)
                 .where(cloth.id.in(clothIds))
+                .fetch();
+    }
+
+    @Override
+    public List<HistoryCommentProjectionDTO> findFlatCommentsByHistoryId(Long historyId, int page, int size) {
+        QComment comment = QComment.comment1;
+        QMember member = QMember.member;
+
+        return queryFactory
+                .select(Projections.constructor(
+                        HistoryCommentProjectionDTO.class,
+                        comment.id,
+                        comment.content,
+                        comment.comment.isNull(),
+                        comment.comment.id,
+                        member.clokeyId,
+                        member.nickname,
+                        member.profileImageUrl,
+                        comment.createdAt
+                ))
+                .from(comment)
+                .join(comment.member, member)
+                .where(
+                        comment.history.id.eq(historyId),
+                        comment.banned.isFalse()
+                )
+                .orderBy(comment.createdAt.asc())
+                .offset(page * size)
+                .limit(size)
                 .fetch();
     }
 }
