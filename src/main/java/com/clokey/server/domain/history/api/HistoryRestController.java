@@ -44,7 +44,7 @@ public class HistoryRestController {
     @Parameters({
             @Parameter(name = "historyId", description = "기록의 id, path variable 입니다.")
     })
-    public BaseResponse<HistoryResponseDTO.DailyHistoryResult> getDailyHistory(@PathVariable @Valid @HistoryExist Long historyId,
+    public BaseResponse<HistoryResponseDTO.DailyHistoryResult> getDailyHistory(@PathVariable @Valid Long historyId,
                                                                                @Parameter(name = "user", hidden = true) @AuthUser Member member) {
 
         HistoryResponseDTO.DailyHistoryResult result = historyService.getDaily(historyId, member.getId());
