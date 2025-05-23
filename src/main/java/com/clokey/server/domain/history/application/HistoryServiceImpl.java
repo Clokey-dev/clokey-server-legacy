@@ -45,7 +45,6 @@ import static com.clokey.server.domain.history.exception.validator.HashtagCondit
 @RequiredArgsConstructor
 public class HistoryServiceImpl implements HistoryService {
 
-    private final FollowRepositoryService followRepositoryService;
     private final HistoryLikedValidator historyLikedValidator;
     private final MemberRepositoryService memberRepositoryService;
     private final ClothRepository clothRepository;
