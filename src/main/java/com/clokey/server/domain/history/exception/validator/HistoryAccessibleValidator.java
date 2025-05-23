@@ -12,6 +12,9 @@ import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.clokey.server.global.error.code.status.ErrorStatus;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.springframework.transaction.annotation.Propagation.MANDATORY;
 
 @Component
 @RequiredArgsConstructor
@@ -21,7 +24,7 @@ public class HistoryAccessibleValidator {
     private final MemberRepository memberRepository;
 
     public void validateHistoryAccessOfMember(Long historyId, Long memberId) {
-        History history = historyRepository.findByIdWithWriter(historyId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
+        History history = historyRepository.findById(historyId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
         Member memberRequestedAccess = memberRepository.findById(memberId).orElseThrow(()-> new MemberException(ErrorStatus.NO_SUCH_MEMBER));
 
         //접근 권한 확인 - 나의 기록이 아니고 비공개일 경우 접근 불가.
