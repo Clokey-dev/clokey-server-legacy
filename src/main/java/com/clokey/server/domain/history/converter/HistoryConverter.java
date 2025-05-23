@@ -3,6 +3,7 @@ package com.clokey.server.domain.history.converter;
 import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryCommentProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
+import com.clokey.server.domain.member.dto.projection.LikedMemberProjectionDTO;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -202,15 +203,15 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.LikedUserResults toLikedUserResult(List<Member> members, List<Boolean> followStatus, List<Boolean> isMySelf) {
+    public static HistoryResponseDTO.LikedUserResults toLikedUserResult(List<LikedMemberProjectionDTO> members, List<Boolean> followStatus, List<Boolean> isMySelf) {
         List<HistoryResponseDTO.LikedUserResult> likedUserResults = new ArrayList<>();
         for (int i = 0; i < members.size(); i++) {
-            Member member = members.get(i);
+            LikedMemberProjectionDTO member = members.get(i);
             likedUserResults.add(HistoryResponseDTO.LikedUserResult.builder()
                     .clokeyId(member.getClokeyId())
-                    .imageUrl(member.getProfileImageUrl())
+                    .imageUrl(member.getImageUrl())
                     .followStatus(followStatus.get(i))
-                    .memberId(member.getId())
+                    .memberId(member.getMemberId())
                     .nickname(member.getNickname())
                     .isMe(isMySelf.get(i))
                     .build());

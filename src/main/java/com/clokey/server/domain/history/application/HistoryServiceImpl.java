@@ -3,12 +3,13 @@ package com.clokey.server.domain.history.application;
 import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.history.dto.projection.*;
+import com.clokey.server.domain.member.domain.repository.FollowRepository;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
+import com.clokey.server.domain.member.dto.projection.LikedMemberProjectionDTO;
 import com.clokey.server.domain.member.exception.MemberException;
 import com.clokey.server.global.infra.s3.S3ImageService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,6 +61,7 @@ public class HistoryServiceImpl implements HistoryService {
     private final HashtagRepository hashtagRepository;
     private final CommentRepository commentRepository;
     private final MemberLikeRepository memberLikeRepository;
+    private final FollowRepository followRepository;
 
     private static final String FAILED_ES_UPDATE_SYNC_HISTORY_KEY = "failed_es_update_sync_history";
     private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
@@ -400,11 +402,12 @@ public class HistoryServiceImpl implements HistoryService {
 
         historyAccessibleValidator.validateHistoryAccessOfMember(historyId, memberId);
 
-        List<Member> likedMembers = memberLikeRepository.findMembersByHistoryId(historyId);
-        List<Boolean> followStatus = followRepositoryService.checkFollowingStatus(memberId, likedMembers);
+        List<LikedMemberProjectionDTO> likedMembers = memberRepository.findLikedMemberDTOsByHistoryId(historyId);
+        List<Boolean> followStatus = checkFollowingStatus(memberId, likedMembers.stream()
+                .map(LikedMemberProjectionDTO::getMemberId)
+                .toList());
         List<Boolean> isMySelf = likedMembers.stream()
-                .map(Member::getId)
-                .map(likedMemberId -> likedMemberId.equals(memberId))
+                .map(likedMemberId -> likedMemberId.getMemberId().equals(memberId))
                 .toList();
 
         return HistoryConverter.toLikedUserResult(likedMembers, followStatus,isMySelf);
@@ -562,6 +565,19 @@ public class HistoryServiceImpl implements HistoryService {
                 .collect(Collectors.toList());
 
         return HistoryConverter.toHistoryMyCommentListResult(commentsPage, historyMyCommentResults);
+    }
+
+    private List<Boolean> checkFollowingStatus(Long followedId, List<Long> memberIds) {
+        List<Object[]> results = followRepository.findFollowingStatusByMemberIds(followedId, memberIds);
+
+        Map<Long, Boolean> statusMap = new LinkedHashMap<>();
+        for (Object[] result : results) {
+            statusMap.put((Long) result[0], (Boolean) result[1]);
+        }
+
+        return memberIds.stream()
+                .map(id -> statusMap.getOrDefault(id, false))
+                .toList();
     }
 
 }
