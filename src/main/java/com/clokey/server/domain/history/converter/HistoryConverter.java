@@ -129,31 +129,18 @@ public class HistoryConverter {
                 .build();
     }
 
-//    public static HistoryResponseDTO.HistoryCommentResult toHistoryCommentResult(Page<Comment> comments, List<List<Comment>> replies) {
-//        return HistoryResponseDTO.HistoryCommentResult.builder()
-//                .comments(toCommentResultList(comments, replies))
-//                .totalPage(comments.getTotalPages())
-//                .totalElements(comments.getNumberOfElements()
-//                        + replies.stream()
-//                        .mapToInt(List::size)
-//                        .sum())
-//                .isFirst(comments.isFirst())
-//                .isLast(comments.isLast())
-//                .build();
-//    }
-
     public static HistoryResponseDTO.HistoryCommentResult toHistoryCommentResult(
             List<HistoryCommentProjectionDTO> flatComments,
             int page,
             int pageSize,
             int totalRootCount
     ) {
-        // Group replies by parentId
+        // 부모 댓글 id를 기준으로 그룹
         Map<Long, List<HistoryCommentProjectionDTO>> repliesGrouped = flatComments.stream()
-                .filter(dto -> !dto.isRoot()) // reply
+                .filter(dto -> !dto.isRoot()) // 대댓글
                 .collect(Collectors.groupingBy(HistoryCommentProjectionDTO::getParentId));
 
-        // Convert root comments with their replies
+        // 댓글과 대댓글 연결해주기
         List<HistoryResponseDTO.CommentResult> rootResults = flatComments.stream()
                 .filter(HistoryCommentProjectionDTO::isRoot)
                 .map(root -> HistoryResponseDTO.CommentResult.builder()
@@ -188,36 +175,6 @@ public class HistoryConverter {
                 .isFirst(page == 0)
                 .isLast(page + 1 == totalPage)
                 .build();
-    }
-
-
-    private static List<HistoryResponseDTO.CommentResult> toCommentResultList(Page<Comment> comments, List<List<Comment>> replies) {
-        return IntStream.range(0, comments.getContent().size())
-                .mapToObj(i -> {
-                    Comment comment = comments.getContent().get(i);
-                    List<Comment> replyList = replies.get(i);
-                    return HistoryResponseDTO.CommentResult.builder()
-                            .commentId(comment.getId())
-                            .clokeyId(comment.getMember().getClokeyId())
-                            .nickName(comment.getMember().getNickname())
-                            .userImageUrl(comment.getMember().getProfileImageUrl())
-                            .content(comment.getContent())
-                            .replyResults(toReplyResultList(replyList))
-                            .build();
-                })
-                .toList();
-    }
-
-    private static List<HistoryResponseDTO.ReplyResult> toReplyResultList(List<Comment> replies) {
-        return replies.stream()
-                .map(reply -> HistoryResponseDTO.ReplyResult.builder()
-                        .commentId(reply.getId())
-                        .clokeyId(reply.getMember().getClokeyId())
-                        .nickName(reply.getMember().getNickname())
-                        .userImageUrl(reply.getMember().getProfileImageUrl())
-                        .content(reply.getContent())
-                        .build())
-                .toList();
     }
 
     public static HistoryResponseDTO.CommentWriteResult toCommentWriteResult(Comment comment) {
