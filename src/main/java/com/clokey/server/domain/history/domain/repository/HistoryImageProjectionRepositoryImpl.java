@@ -17,39 +17,4 @@ import java.util.stream.Collectors;
 public class HistoryImageProjectionRepositoryImpl implements HistoryImageProjectionRepository{
 
     private final JPAQueryFactory queryFactory;
-
-    @Override
-    public List<String> getFirstImageUrlsOfHistories(List<Long> historyIds) {
-        QHistoryImage hi = QHistoryImage.historyImage;
-        QHistoryImage hiSub = new QHistoryImage("hiSub");
-
-        List<HistoryImageProjectionDTO> result = queryFactory
-                .select(Projections.constructor(
-                        HistoryImageProjectionDTO.class,
-                        hi.id,
-                        hi.imageUrl,
-                        hi.history.id
-                ))
-                .from(hi)
-                .where(
-                        hi.history.id.in(historyIds),
-                        hi.createdAt.eq(
-                                JPAExpressions
-                                        .select(hiSub.createdAt.min())
-                                        .from(hiSub)
-                                        .where(hiSub.history.id.eq(hi.history.id))
-                        )
-                )
-                .fetch();
-
-        // Step 2. Map으로 매핑
-        Map<Long, HistoryImageProjectionDTO> map = result.stream()
-                .collect(Collectors.toMap(HistoryImageProjectionDTO::getHistoryId, Function.identity()));
-
-        return historyIds.stream()
-                .map(map::get)
-                .filter(Objects::nonNull)
-                .map(HistoryImageProjectionDTO::getImageUrl)
-                .collect(Collectors.toList());
-    }
 }
