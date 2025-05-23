@@ -13,7 +13,6 @@ import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.clokey.server.global.error.code.status.ErrorStatus;
-import com.clokey.server.global.error.exception.DatabaseException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
