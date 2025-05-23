@@ -28,6 +28,11 @@ import org.hibernate.annotations.DynamicUpdate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        indexes = {
+                @Index(name = "idx_member_clokey_id", columnList = "clokeyId")
+        }
+)
 public class Member extends BaseEntity {
 
     @Id

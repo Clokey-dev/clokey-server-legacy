@@ -174,7 +174,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         //Clokey ID를 제공하지 않았다면 자기 자신의 기록 확인으로 전부 반환.
         if (clokeyId == null) {
-            List<HistoryProjectionDTO> histories = historyRepository.getHistoriesByMemberAndYearMonth(myMemberId, month);
+            List<HistoryProjectionDTO> histories = historyRepository.getMontlyHistoriesByMemberAndYearMonth(myMemberId, month);
 
             List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
                     histories.stream()
@@ -194,7 +194,7 @@ public class HistoryServiceImpl implements HistoryService {
 
         historyAccessibleValidator.validateMemberAccessOfMember(member.getId(), myMemberId);
 
-        List<HistoryProjectionDTO> histories = historyRepository.getHistoriesByMemberAndYearMonth(member.getId(), month);
+        List<HistoryProjectionDTO> histories = historyRepository.getMontlyHistoriesByMemberAndYearMonth(member.getId(), month);
         List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
                 histories.stream()
                         .map(HistoryProjectionDTO::getId)
