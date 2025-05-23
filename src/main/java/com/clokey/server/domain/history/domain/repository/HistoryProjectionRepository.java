@@ -9,7 +9,5 @@ public interface HistoryProjectionRepository {
 
     List<HistoryProjectionDTO> getHistoriesByMemberAndYearMonth(Long memberId, String yearMonth);
 
-    HistoryProjectionDTO getDailyHistory(Long historyId);
-
     List<DailyHistoryClothProjectionDTO> findClothesByHistoryId(Long historyId);
 }

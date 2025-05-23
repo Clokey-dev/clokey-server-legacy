@@ -1,10 +1,14 @@
 package com.clokey.server.domain.cloth.application;
 
+import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.cloth.exception.ClothException;
 import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,14 +43,14 @@ import com.clokey.server.global.infra.s3.S3ImageService;
 @RequiredArgsConstructor
 public class ClothServiceImpl implements ClothService {
 
-    private final ClothRepositoryService clothRepositoryService;
-    private final ClothImageRepositoryService clothImageRepositoryService;
+    private final ClothImageRepository clothImageRepository;
     private final ClothFolderRepositoryService clothFolderRepositoryService;
     private final HistoryClothRepository historyClothRepository;
     private final HistoryRepository historyRepository;
     private final S3ImageService s3ImageService;
     private final SearchRepositoryService searchRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
+    private final ClothRepository clothRepository;
 
     private static final String FAILED_ES_UPDATE_SYNC_CLOTH_KEY = "failed_es_update_sync_cloth";
     private static final String FAILED_ES_DELETE_SYNC_CLOTH_KEY = "failed_es_delete_sync_cloth";
@@ -55,7 +59,7 @@ public class ClothServiceImpl implements ClothService {
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClothPopupViewResult readClothPopupInfoById(Long clothId) {
 
-        Cloth cloth = clothRepositoryService.findById(clothId);
+        Cloth cloth = clothRepository.findById(clothId).orElseThrow(()-> new ClothException(ErrorStatus.NO_SUCH_CLOTH));
 
         return ClothConverter.toClothPopupViewResult(cloth);
     }
@@ -64,7 +68,7 @@ public class ClothServiceImpl implements ClothService {
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClothEditViewResult readClothEditInfoById(Long clothId){
 
-        Cloth cloth = clothRepositoryService.findById(clothId);
+        Cloth cloth = clothRepository.findById(clothId).orElseThrow(()-> new ClothException(ErrorStatus.NO_SUCH_CLOTH));
 
         return ClothConverter.toClothEditViewResult(cloth);
     }
@@ -73,7 +77,7 @@ public class ClothServiceImpl implements ClothService {
     @Transactional(readOnly = true)
     public ClothResponseDTO.ClothDetailViewResult readClothDetailInfoById(Long clothId){
 
-        Cloth cloth = clothRepositoryService.findById(clothId);
+        Cloth cloth = clothRepository.findById(clothId).orElseThrow(()-> new ClothException(ErrorStatus.NO_SUCH_CLOTH));
 
         return ClothConverter.toClothDetailViewResult(cloth);
     }
@@ -87,7 +91,7 @@ public class ClothServiceImpl implements ClothService {
         String nickname= memberRepositoryService.findByClokeyId(ownerClokeyId).getNickname();
 
         Pageable pageable = PageRequest.of(page-1, size);
-        Page<Cloth> clothes = clothRepositoryService.findByClosetFilters(ownerClokeyId, requesterId, categoryId, season, sort, pageable);
+        Page<Cloth> clothes = clothRepository.findByClosetFilters(ownerClokeyId, requesterId, categoryId, season, sort.toString(), pageable);
 
         List<ClothResponseDTO.ClothPreview> clothPreviews = ClothConverter.toClothPreviewList(clothes);
 
@@ -126,11 +130,11 @@ public class ClothServiceImpl implements ClothService {
                 .min(Map.Entry.comparingByValue())
                 .orElseThrow(() -> new CategoryException(ErrorStatus.CATEGORY_NOT_FOUND_IN_SUMMARY));
 
-        List<Cloth> frequentClothes = clothRepositoryService.findBySmartSummaryFilters(
+        List<Cloth> frequentClothes = findBySmartSummaryFilters(
                 SummaryFrequency.FREQUENT, memberId, frequentEntry.getKey().getId());
         List<ClothResponseDTO.ClothPreview> frequentClothPreviews = ClothConverter.toClothPreviewList(frequentClothes);
 
-        List<Cloth> infrequentClothes = clothRepositoryService.findBySmartSummaryFilters(
+        List<Cloth> infrequentClothes = findBySmartSummaryFilters(
                 SummaryFrequency.INFREQUENT, memberId, infrequentEntry.getKey().getId());
         List<ClothResponseDTO.ClothPreview> infrequentClothPreviews = ClothConverter.toClothPreviewList(infrequentClothes);
 
@@ -151,7 +155,7 @@ public class ClothServiceImpl implements ClothService {
                                                           ClothRequestDTO.ClothCreateOrUpdateRequest request,
                                                           MultipartFile imageFile) {
 
-        Cloth cloth = clothRepositoryService.save(ClothConverter.toCloth(memberId, request));
+        Cloth cloth = clothRepository.save(ClothConverter.toCloth(memberId, request));
 
         String imageUrl = (imageFile != null) ? s3ImageService.upload(imageFile) : null;
 
@@ -160,7 +164,7 @@ public class ClothServiceImpl implements ClothService {
                 .cloth(cloth)
                 .build();
 
-        clothImageRepositoryService.save(clothImage);
+        clothImageRepository.save(clothImage);
 
         asyncUpdatedClothFromES(cloth);
 
@@ -173,7 +177,7 @@ public class ClothServiceImpl implements ClothService {
                                 ClothRequestDTO.ClothCreateOrUpdateRequest request,
                                 MultipartFile imageFile){
 
-        Cloth existingCloth = clothRepositoryService.findById(clothId);
+        Cloth existingCloth = clothRepository.findById(clothId).orElseThrow(()-> new ClothException(ErrorStatus.NO_SUCH_CLOTH));
 
         String imageUrl = (imageFile != null) ? s3ImageService.upload(imageFile) : null;
 
@@ -199,8 +203,8 @@ public class ClothServiceImpl implements ClothService {
     public void deleteClothById(Long clothId){
         historyClothRepository.deleteAllByClothId(clothId);
         clothFolderRepositoryService.deleteAllByClothId(clothId);
-        clothImageRepositoryService.deleteByClothId(clothId);
-        clothRepositoryService.deleteById(clothId);
+        clothImageRepository.deleteByClothId(clothId);
+        clothRepository.deleteById(clothId);
 
         asyncDeletedClothFromES(clothId);
     }
@@ -225,5 +229,16 @@ public class ClothServiceImpl implements ClothService {
             searchRepositoryService.saveFailedDeletionES(clothId,FAILED_ES_DELETE_SYNC_CLOTH_KEY); // 실패한 ID 저장 후 재시도 가능하도록 처리
             throw new SearchException(ErrorStatus.ELASTIC_SEARCH_DELETE_FAULT);
         }
+    }
+
+    private List<Cloth> findBySmartSummaryFilters(
+            @Param("type") SummaryFrequency type,
+            @Param("memberId") Long memberId,
+            @Param("categoryId") Long categoryId
+    ){
+        return switch (type) {
+            case FREQUENT -> clothRepository.findMostFrequentClothList(memberId,categoryId);
+            case INFREQUENT -> clothRepository.findLeastFrequentClothList(memberId,categoryId);
+        };
     }
 }

@@ -45,24 +45,6 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
                 .fetch();
     }
 
-    @Override
-    public HistoryProjectionDTO getDailyHistory(Long historyId) {
-        QHistory history = QHistory.history;
-
-        return queryFactory
-                .select(Projections.fields(
-                        HistoryProjectionDTO.class,
-                        history.id.as("historyId"),
-                        history.content.as("historyContent"),
-                        history.visibility,
-                        history.historyDate,
-                        history.member.id.as("memberId")
-                ))
-                .from(history)
-                .where(history.id.eq(historyId))
-                .fetchOne();
-    }
-
     public List<DailyHistoryClothProjectionDTO> findClothesByHistoryId(Long historyId) {
         QHistoryCloth hc = QHistoryCloth.historyCloth;
         QCloth cloth = QCloth.cloth;

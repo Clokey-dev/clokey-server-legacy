@@ -1,9 +1,12 @@
 package com.clokey.server.domain.member.application;
 
+import com.clokey.server.domain.cloth.domain.entity.ClothImage;
+import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.history.domain.repository.*;
-import com.clokey.server.domain.member.scheduler.InactiveUserCleanupTask;
 import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
 import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
+import com.clokey.server.global.infra.s3.S3ImageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -22,9 +25,6 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
 import com.clokey.server.domain.folder.application.FolderRepositoryService;
 import com.clokey.server.domain.history.exception.validator.HistoryAccessibleValidator;
@@ -49,10 +49,10 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final MemberRepositoryService memberRepositoryService;
     private final MemberLikeRepository memberLikeRepository;
     private final HashtagHistoryRepository hashtagHistoryRepository;
-    private final ClothRepositoryService clothRepositoryService;
+    private final ClothRepository clothRepository;
     private final HistoryClothRepository historyClothRepository;
     public final HistoryAccessibleValidator historyAccessibleValidator;
-    private final ClothImageRepositoryService clothImageRepositoryService;
+    private final ClothImageRepository clothImageRepository;
     private final ClothFolderRepositoryService clothFolderRepositoryService;
     private final FolderRepositoryService folderRepositoryService;
     private final NotificationRepository notificationRepository;
@@ -60,6 +60,7 @@ public class UnlinkServiceImpl implements UnlinkService {
     private final AuthService authService;
     private final HistoryImageRepository historyImageRepository;
     private final CommentRepository commentRepository;
+    private final S3ImageService s3ImageService;
 
     private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
 
@@ -188,8 +189,8 @@ public class UnlinkServiceImpl implements UnlinkService {
         List<Long> clothIds = memberRepositoryService.findClothIdsByMemberId(memberId);
 
         clothFolderRepositoryService.deleteAllByClothIds(clothIds);
-        clothImageRepositoryService.deleteAllByClothIds(clothIds);
-        clothRepositoryService.deleteByClothIds(clothIds);
+        deleteAllByClothIds(clothIds);
+        clothRepository.deleteByClothIds(clothIds);
 
 
         //폴더 삭제
@@ -232,6 +233,25 @@ public class UnlinkServiceImpl implements UnlinkService {
         if (member.getStatus() != MemberStatus.ACTIVE) {
             throw new MemberException(ErrorStatus.INACTIVE_MEMBER);
         }
+    }
+
+    private void deleteAllByClothIds(List<Long> ClothIds){
+        // 특정 historyIds에 해당하는 모든 이미지를 조회
+        List<ClothImage> clothImages = clothImageRepository.findByCloth_IdIn(ClothIds);
+
+        if(clothImages == null || clothImages.isEmpty()) {
+            return;
+        }
+
+        // S3 및 데이터베이스에서 이미지 삭제
+        clothImages.forEach(image -> {
+            // S3에서 이미지 삭제
+            s3ImageService.deleteImageFromS3(image.getImageUrl());
+
+            // DB에서 한 번에 삭제
+            clothImageRepository.deleteByClothIds(ClothIds);  // ✅ 직접 삭제하도록 변경
+
+        });
     }
 
 }

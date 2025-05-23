@@ -1,7 +1,7 @@
 package com.clokey.server.domain.search.application;
 
-import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
-import com.clokey.server.domain.cloth.application.ClothImageRepositoryServiceImpl;
+import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.history.domain.repository.HashtagHistoryRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
 import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
@@ -26,7 +26,6 @@ import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.document.ClothDocument;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.history.domain.document.HistoryDocument;
@@ -46,8 +45,8 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private final HistoryRepository historyRepository;
     private final ElasticsearchClient elasticsearchClient;
 
-    private final ClothRepositoryService clothRepositoryService;
-    private final ClothImageRepositoryService clothImageRepositoryService;
+    private final ClothRepository clothRepository;
+    private final ClothImageRepository clothImageRepository;
     private static final String CLOTH_INDEX_NAME = "cloth";
 
     private final MemberRepositoryService memberRepositoryService;
@@ -66,8 +65,8 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
     private static final String FAILED_ES_UPDATE_SYNC_USER_KEY = "failed_es_update_sync_user";
     private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
-    @Autowired
-    private ClothImageRepositoryServiceImpl clothImageRepositoryServiceImpl;
+
+
 
     /****************************************Save For Retry Sync****************************************/
 
@@ -106,7 +105,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     @Override
     public void updateClothDataToElasticsearch(Cloth cloth) throws IOException {
 
-        String imageUrl = clothImageRepositoryService.findByClothId(cloth.getId()).getImageUrl();
+        String imageUrl = clothImageRepository.findByClothId(cloth.getId()).getImageUrl();
 
         BulkOperation bulkOperation = BulkOperation.of(op -> op
                 .index(IndexOperation.of(idx -> idx
@@ -155,7 +154,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     // JPA에서 모든 Cloth 데이터 가져와서 Elasticsearch로 저장하는 메서드
     @Override
     public void syncAllClothesDataToElasticsearch() throws IOException {
-        List<Cloth> clothList = clothRepositoryService.findAll();
+        List<Cloth> clothList = clothRepository.findAll();
 
         List<BulkOperation> bulkOperations = clothList.stream()
                 .map(cloth -> BulkOperation.of(op -> op

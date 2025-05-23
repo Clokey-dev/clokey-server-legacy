@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.cloth.exception.validator.ClothAccessibleValidator;
 import com.clokey.server.domain.history.converter.HistoryConverter;
@@ -48,7 +47,7 @@ public class HistoryServiceImpl implements HistoryService {
     private final FollowRepositoryService followRepositoryService;
     private final HistoryLikedValidator historyLikedValidator;
     private final MemberRepositoryService memberRepositoryService;
-    private final ClothRepositoryService clothRepositoryService;
+    private final ClothRepository clothRepository;
     private final ClothAccessibleValidator clothAccessibleValidator;
     private final HistoryAccessibleValidator historyAccessibleValidator;
     private final SearchRepositoryService searchRepositoryService;
@@ -56,7 +55,6 @@ public class HistoryServiceImpl implements HistoryService {
     private final HistoryImageRepository historyImageRepository;
     private final MemberRepository memberRepository;
     private final S3ImageService s3ImageService;
-    private final ClothRepository clothRepository;
     private final HistoryClothRepository historyClothRepository;
     private final HashtagHistoryRepository hashtagHistoryRepository;
     private final HashtagRepository hashtagRepository;
@@ -143,7 +141,7 @@ public class HistoryServiceImpl implements HistoryService {
         Long commentCount = commentRepository.countByHistoryId(historyId);
 
         Member historyWriter = history.getMember();
-        List<DailyHistoryClothProjectionDTO> dailyHistoryClothProjectionDTOS = clothRepositoryService.getDailyHistoryClothProjectionsDTO(historyId);
+        List<DailyHistoryClothProjectionDTO> dailyHistoryClothProjectionDTOS = historyRepository.findClothesByHistoryId(historyId);
 
         if (memberId.equals(historyWriter.getId())){
             return HistoryConverter.toDayViewResult(history,historyWriter, imageUrl, hashtags, isLiked, dailyHistoryClothProjectionDTOS, commentCount);
@@ -428,13 +426,13 @@ public class HistoryServiceImpl implements HistoryService {
     private void updateHistoryClothes(List<Long> updatedClothes, List<Long> savedClothes, History history) {
 
         //updateClothes에만 존재하는 것은 추가 대상
-        List<Cloth> clothesToAdd = clothRepositoryService.findAllById(
+        List<Cloth> clothesToAdd = clothRepository.findAllById(
                 updatedClothes.stream()
                         .filter(clothId -> !savedClothes.contains(clothId))
                         .toList());
 
         //반대는 삭제 대상
-        List<Cloth> clothesToDelete = clothRepositoryService.findAllById(savedClothes.stream()
+        List<Cloth> clothesToDelete = clothRepository.findAllById(savedClothes.stream()
                 .filter(clothId -> !updatedClothes.contains(clothId))
                 .toList());
 

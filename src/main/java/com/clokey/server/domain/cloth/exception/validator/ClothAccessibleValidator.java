@@ -7,7 +7,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.cloth.exception.ClothException;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
@@ -19,12 +18,11 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 public class ClothAccessibleValidator {
 
     private final MemberRepositoryService memberRepositoryService;
-    private final ClothRepositoryService clothRepositoryService;
     private final ClothRepository clothRepository;
 
     // 유저가 옷에 대한 접근 권한이 있는지 검증 -> 비공개 옷을 조회하지 못하도록 함
     public void validateClothAccessOfMember(Long clothId, Long memberId) {
-        Cloth cloth = clothRepositoryService.findById(clothId);
+        Cloth cloth = clothRepository.findById(clothId).orElseThrow(()->new ClothException(ErrorStatus.NO_SUCH_CLOTH));
 
         //접근 권한 확인 - 나의 옷이 아니고 비공개일 경우 접근 불가.
         boolean isPublic = cloth.getVisibility().equals(Visibility.PUBLIC);
@@ -37,7 +35,7 @@ public class ClothAccessibleValidator {
 
     // 유저가 옷에 대한 수정권한이 있는지 검증 (내옷 인지 확인)
     public void validateClothOfMember(Long clothId, Long memberId) {
-        Cloth cloth = clothRepositoryService.findById(clothId);
+        Cloth cloth = clothRepository.findById(clothId).orElseThrow(()-> new ClothException(ErrorStatus.NO_SUCH_CLOTH));
 
         //내 옷이 아닌지 확인
         boolean isNotMyCloth = !cloth.getMemberId().equals(memberId);
@@ -61,7 +59,7 @@ public class ClothAccessibleValidator {
 
     // 유저가 다른 유저의 옷을 조회하려할 때를 검증 -> 비공개 유저의 옷을 조회하지 못하도록 함
     public void validateMemberAccessOfMemberByCloth (Long clothId, Long requesterId) {
-        Cloth cloth = clothRepositoryService.findById(clothId);
+        Cloth cloth = clothRepository.findById(clothId).orElseThrow(()-> new ClothException(ErrorStatus.NO_SUCH_CLOTH));
         Long ownerId = cloth.getMemberId();
 
         //접근 권한 확인 - 내 자신을 확인하는 것도 아니고 비공개인 경우.

@@ -1,5 +1,6 @@
 package com.clokey.server.domain.recommendation.application;
 
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.application.BlockRepositoryService;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -21,7 +23,7 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
+
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.history.domain.entity.HashtagHistory;
 import com.clokey.server.domain.history.domain.entity.History;
@@ -45,7 +47,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private final HistoryImageRepository historyImageRepository;
     private final MemberRepositoryService memberRepositoryService;
-    private final ClothRepositoryService clothRepositoryService;
+    private final ClothRepository clothRepository;
     private final FollowRepositoryService followRepositoryService;
     private final HashtagHistoryRepository hashtagHistoryRepository;
     private final BlockRepositoryService blockRepositoryService;
@@ -70,7 +72,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<Long> cachedClothIds = getFromRedis(cacheKeyRecommend, Long.class);
 
         if (cachedClothIds != null && !cachedClothIds.isEmpty()) {
-            List<Cloth> cachedClothes = clothRepositoryService.findAllById(cachedClothIds);
+            List<Cloth> cachedClothes = clothRepository.findAllById(cachedClothIds);
             if(cachedClothes.size()==3) {
                 List<RecommendationResponseDTO.DailyClothResult> cachedResults = cachedClothes.stream()
                         .map(RecommendationConverter::toDailyClothResult)
@@ -81,7 +83,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             redisTemplate.delete(cacheKeyRecommend);
         }
 
-        List<Cloth> suitableClothes = clothRepositoryService.findBySuitableClothFilters(memberId, nowTemp, minTemp, maxTemp);
+        List<Cloth> suitableClothes = clothRepository.findBySuitableClothFilters(memberId, nowTemp, minTemp, maxTemp);
         Set<Cloth> selectedClothes = new HashSet<>();
 
         Cloth top = findClothByCategory(suitableClothes, 1L, selectedClothes);
@@ -255,7 +257,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
     
     private List<RecommendationResponseDTO.ClosetCacheResult> getClosetList(List<Member> followingMembers) {
-        List<Cloth> clothesList = clothRepositoryService.findTop6ByMemberInAndVisibilityOrderByCreatedAtDesc(followingMembers, Visibility.PUBLIC);
+        List<Cloth> clothesList = clothRepository.findTop6ByMemberInAndVisibilityAndCreatedAtBetweenOrderByCreatedAtDesc(followingMembers, Visibility.PUBLIC, LocalDateTime.now().minusWeeks(2), LocalDateTime.now());;
 
         Map<Pair<Member, LocalDate>, List<Cloth>> groupedClothes = clothesList.stream()
                 .collect(Collectors.groupingBy(
@@ -269,7 +271,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Page<RecommendationResponseDTO.ClosetResult> getClosetPage(int page, List<Member> followingMembers) {
-        Page<Cloth> clothesPage = clothRepositoryService.findByMemberInAndVisibilityOrderByCreatedAtDesc(
+        Page<Cloth> clothesPage = clothRepository.findByMemberInAndVisibilityOrderByCreatedAtDesc(
                 followingMembers, Visibility.PUBLIC, PageRequest.of(page - 1, 6));
 
         List<RecommendationResponseDTO.ClosetResult> closetList = RecommendationConverter.toClosetDTO(
