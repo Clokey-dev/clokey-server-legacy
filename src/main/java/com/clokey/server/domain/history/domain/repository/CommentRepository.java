@@ -2,6 +2,8 @@ package com.clokey.server.domain.history.domain.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -60,7 +62,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("DELETE FROM Comment c WHERE c.id IN :commentIds")
     void deleteCommentsByCommentIds(@Param("commentIds") List<Long> commentIds);
 
-    Page<Comment> findByMember_Id(Long memberId, PageRequest pageRequest);
+    @EntityGraph(attributePaths = {"history", "history.member"})
+    Page<Comment> findByMember_Id(Long memberId, Pageable pageable);
 
     //for test
     boolean existsByHistoryIdAndCommentIsNull(Long historyId);

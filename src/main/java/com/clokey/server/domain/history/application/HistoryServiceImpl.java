@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import lombok.RequiredArgsConstructor;
 
@@ -554,16 +555,21 @@ public class HistoryServiceImpl implements HistoryService {
                 .distinct()
                 .toList();
 
-        Map<Long, History> historyMap = histories.stream().collect(Collectors.toMap(History::getId, history -> history));
+        List<String> imageUrls = findFirstImagesByHistoryIds(histories.stream()
+                .map(History::getId)
+                .toList());
 
-        Map<Long, String> historyImageMap = findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
+        Map<Long, String> imageUrlMap = IntStream.range(0, histories.size())
+                .boxed()
+                .collect(Collectors.toMap(
+                        i -> histories.get(i).getId(),
+                        imageUrls::get
+                ));
 
-        List<HistoryResponseDTO.HistoryMyCommentResult> historyMyCommentResults = groupedComments.entrySet().stream()
-                .map(entry -> {
-                    List<HistoryResponseDTO.MyCommentResult> commentsList = entry.getValue();
-                    History history = historyMap.get(entry.getKey());
-
-                    return HistoryConverter.toHistoryMyCommentResult(history, commentsList, historyImageMap);
+        List<HistoryResponseDTO.HistoryMyCommentResult> historyMyCommentResults = histories.stream()
+                .map(history -> {
+                    List<HistoryResponseDTO.MyCommentResult> commentList = groupedComments.getOrDefault(history.getId(), List.of());
+                    return HistoryConverter.toHistoryMyCommentResult(history, commentList, imageUrlMap);
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
