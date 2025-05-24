@@ -26,7 +26,7 @@ public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long
     boolean existsByHistoryId(Long historyId);
 
     @Query(value = """
-    SELECT image_url
+    SELECT history_id, image_url
     FROM (
         SELECT *,
                ROW_NUMBER() OVER (PARTITION BY history_id ORDER BY created_at ASC) AS rn
@@ -35,5 +35,5 @@ public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long
     ) sub
     WHERE rn = 1
 """, nativeQuery = true)
-    List<String> getFirstImageUrlsOfHistories(@Param("historyIds") List<Long> historyIds);
+    List<Object[]> getFirstImageUrlsWithHistoryId(@Param("historyIds") List<Long> historyIds);
 }

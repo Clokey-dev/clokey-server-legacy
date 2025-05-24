@@ -171,7 +171,7 @@ public class HistoryServiceImpl implements HistoryService {
         if (clokeyId == null) {
             List<HistoryProjectionDTO> histories = historyRepository.getMonthlyHistoriesByMemberAndYearMonth(myMemberId, month);
 
-            List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
+            List<String> firstImageUrlsOfHistory = findFirstImagesByHistoryIds(
                     histories.stream()
                             .map(HistoryProjectionDTO::getId)
                             .toList()
@@ -190,7 +190,7 @@ public class HistoryServiceImpl implements HistoryService {
         historyAccessibleValidator.validateMemberAccessOfMember(member.getId(), myMemberId);
 
         List<HistoryProjectionDTO> histories = historyRepository.getMonthlyHistoriesByMemberAndYearMonth(member.getId(), month);
-        List<String> firstImageUrlsOfHistory = historyImageRepository.getFirstImageUrlsOfHistories(
+        List<String> firstImageUrlsOfHistory = findFirstImagesByHistoryIds(
                 histories.stream()
                         .map(HistoryProjectionDTO::getId)
                         .toList()
@@ -511,24 +511,29 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryResponseDTO.HistoryLikedListResult getLikedHistories(Long memberId, int page) {
-        Page<History> histories = historyRepository.findLikedHistories(memberId, PageRequest.of(page, 15));
-        Map<Long, String> historyImageMap = findFirstImagesByHistoryIds(histories.stream().map(History::getId).toList());
-        return HistoryConverter.toHistoryLikedListResult(histories, historyImageMap, memberId);
+        Page<HistoryProjectionDTO> histories = historyRepository.findLikedHistoryAndAuthorIds(memberId, PageRequest.of(page, 15));
+        List<String> firstImageUrls = findFirstImagesByHistoryIds(histories.stream()
+                .map(HistoryProjectionDTO::getId)
+                .toList());
+        return HistoryConverter.toHistoryLikedListResult(histories, firstImageUrls, memberId);
     }
 
-    private Map<Long, String> findFirstImagesByHistoryIds(List<Long> historyIds){
+    private List<String> findFirstImagesByHistoryIds(List<Long> historyIds) {
         if (historyIds.isEmpty()) {
-            return Collections.emptyMap();
+            return Collections.emptyList();
         }
 
-        List<HistoryImage> result = historyImageRepository.findByHistoryIdIn(historyIds);
+        List<Object[]> rows = historyImageRepository.getFirstImageUrlsWithHistoryId(historyIds);
 
-        return result.stream()
+        Map<Long, String> imageUrlMap = rows.stream()
                 .collect(Collectors.toMap(
-                        hi -> hi.getHistory().getId(),
-                        HistoryImage::getImageUrl,
-                        (existing, replacement) -> existing
+                        row -> ((Number) row[0]).longValue(),
+                        row -> (String) row[1]
                 ));
+
+        return historyIds.stream()
+                .map(imageUrlMap::get)
+                .collect(Collectors.toList());
     }
     
     @Override

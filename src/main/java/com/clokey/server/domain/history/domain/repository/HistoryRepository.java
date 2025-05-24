@@ -22,16 +22,6 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
     @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND h.historyDate >= :monthAgo")
     List<History> findHistoriesWithinMonth(@Param("memberId") Long memberId, @Param("monthAgo") LocalDate monthAgo);
 
-    @Transactional
-    @Query("UPDATE History h SET h.likes = h.likes + 1 WHERE h.id = :historyId")
-    @Modifying(clearAutomatically = true)
-    void incrementLikes(Long historyId);
-
-    @Transactional
-    @Query("UPDATE History h SET h.likes = h.likes - 1 WHERE h.id = :historyId")
-    @Modifying(clearAutomatically = true)
-    void decrementLikes(Long historyId);
-
     @Query("""
     SELECT CASE WHEN COUNT(h) > 0 THEN true ELSE false END
     FROM History h
@@ -107,18 +97,6 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
             @Param("memberIds") List<Long> memberIds,
             @Param("from") LocalDate from,
             @Param("to") LocalDate to);
-
-    @Query("""
-                SELECT h FROM History h
-                JOIN MemberLike ml ON h.id = ml.history.id
-                WHERE ml.member.id = :memberId
-                AND (
-                    h.visibility = 'PUBLIC'
-                    OR (h.member.id = :memberId AND h.visibility = 'PRIVATE')
-                )
-                ORDER BY ml.createdAt DESC
-            """)
-    Page<History> findLikedHistories(@Param("memberId") Long memberId, Pageable pageable);
 
     @Query("SELECT h FROM History h JOIN FETCH h.member WHERE h.id = :id")
     Optional<History> findByIdWithWriter(@Param("id") Long id);

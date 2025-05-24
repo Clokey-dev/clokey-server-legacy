@@ -48,14 +48,19 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.HistoryLikedListResult toHistoryLikedListResult(Page<History> histories, Map<Long, String> folderImageMap, Long currentMemberId) {
-        List<HistoryResponseDTO.HistoryLikedPreview> historyPreviews = histories.getContent().stream()
-                .map(history -> new HistoryResponseDTO.HistoryLikedPreview(
-                        history.getId(),
-                        folderImageMap.get(history.getId()),
-                        history.getMember().getId().equals(currentMemberId)
-                ))
-                .collect(Collectors.toList());
+    public static HistoryResponseDTO.HistoryLikedListResult toHistoryLikedListResult(Page<HistoryProjectionDTO> histories,List<String> firstImageUrls, Long currentMemberId) {
+        List<HistoryResponseDTO.HistoryLikedPreview> historyPreviews =
+                IntStream.range(0, histories.getContent().size())
+                        .mapToObj(i -> {
+                            HistoryProjectionDTO history = histories.getContent().get(i);
+                            String imageUrl = firstImageUrls.get(i);
+                            return new HistoryResponseDTO.HistoryLikedPreview(
+                                    history.getId(),
+                                    imageUrl,
+                                    history.getMemberId().equals(currentMemberId)
+                            );
+                        })
+                        .collect(Collectors.toList());
 
         return HistoryResponseDTO.HistoryLikedListResult.builder()
                 .historyPreviews(historyPreviews)

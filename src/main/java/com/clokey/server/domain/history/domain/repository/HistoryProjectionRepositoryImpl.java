@@ -5,13 +5,18 @@ import com.clokey.server.domain.cloth.domain.entity.QClothImage;
 import com.clokey.server.domain.history.domain.entity.QComment;
 import com.clokey.server.domain.history.domain.entity.QHistory;
 import com.clokey.server.domain.history.domain.entity.QHistoryCloth;
+import com.clokey.server.domain.history.domain.entity.QMemberLike;
 import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryCommentProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
 import com.clokey.server.domain.member.domain.entity.QMember;
+import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -105,4 +110,45 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
                 .limit(size)
                 .fetch();
     }
+
+    public Page<HistoryProjectionDTO> findLikedHistoryAndAuthorIds(Long memberId, Pageable pageable) {
+        QMemberLike ml = QMemberLike.memberLike;
+        QHistory h = QHistory.history;
+        QMember m = QMember.member;
+
+        List<HistoryProjectionDTO> content = queryFactory
+                .select(Projections.constructor(
+                        HistoryProjectionDTO.class,
+                        h.id,
+                        m.id
+                ))
+                .from(ml)
+                .join(ml.history, h)
+                .join(h.member, m)
+                .where(
+                        ml.member.id.eq(memberId),
+                        h.visibility.eq(Visibility.PUBLIC)
+                                .or(h.member.id.eq(memberId)
+                                        .and(h.visibility.eq(Visibility.PRIVATE)))
+                )
+                .orderBy(ml.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(ml.count())
+                .from(ml)
+                .join(ml.history, h)
+                .where(
+                        ml.member.id.eq(memberId),
+                        h.visibility.eq(Visibility.PUBLIC)
+                                .or(h.member.id.eq(memberId)
+                                        .and(h.visibility.eq(Visibility.PRIVATE)))
+                )
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    }
+
 }

@@ -3,6 +3,8 @@ package com.clokey.server.domain.history.domain.repository;
 import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryCommentProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -13,4 +15,6 @@ public interface HistoryProjectionRepository {
     List<DailyHistoryClothProjectionDTO> findClothesByHistoryId(Long historyId);
 
     List<HistoryCommentProjectionDTO> findFlatCommentsByHistoryId(Long historyId, int page, int size);
+
+    Page<HistoryProjectionDTO> findLikedHistoryAndAuthorIds(Long memberId, Pageable pageable);
 }
