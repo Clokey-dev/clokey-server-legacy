@@ -117,10 +117,10 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
         QMember m = QMember.member;
 
         List<HistoryProjectionDTO> content = queryFactory
-                .select(Projections.constructor(
+                .select(Projections.fields(
                         HistoryProjectionDTO.class,
-                        h.id,
-                        m.id
+                        h.id.as("id"),
+                        m.id.as("memberId")
                 ))
                 .from(ml)
                 .join(ml.history, h)
