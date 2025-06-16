@@ -14,6 +14,7 @@ import java.util.Optional;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.Visibility;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface HistoryRepository extends JpaRepository<History, Long>,HistoryProjectionRepository{
 
@@ -49,20 +50,22 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
 
     Optional<History> findByHistoryDateAndMember_Id(LocalDate historyDate, Long memberId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
+    @Transactional
     @Query("DELETE FROM History h WHERE h.id IN :historyIds")
     void deleteByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     Page<History> findByMemberInAndVisibilityOrderByHistoryDateDesc(List<Member> member, Visibility visibility, Pageable pageable);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     List<History> findTop6ByMemberInAndVisibilityAndHistoryDateAfterOrderByHistoryDateDesc(
             List<Member> members, Visibility visibility, LocalDate startDate);
-
-    List<History> findAll();
 
     @Query("SELECT COUNT(h) FROM History h WHERE h.member = :member")
     Long countHistoryByMember(@Param("member") Member member);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     @Query("""
     SELECT h FROM History h
     WHERE h.member.id IN :memberIds
@@ -78,6 +81,7 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
     """)
     List<History> findHistoryByMemberIdIn(@Param("memberIds") List<Long> memberIds);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     @Query("SELECT h FROM History h WHERE h.member.id IN :memberIds " +
             "AND h.historyDate BETWEEN :from AND :to")
     List<History> findHistoriesByMemberIdsAndDateRange(
