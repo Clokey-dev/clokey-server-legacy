@@ -42,8 +42,8 @@ public class History extends BaseEntity {
     private String content;
 
     //default가 false입니다.
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-    private boolean banned;
+    @Column(nullable = false)
+    private boolean banned = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

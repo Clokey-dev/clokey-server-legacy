@@ -40,8 +40,8 @@ public class Comment extends BaseEntity {
     private Comment comment;
 
     //default가 false입니다.
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-    private boolean banned;
+    @Column(nullable = false)
+    private boolean banned = false;
 
     public void updateContent(String content) {
         if (content != null && !content.isEmpty()) {
