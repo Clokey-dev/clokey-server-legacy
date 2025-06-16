@@ -38,6 +38,8 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	testImplementation 'com.h2database:h2'
+	runtimeOnly 'com.h2database:h2'
 
 	//queryDSL
 	implementation 'com.querydsl:querydsl-apt:5.0.0'
