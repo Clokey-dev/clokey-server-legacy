@@ -11,6 +11,11 @@ import com.clokey.server.domain.model.entity.BaseEntity;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(
+        indexes = {
+                @Index(name = "idx_cloth_image_cloth_id", columnList = "cloth_id")
+        }
+)
 public class ClothImage extends BaseEntity {
 
     @Id

@@ -1,7 +1,11 @@
 package com.clokey.server.domain.search.application;
 
-import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
-import com.clokey.server.domain.cloth.application.ClothImageRepositoryServiceImpl;
+import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.history.domain.repository.HashtagHistoryRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryClothRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryImageRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +26,8 @@ import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.document.ClothDocument;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
-import com.clokey.server.domain.history.application.HashtagHistoryRepositoryService;
-import com.clokey.server.domain.history.application.HistoryClothRepositoryService;
-import com.clokey.server.domain.history.application.HistoryImageRepositoryService;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.domain.document.HistoryDocument;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
@@ -42,19 +41,19 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class SearchRepositoryServiceImpl implements SearchRepositoryService {
 
+    private final HistoryImageRepository historyImageRepository;
+    private final HistoryRepository historyRepository;
     private final ElasticsearchClient elasticsearchClient;
 
-    private final ClothRepositoryService clothRepositoryService;
-    private final ClothImageRepositoryService clothImageRepositoryService;
+    private final ClothRepository clothRepository;
+    private final ClothImageRepository clothImageRepository;
     private static final String CLOTH_INDEX_NAME = "cloth";
 
     private final MemberRepositoryService memberRepositoryService;
     private static final String MEMBER_INDEX_NAME = "user";
 
-    private final HistoryRepositoryService historyRepositoryService;
-    private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
-    private final HistoryClothRepositoryService historyClothRepositoryService;
-    private final HistoryImageRepositoryService historyImageRepositoryService;
+    private final HashtagHistoryRepository hashtagHistoryRepository;
+    private final HistoryClothRepository historyClothRepository;
     private static final String HISTORY_INDEX_NAME = "history";
 
     @Autowired
@@ -66,8 +65,8 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     private static final String FAILED_ES_DELETE_SYNC_HISTORY_KEY = "failed_es_delete_sync_history";
     private static final String FAILED_ES_UPDATE_SYNC_USER_KEY = "failed_es_update_sync_user";
     private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
-    @Autowired
-    private ClothImageRepositoryServiceImpl clothImageRepositoryServiceImpl;
+
+
 
     /****************************************Save For Retry Sync****************************************/
 
@@ -106,7 +105,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     @Override
     public void updateClothDataToElasticsearch(Cloth cloth) throws IOException {
 
-        String imageUrl = clothImageRepositoryService.findByClothId(cloth.getId()).getImageUrl();
+        String imageUrl = clothImageRepository.findByClothId(cloth.getId()).getImageUrl();
 
         BulkOperation bulkOperation = BulkOperation.of(op -> op
                 .index(IndexOperation.of(idx -> idx
@@ -155,7 +154,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     // JPA에서 모든 Cloth 데이터 가져와서 Elasticsearch로 저장하는 메서드
     @Override
     public void syncAllClothesDataToElasticsearch() throws IOException {
-        List<Cloth> clothList = clothRepositoryService.findAll();
+        List<Cloth> clothList = clothRepository.findAll();
 
         List<BulkOperation> bulkOperations = clothList.stream()
                 .map(cloth -> BulkOperation.of(op -> op
@@ -194,16 +193,16 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     @Override
     public void updateHistoryDataToElasticsearch(History history) throws IOException {
 
-        List<String> hashtagNames = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(history.getId());
+        List<String> hashtagNames = hashtagHistoryRepository.findHashtagNamesByHistoryId(history.getId());
 
-        List<Cloth> clothes = historyClothRepositoryService.findAllClothByHistoryId(history.getId());
+        List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
 
         List<String> categoryNames = clothes.stream()
                 .map(cloth -> cloth.getCategory().getName())
                 .distinct()
                 .collect(Collectors.toList());
 
-        String imageUrl = historyImageRepositoryService.findByHistoryId(history.getId()).stream()
+        String imageUrl = historyImageRepository.findByHistory_Id(history.getId()).stream()
                 .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
                 .map(HistoryImage::getImageUrl)
                 .findFirst()
@@ -255,21 +254,21 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     // JPA에서 모든 History 데이터 가져와서 Elasticsearch로 저장하는 메서드
     @Override
     public void syncAllHistoriesDataToElasticsearch() throws IOException {
-        List<History> historyList = historyRepositoryService.findAll();
+        List<History> historyList = historyRepository.findAll();
 
         List<BulkOperation> bulkOperations = historyList.stream()
                 .map(history -> {
 
-                    List<String> hashtagNames = hashtagHistoryRepositoryService.findHashtagNamesByHistoryId(history.getId());
+                    List<String> hashtagNames = hashtagHistoryRepository.findHashtagNamesByHistoryId(history.getId());
 
-                    List<Cloth> clothes = historyClothRepositoryService.findAllClothByHistoryId(history.getId());
+                    List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
 
                     List<String> categoryNames = clothes.stream()
                             .map(cloth -> cloth.getCategory().getName())
                             .distinct()
                             .collect(Collectors.toList());
 
-                    String imageUrl = historyImageRepositoryService.findByHistoryId(history.getId()).stream()
+                    String imageUrl = historyImageRepository.findByHistory_Id(history.getId()).stream()
                             .sorted(Comparator.comparing(HistoryImage::getCreatedAt))
                             .map(HistoryImage::getImageUrl)
                             .findFirst()

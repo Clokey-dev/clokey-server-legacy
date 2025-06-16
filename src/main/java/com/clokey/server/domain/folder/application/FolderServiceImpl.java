@@ -1,8 +1,10 @@
 package com.clokey.server.domain.folder.application;
 
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.cloth.exception.validator.ClothAccessibleValidator;
 import com.clokey.server.domain.folder.converter.FolderConverter;
+import com.clokey.server.domain.folder.domain.repository.ClothFolderRepository;
+import com.clokey.server.domain.folder.domain.repository.FolderRepository;
 import com.clokey.server.domain.folder.dto.FolderRequestDTO;
 import com.clokey.server.domain.folder.dto.FolderResponseDTO;
 import com.clokey.server.domain.folder.exception.FolderException;
@@ -24,31 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
-
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
-import com.clokey.server.domain.cloth.domain.entity.Cloth;
-import com.clokey.server.domain.cloth.exception.validator.ClothAccessibleValidator;
-import com.clokey.server.domain.folder.converter.FolderConverter;
-import com.clokey.server.domain.folder.domain.entity.ClothFolder;
-import com.clokey.server.domain.folder.domain.entity.Folder;
-import com.clokey.server.domain.folder.dto.FolderRequestDTO;
-import com.clokey.server.domain.folder.dto.FolderResponseDTO;
-import com.clokey.server.domain.folder.exception.FolderException;
-import com.clokey.server.domain.folder.exception.validator.FolderAccessibleValidator;
-import com.clokey.server.domain.member.application.MemberRepositoryService;
-import com.clokey.server.domain.member.domain.entity.Member;
-import com.clokey.server.global.error.code.status.ErrorStatus;
-
-
 @Service
 @RequiredArgsConstructor
 public class FolderServiceImpl implements FolderService {
 
-    private final FolderRepositoryService folderRepositoryService;
+    private final FolderRepository folderRepository;
     private final MemberRepositoryService memberRepositoryService;
-    private final ClothFolderRepositoryService clothFolderRepositoryService;
-    private final ClothRepositoryService clothRepositoryService;
+    private final ClothFolderRepository clothFolderRepository;
+    private final ClothRepository clothRepository;
 
     private final FolderAccessibleValidator folderAccessibleValidator;
     private final ClothAccessibleValidator clothAccessibleValidator;
@@ -67,10 +52,10 @@ public class FolderServiceImpl implements FolderService {
     private Folder getFolder(Long folderId, Member member, FolderRequestDTO.FolderCreateRequest request) {
         if (folderId == null) {
             Folder newFolder = FolderConverter.toFolder(request, member);
-            folderRepositoryService.save(newFolder);
+            folderRepository.save(newFolder);
             return newFolder;
         }
-        Folder folder = folderRepositoryService.findById(folderId);
+        Folder folder = folderRepository.findById(folderId).orElseThrow(()-> new FolderException(ErrorStatus.NO_SUCH_FOLDER));
         folderAccessibleValidator.validateFolderAccessOfMember(folderId, member.getId());
         return folder;
     }
@@ -80,8 +65,8 @@ public class FolderServiceImpl implements FolderService {
     public void deleteFolder(Long folderId, Long memberId) {
         folderAccessibleValidator.validateFolderAccessOfMember(folderId, memberId);
         try {
-            clothFolderRepositoryService.deleteAllByFolderId(folderId);
-            folderRepositoryService.deleteById(folderId);
+            clothFolderRepository.deleteAllByFolderId(folderId);
+            folderRepository.deleteById(folderId);
         } catch (Exception ex) {
             throw new FolderException(ErrorStatus.FAILED_TO_DELETE_FOLDER);
         }
@@ -92,7 +77,7 @@ public class FolderServiceImpl implements FolderService {
     public FolderResponseDTO.FolderClothesResult getClothesFromFolder(Long folderId, Integer page, Long memberId) {
         Folder folder = folderAccessibleValidator.validateFolderAccessOfMember(folderId, memberId);
         Pageable pageable = PageRequest.of(page - 1, 12);
-        Page<ClothFolder> clothFolders = clothFolderRepositoryService.findAllByFolderId(folder.getId(), pageable);
+        Page<ClothFolder> clothFolders = clothFolderRepository.findAllByFolderId(folder.getId(), pageable);
         return FolderConverter.toFolderClothesDTO(clothFolders);
     }
 
@@ -101,19 +86,21 @@ public class FolderServiceImpl implements FolderService {
     public FolderResponseDTO.FoldersResult getFolders(Integer page, Long memberId) {
         Member member = memberRepositoryService.findMemberById(memberId);
         Pageable pageable = PageRequest.of(page - 1, 12);
-        Page<Folder> folders = folderRepositoryService.findAllByMemberId(member.getId(), pageable);
+        Page<Folder> folders = folderRepository.findAllByMemberId(member.getId(), pageable);
         List<Long> folderIds = folders.stream().map(Folder::getId).toList();
-        Map<Long, String> folderImageMap = clothFolderRepositoryService.findClothImageUrlsFromFolderIds(folderIds);
+        List<Object[]> results = clothFolderRepository.findClothImageUrlsFromFolderIds(folderIds);
+        Map<Long, String> folderImageMap = results.stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (String) row[1]));
         return FolderConverter.toFoldersDTO(folders, folderImageMap);
     }
 
     private List<Cloth> validateClothesExistAndAccessible(List<Long> clothIds, Long memberId) {
         clothIds.forEach(clothId -> {
-            if (!clothRepositoryService.existsById(clothId)) {
+            if (!clothRepository.existsById(clothId)) {
                 throw new FolderException(ErrorStatus.NO_SUCH_CLOTH);
             }
         });
-        List<Cloth> clothes = clothRepositoryService.findAllById(clothIds);
+        List<Cloth> clothes = clothRepository.findAllById(clothIds);
         clothAccessibleValidator.validateClothOfMember(
                 clothes.stream().map(Cloth::getId).collect(Collectors.toList()), memberId
         );
@@ -121,7 +108,7 @@ public class FolderServiceImpl implements FolderService {
     }
 
     private void updateClothesToFolder(Folder folder, List<Long> clothIds, Long memberId) {
-        List<ClothFolder> existingClothFolders = clothFolderRepositoryService.findAllByFolderId(folder.getId(), Pageable.unpaged()).toList();
+        List<ClothFolder> existingClothFolders = clothFolderRepository.findAllByFolderId(folder.getId(), Pageable.unpaged()).toList();
 
         List<Long> existingClothIds = existingClothFolders.stream()
                 .map(cf -> cf.getCloth().getId())
@@ -136,7 +123,7 @@ public class FolderServiceImpl implements FolderService {
                 .toList();
 
         if (!toRemove.isEmpty()) {
-            clothFolderRepositoryService.deleteAllByClothIdInAndFolderId(toRemove, folder.getId());
+            clothFolderRepository.deleteAllByClothIdInAndFolderId(toRemove, folder.getId());
         }
 
         if (!toAdd.isEmpty()) {
@@ -144,10 +131,10 @@ public class FolderServiceImpl implements FolderService {
             List<ClothFolder> clothFolders = clothesToAdd.stream()
                     .map(cloth -> new ClothFolder(cloth, folder))
                     .collect(Collectors.toList());
-            clothFolderRepositoryService.saveAll(clothFolders);
+            clothFolderRepository.saveAll(clothFolders);
         }
 
         folder.setItemCount((long) clothIds.size());
-        folderRepositoryService.save(folder);
+        folderRepository.save(folder);
     }
 }

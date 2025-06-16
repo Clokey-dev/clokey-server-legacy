@@ -1,5 +1,7 @@
 package com.clokey.server.domain.member.application;
 
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import com.clokey.server.domain.member.domain.entity.Block;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,9 +16,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.member.converter.GetUserConverter;
 import com.clokey.server.domain.member.converter.ProfileConverter;
 import com.clokey.server.domain.member.domain.entity.Follow;
@@ -36,9 +36,9 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepositoryService memberRepositoryService;
     private final FollowRepositoryService followRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
-    private final ClothRepositoryService clothRepositoryService;
+    private final HistoryRepository historyRepository;
     private final BlockRepositoryService blockRepositoryService;
+    private final ClothRepository clothRepository;
 
     private final S3ImageService s3ImageService; // ✅ S3 업로드 서비스 추가
     private final SearchRepositoryService searchRepositoryService;
@@ -100,21 +100,21 @@ public class MemberServiceImpl implements MemberService {
             isFollowing = null;
             isBlocking = null;
             isMyself = true;
-            topCloths = clothRepositoryService.getTop3Cloths(member);
+            topCloths = getTop3Cloths(member);
         } else {
             member = memberRepositoryService.findMemberByClokeyId(clokeyId);
             isFollowing = followRepositoryService.isFollowing(currentUser, member);
             isBlocking = blockRepositoryService.isBlocking(currentUser, member);
             isMyself = member.getId().equals(currentUser.getId());
             if (member.getVisibility().equals(Visibility.PUBLIC)) {
-                topCloths = clothRepositoryService.getTop3PublicCloths(member);
+                topCloths = getTop3PublicCloths(member);
             } else {
                 topCloths = Arrays.asList(null, null, null);
 
             }
         }
 
-        Long recordCount = historyRepositoryService.countHistoryByMember(member);
+        Long recordCount = historyRepository.countHistoryByMember(member);
         Long followerCount = followRepositoryService.countFollowersByMember(member);
         Long followingCount = followRepositoryService.countFollowingByMember(member);
 
@@ -284,6 +284,22 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberDTO.checkMyselfResult checkMyself(String myClokeyId, String checkClokeyId) {
         return GetUserConverter.toCheckMyselfResult(myClokeyId.equals(checkClokeyId));
+    }
+
+    private List<Cloth> getTop3Cloths(Member member){
+        List<Cloth> cloths = clothRepository.getTop3Cloths(member);
+        while (cloths.size() < 3) {
+            cloths.add(null);
+        }
+        return cloths;
+    }
+
+    private List<Cloth> getTop3PublicCloths(Member member) {
+        List<Cloth> cloths = clothRepository.getTop3PublicCloths(member);
+        while (cloths.size() < 3) {
+            cloths.add(null);
+        }
+        return cloths;
     }
 
 }

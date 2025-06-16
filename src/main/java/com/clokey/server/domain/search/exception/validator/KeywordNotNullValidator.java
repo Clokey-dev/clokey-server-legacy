@@ -1,5 +1,6 @@
 package com.clokey.server.domain.search.exception.validator;
 
+import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.ConstraintValidator;
@@ -7,7 +8,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.history.application.CommentRepositoryService;
 import com.clokey.server.domain.search.exception.annotation.KeywordNotNull;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 
@@ -15,7 +15,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class KeywordNotNullValidator implements ConstraintValidator<KeywordNotNull, String> {
 
-    private final CommentRepositoryService commentRepositoryService;
+    private final CommentRepository commentRepository;
 
     @Override
     public void initialize(KeywordNotNull constraintAnnotation) {

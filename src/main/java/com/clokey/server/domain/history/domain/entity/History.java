@@ -15,6 +15,12 @@ import com.clokey.server.domain.model.entity.enums.Visibility;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(
+        name = "history",
+        indexes = {
+                @Index(name = "idx_member_date", columnList = "member_id, history_date")
+        }
+)
 public class History extends BaseEntity {
 
     @Id
@@ -50,6 +56,14 @@ public class History extends BaseEntity {
         if (visibility != null) {
             this.visibility = visibility;
         }
+    }
+
+    public void decrementLikes() {
+        this.likes = likes-1;
+    }
+
+    public void incrementLikes() {
+        this.likes = likes+1;
     }
 
     public void makePublic(){

@@ -1,19 +1,21 @@
 package com.clokey.server.domain.history.dto.projection;
 
 import com.clokey.server.domain.model.entity.enums.Visibility;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
-@Builder
 @Getter
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
-public class MonthlyHistoryProjectionDTO {
+@NoArgsConstructor
+public class HistoryProjectionDTO {
+
     private Long id;
     private LocalDate historyDate;
+    private int likes;
     private Visibility visibility;
+    private String content;
+    private boolean banned;
+    private Long memberId;
 }

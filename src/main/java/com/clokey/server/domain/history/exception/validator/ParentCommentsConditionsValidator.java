@@ -1,5 +1,7 @@
 package com.clokey.server.domain.history.exception.validator;
 
+import com.clokey.server.domain.history.domain.repository.CommentRepository;
+import com.clokey.server.domain.history.exception.HistoryException;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.ConstraintValidator;
@@ -7,7 +9,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.history.application.CommentRepositoryService;
 import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.exception.annotation.ParentCommentConditions;
 import com.clokey.server.global.error.code.status.ErrorStatus;
@@ -16,7 +17,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class ParentCommentsConditionsValidator implements ConstraintValidator<ParentCommentConditions, Long> {
 
-    private final CommentRepositoryService commentRepositoryService;
+    private final CommentRepository commentRepository;
 
     @Override
     public void initialize(ParentCommentConditions constraintAnnotation) {
@@ -32,7 +33,7 @@ public class ParentCommentsConditionsValidator implements ConstraintValidator<Pa
         }
 
         //null이 아닌 경우 존재를 확인함.
-        if (!commentRepositoryService.existsById(commentId)) {
+        if (!commentRepository.existsById(commentId)) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(ErrorStatus.NO_SUCH_COMMENT.toString()).addConstraintViolation();
 
@@ -40,7 +41,9 @@ public class ParentCommentsConditionsValidator implements ConstraintValidator<Pa
         }
 
         //존재하는 경우 댓글 대댓글 깊이 검사
-        Comment parentComment = commentRepositoryService.findById(commentId).getComment();
+        Comment parentComment = commentRepository.findById(commentId)
+                .orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT))
+                .getComment();
 
         if (parentComment != null) {
             context.disableDefaultConstraintViolation();

@@ -1,6 +1,7 @@
 package com.clokey.server.domain.category.application;
 
 import com.clokey.server.domain.category.converter.CategoryConverter;
+import com.clokey.server.domain.category.domain.repostiory.CategoryRepository;
 import com.clokey.server.domain.category.dto.CategoryResponseDTO;
 import com.clokey.server.domain.category.exception.CategoryException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
@@ -191,13 +192,13 @@ public class CategoryServiceImpl implements CategoryService {
         }
     }
 
-    private final CategoryRepositoryService categoryRepositoryService;
+    private final CategoryRepository categoryRepository;
     private final CategoryConverter categoryConverter;
 
     @Override
     @Transactional(readOnly = true)
     public List<CategoryResponseDTO.CategoryRP> getAllCategories() {
-        return categoryRepositoryService.findAll()
+        return categoryRepository.findAll()
                 .stream()
                 .map(categoryConverter::convertToDTO)
                 .collect(Collectors.toList());

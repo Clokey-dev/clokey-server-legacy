@@ -7,8 +7,8 @@ import com.clokey.server.domain.history.dto.HistoryResponseDTO;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
+import com.clokey.server.domain.member.exception.MemberException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
-import com.clokey.server.global.error.exception.DatabaseException;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -135,7 +135,7 @@ class HistoryReadTest {
 
         // then
         assertThatThrownBy(() -> historyService.getMonthlyHistories(myId, targetClokeyId, month))
-                .isInstanceOfSatisfying(DatabaseException.class, ex ->
+                .isInstanceOfSatisfying(MemberException.class, ex ->
                         assertThat(ex.getCode()).isEqualTo(ErrorStatus.NO_SUCH_MEMBER)
                 );
     }
@@ -229,20 +229,6 @@ class HistoryReadTest {
 
         // then
         assertThat(result.getCloths().size()).isEqualTo(0);
-    }
-
-    @DisplayName("존재하지 않는 historyId를 입력하면 Controller단에서 에러가 발생합니다.")
-    @ParameterizedTest
-    @ValueSource(longs = {100L, 2000L, 1234L})
-    void 일별_기록_조회_예외_1(Long historyId) {
-        // given
-        Member member = memberRepository.findById(1L).get();
-
-        // then
-        assertThatThrownBy(() -> historyRestController.getDailyHistory(historyId, member))
-                .isInstanceOfSatisfying(ConstraintViolationException.class, ex ->
-                        assertThat(ex.getMessage()).contains(ErrorStatus.NO_SUCH_HISTORY.name())
-                );
     }
 
     @DisplayName("비공개인 유저의 게시물 또는 공개인 유저의 비공개 게시물을 조회할 경우 서비스단에서 에러가 발생합니다.")

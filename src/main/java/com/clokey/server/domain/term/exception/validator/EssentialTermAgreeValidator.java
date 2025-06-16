@@ -1,7 +1,8 @@
 package com.clokey.server.domain.term.exception.validator;
 
-import com.clokey.server.domain.term.application.TermRepositoryService;
 import com.clokey.server.domain.term.domain.entity.Term;
+import com.clokey.server.domain.term.domain.repository.TermRepository;
+import com.clokey.server.domain.term.exception.TermException;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.ConstraintValidator;
@@ -17,7 +18,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class EssentialTermAgreeValidator implements ConstraintValidator<EssentialTermAgree, TermRequestDTO.Join> {
 
-    private final TermRepositoryService termRepositoryService;
+    private final TermRepository termRepository;
 
     @Override
     public void initialize(EssentialTermAgree constraintAnnotation) {
@@ -35,7 +36,7 @@ public class EssentialTermAgreeValidator implements ConstraintValidator<Essentia
                 .allMatch(termDto -> {
                     if (termDto.getTermId() == null) return true;
 
-                    Term term = termRepositoryService.findById(termDto.getTermId());
+                    Term term = termRepository.findById(termDto.getTermId()).orElseThrow(()-> new TermException(ErrorStatus.NO_SUCH_TERM));
 
                     // 필수 약관인데 동의하지 않았다면 실패
                     if (!term.getOptional() && Boolean.FALSE.equals(termDto.getAgreed())) {

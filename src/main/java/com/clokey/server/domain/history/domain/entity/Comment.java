@@ -12,6 +12,12 @@ import com.clokey.server.domain.model.entity.BaseEntity;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(
+        indexes = {
+                @Index(name = "idx_history_created", columnList = "history_id, created_at"),
+                @Index(name = "idx_comment_member_id", columnList = "member_id")
+        }
+)
 public class Comment extends BaseEntity {
 
     @Id

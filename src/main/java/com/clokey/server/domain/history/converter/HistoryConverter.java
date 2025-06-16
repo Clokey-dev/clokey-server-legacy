@@ -1,9 +1,9 @@
 package com.clokey.server.domain.history.converter;
 
 import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.DailyHistoryProjectionDTO;
-import com.clokey.server.domain.history.dto.projection.MonthlyHistoryProjectionDTO;
-import com.clokey.server.domain.member.dto.projection.DailyHistoryMemberProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryCommentProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
+import com.clokey.server.domain.member.dto.projection.LikedMemberProjectionDTO;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -48,14 +48,19 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.HistoryLikedListResult toHistoryLikedListResult(Page<History> histories, Map<Long, String> folderImageMap, Long currentMemberId) {
-        List<HistoryResponseDTO.HistoryLikedPreview> historyPreviews = histories.getContent().stream()
-                .map(history -> new HistoryResponseDTO.HistoryLikedPreview(
-                        history.getId(),
-                        folderImageMap.get(history.getId()),
-                        history.getMember().getId().equals(currentMemberId)
-                ))
-                .collect(Collectors.toList());
+    public static HistoryResponseDTO.HistoryLikedListResult toHistoryLikedListResult(Page<HistoryProjectionDTO> histories,List<String> firstImageUrls, Long currentMemberId) {
+        List<HistoryResponseDTO.HistoryLikedPreview> historyPreviews =
+                IntStream.range(0, histories.getContent().size())
+                        .mapToObj(i -> {
+                            HistoryProjectionDTO history = histories.getContent().get(i);
+                            String imageUrl = firstImageUrls.get(i);
+                            return new HistoryResponseDTO.HistoryLikedPreview(
+                                    history.getId(),
+                                    imageUrl,
+                                    history.getMemberId().equals(currentMemberId)
+                            );
+                        })
+                        .collect(Collectors.toList());
 
         return HistoryResponseDTO.HistoryLikedListResult.builder()
                 .historyPreviews(historyPreviews)
@@ -66,21 +71,21 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.DailyHistoryResult toDayViewResult(DailyHistoryProjectionDTO dailyHistoryProjectionDTO, DailyHistoryMemberProjectionDTO dailyHistoryMemberProjectionDTO, List<String> imageUrl, List<String> hashtags, int likeCount, boolean isLiked, List<DailyHistoryClothProjectionDTO> cloths, Long commentCount) {
+    public static HistoryResponseDTO.DailyHistoryResult toDayViewResult(History history, Member member, List<String> imageUrl, List<String> hashtags, boolean isLiked, List<DailyHistoryClothProjectionDTO> cloths, Long commentCount) {
         return HistoryResponseDTO.DailyHistoryResult.builder()
-                .memberId(dailyHistoryProjectionDTO.getMemberId())
-                .historyId(dailyHistoryProjectionDTO.getHistoryId())
-                .contents(dailyHistoryProjectionDTO.getHistoryContent())
-                .memberImageUrl(dailyHistoryMemberProjectionDTO.getProfileUrl())
+                .memberId(member.getId())
+                .historyId(history.getId())
+                .contents(history.getContent())
+                .memberImageUrl(member.getProfileImageUrl())
                 .imageUrl(imageUrl)
                 .hashtags(hashtags)
-                .visibility(dailyHistoryProjectionDTO.getVisibility().equals(Visibility.PUBLIC))
-                .likeCount(likeCount)
+                .visibility(history.getVisibility().equals(Visibility.PUBLIC))
+                .likeCount(history.getLikes())
                 .commentCount(commentCount)
                 .isLiked(isLiked)
-                .date(dailyHistoryProjectionDTO.getHistoryDate())
-                .nickName(dailyHistoryMemberProjectionDTO.getNickname())
-                .clokeyId(dailyHistoryMemberProjectionDTO.getClokeyId())
+                .date(history.getHistoryDate())
+                .nickName(member.getNickname())
+                .clokeyId(member.getClokeyId())
                 .cloths(cloths.stream()
                         .map(HistoryConverter::toHistoryCloth)
                         .toList())
@@ -95,12 +100,12 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.MonthViewResult toMonthViewResult(Long memberId, String nickName, List<MonthlyHistoryProjectionDTO> histories, List<String> historyFirstImageUrls) {
+    public static HistoryResponseDTO.MonthViewResult toMonthViewResult(Long memberId, String nickName, List<HistoryProjectionDTO> histories, List<String> historyFirstImageUrls) {
 
         List<HistoryResponseDTO.HistoryResult> HistoryResults = new ArrayList<>();
 
         for (int i = 0; i < histories.size(); i++) {
-            MonthlyHistoryProjectionDTO history = histories.get(i);
+            HistoryProjectionDTO history = histories.get(i);
             String historyImageUrl = historyFirstImageUrls.get(i);
 
             HistoryResults.add(toHistoryResult(history, historyImageUrl));
@@ -113,7 +118,7 @@ public class HistoryConverter {
                 .build();
     }
 
-    private static HistoryResponseDTO.HistoryResult toHistoryResult(MonthlyHistoryProjectionDTO history, String historyImageUrl) {
+    private static HistoryResponseDTO.HistoryResult toHistoryResult(HistoryProjectionDTO history, String historyImageUrl) {
         return HistoryResponseDTO.HistoryResult.builder()
                 .historyId(history.getId())
                 .date(history.getHistoryDate())
@@ -130,49 +135,52 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.HistoryCommentResult toHistoryCommentResult(Page<Comment> comments, List<List<Comment>> replies) {
-        return HistoryResponseDTO.HistoryCommentResult.builder()
-                .comments(toCommentResultList(comments, replies))
-                .totalPage(comments.getTotalPages())
-                .totalElements(comments.getNumberOfElements()
-                        + replies.stream()
-                        .mapToInt(List::size)
-                        .sum())
-                .isFirst(comments.isFirst())
-                .isLast(comments.isLast())
-                .build();
-    }
+    public static HistoryResponseDTO.HistoryCommentResult toHistoryCommentResult(
+            List<HistoryCommentProjectionDTO> flatComments,
+            int page,
+            int pageSize,
+            int totalRootCount
+    ) {
+        // 부모 댓글 id를 기준으로 그룹
+        Map<Long, List<HistoryCommentProjectionDTO>> repliesGrouped = flatComments.stream()
+                .filter(dto -> !dto.isRoot()) // 대댓글
+                .collect(Collectors.groupingBy(HistoryCommentProjectionDTO::getParentId));
 
-    ;
-
-
-    private static List<HistoryResponseDTO.CommentResult> toCommentResultList(Page<Comment> comments, List<List<Comment>> replies) {
-        return IntStream.range(0, comments.getContent().size())
-                .mapToObj(i -> {
-                    Comment comment = comments.getContent().get(i);
-                    List<Comment> replyList = replies.get(i);
-                    return HistoryResponseDTO.CommentResult.builder()
-                            .commentId(comment.getId())
-                            .clokeyId(comment.getMember().getClokeyId())
-                            .nickName(comment.getMember().getNickname())
-                            .userImageUrl(comment.getMember().getProfileImageUrl())
-                            .content(comment.getContent())
-                            .replyResults(toReplyResultList(replyList))
-                            .build();
-                })
-                .toList();
-    }
-
-    private static List<HistoryResponseDTO.ReplyResult> toReplyResultList(List<Comment> replies) {
-        return replies.stream()
-                .map(reply -> HistoryResponseDTO.ReplyResult.builder()
-                        .commentId(reply.getId())
-                        .clokeyId(reply.getMember().getClokeyId())
-                        .nickName(reply.getMember().getNickname())
-                        .userImageUrl(reply.getMember().getProfileImageUrl())
-                        .content(reply.getContent())
+        // 댓글과 대댓글 연결해주기
+        List<HistoryResponseDTO.CommentResult> rootResults = flatComments.stream()
+                .filter(HistoryCommentProjectionDTO::isRoot)
+                .map(root -> HistoryResponseDTO.CommentResult.builder()
+                        .commentId(root.getCommentId())
+                        .content(root.getContent())
+                        .clokeyId(root.getClokeyId())
+                        .nickName(root.getNickname())
+                        .userImageUrl(root.getProfileImageUrl())
+                        .replyResults(
+                                repliesGrouped.getOrDefault(root.getCommentId(), List.of()).stream()
+                                        .map(reply -> HistoryResponseDTO.ReplyResult.builder()
+                                                .commentId(reply.getCommentId())
+                                                .content(reply.getContent())
+                                                .clokeyId(reply.getClokeyId())
+                                                .nickName(reply.getNickname())
+                                                .userImageUrl(reply.getProfileImageUrl())
+                                                .build())
+                                        .toList()
+                        )
                         .build())
                 .toList();
+
+        int totalPage = (int) Math.ceil((double) totalRootCount / pageSize);
+        int totalElements = rootResults.stream()
+                .mapToInt(r -> 1 + (r.getReplyResults() != null ? r.getReplyResults().size() : 0))
+                .sum();
+
+        return HistoryResponseDTO.HistoryCommentResult.builder()
+                .comments(rootResults)
+                .totalPage(totalPage)
+                .totalElements(totalElements)
+                .isFirst(page == 0)
+                .isLast(page + 1 == totalPage)
+                .build();
     }
 
     public static HistoryResponseDTO.CommentWriteResult toCommentWriteResult(Comment comment) {
@@ -200,15 +208,15 @@ public class HistoryConverter {
                 .build();
     }
 
-    public static HistoryResponseDTO.LikedUserResults toLikedUserResult(List<Member> members, List<Boolean> followStatus, List<Boolean> isMySelf) {
+    public static HistoryResponseDTO.LikedUserResults toLikedUserResult(List<LikedMemberProjectionDTO> members, List<Boolean> followStatus, List<Boolean> isMySelf) {
         List<HistoryResponseDTO.LikedUserResult> likedUserResults = new ArrayList<>();
         for (int i = 0; i < members.size(); i++) {
-            Member member = members.get(i);
+            LikedMemberProjectionDTO member = members.get(i);
             likedUserResults.add(HistoryResponseDTO.LikedUserResult.builder()
                     .clokeyId(member.getClokeyId())
-                    .imageUrl(member.getProfileImageUrl())
+                    .imageUrl(member.getImageUrl())
                     .followStatus(followStatus.get(i))
-                    .memberId(member.getId())
+                    .memberId(member.getMemberId())
                     .nickname(member.getNickname())
                     .isMe(isMySelf.get(i))
                     .build());

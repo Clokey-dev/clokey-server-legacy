@@ -1,5 +1,9 @@
 package com.clokey.server.domain.term.application;
 
+import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
+import com.clokey.server.domain.term.domain.repository.TermRepository;
+import com.clokey.server.domain.term.exception.TermException;
+import com.clokey.server.global.error.code.status.ErrorStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +31,8 @@ import com.clokey.server.domain.term.dto.TermResponseDTO;
 public class TermCommandServiceImpl implements TermCommandService {
 
     private final MemberRepositoryService memberRepositoryService;
-    private final TermRepositoryService termRepositoryService;
-    private final MemberTermRepositoryService memberTermRepositoryService;
+    private final TermRepository termRepository;
+    private final MemberTermRepository memberTermRepository;
 
     private static final String APP_VERSION = "1.0.0";
 
@@ -39,7 +43,7 @@ public class TermCommandServiceImpl implements TermCommandService {
         Member member = memberRepositoryService.findMemberById(userId);
 
         // 기존 동의 약관 조회
-        List<MemberTerm> existingMemberTerms = memberTermRepositoryService.findByMember(member);
+        List<MemberTerm> existingMemberTerms = memberTermRepository.findByMember(member);
         Set<Long> existingTermIds = existingMemberTerms.stream()
                 .map(memberTerm -> memberTerm.getTerm().getId())
                 .collect(Collectors.toSet());
@@ -60,18 +64,18 @@ public class TermCommandServiceImpl implements TermCommandService {
 
         // 삭제 처리
         for (Long termId : toDelete) {
-            memberTermRepositoryService.deleteAllByMemberIdAndTermId(userId, termId);
+            memberTermRepository.deleteAllByMemberIdAndTermId(userId, termId);
         }
 
         // 추가 처리
         List<TermResponseDTO.Term> termResponses = new ArrayList<>();
         for (Long termId : toAdd) {
-            Term term = termRepositoryService.findById(termId);
+            Term term = termRepository.findById(termId).orElseThrow(()-> new TermException(ErrorStatus.NO_SUCH_TERM));
             MemberTerm memberTerm = MemberTerm.builder()
                     .member(member)
                     .term(term)
                     .build();
-            memberTermRepositoryService.save(memberTerm);
+            memberTermRepository.save(memberTerm);
 
             termResponses.add(TermResponseDTO.Term.builder()
                     .termId(term.getId())
@@ -82,7 +86,7 @@ public class TermCommandServiceImpl implements TermCommandService {
         // 이미 있던 항목들도 응답에 포함시키기 위해 전체 목록 다시 구성
         for (Long termId : newTermIds) {
             if (toAdd.contains(termId)) continue; // 이미 포함됨
-            Term term = termRepositoryService.findById(termId);
+            Term term = termRepository.findById(termId).orElseThrow(()-> new TermException(ErrorStatus.NO_SUCH_TERM));
             termResponses.add(TermResponseDTO.Term.builder()
                     .termId(term.getId())
                     .agreed(true)
@@ -106,7 +110,7 @@ public class TermCommandServiceImpl implements TermCommandService {
     @Override
     @Transactional(readOnly = true)
     public List<TermResponseDTO.TermList> getTerms() {
-        List<Term> terms = termRepositoryService.findAll();  // 모든 약관 조회
+        List<Term> terms = termRepository.findAll();  // 모든 약관 조회
 
         List<TermResponseDTO.TermList> termList = new ArrayList<>();
         for (Term term : terms) {
@@ -123,7 +127,7 @@ public class TermCommandServiceImpl implements TermCommandService {
         Member member = memberRepositoryService.findMemberById(userId);
 
         // 사용자가 동의한 약관 조회
-        List<MemberTerm> memberTerms = memberTermRepositoryService.findByMember(member);
+        List<MemberTerm> memberTerms = memberTermRepository.findByMember(member);
 
         // 사용자가 동의한 약관 ID 목록
         Set<Long> agreedTermIds = memberTerms.stream()
@@ -131,7 +135,7 @@ public class TermCommandServiceImpl implements TermCommandService {
                 .collect(Collectors.toSet());
 
         // 전체 선택 약관 조회 (optional = true)
-        List<Term> optionalTerms = termRepositoryService.findByOptionalTrue();
+        List<Term> optionalTerms = termRepository.findByOptionalTrue();
 
         // OptionalTermDTO 리스트 생성
         List<TermResponseDTO.OptionalTermDTO> termResponses = optionalTerms.stream()
@@ -160,7 +164,7 @@ public class TermCommandServiceImpl implements TermCommandService {
         List<TermResponseDTO.OptionalTermDTO> termResponses = new ArrayList<>();
         for (TermRequestDTO.Join.Term termDto : request.getTerms()) {
             // 약관 조회
-            Term term = termRepositoryService.findById(termDto.getTermId());
+            Term term = termRepository.findById(termDto.getTermId()).orElseThrow(()-> new TermException(ErrorStatus.NO_SUCH_TERM));
 
             if (termDto.getAgreed()) {
                 // 동의한 경우 -> 저장
@@ -168,10 +172,10 @@ public class TermCommandServiceImpl implements TermCommandService {
                         .member(member)
                         .term(term)
                         .build();
-                memberTermRepositoryService.save(memberTerm);
+                memberTermRepository.save(memberTerm);
             } else {
                 // 동의 철회한 경우 -> 삭제
-                memberTermRepositoryService.deleteAllByMemberIdAndTermId(userId, term.getId());
+                memberTermRepository.deleteAllByMemberIdAndTermId(userId, term.getId());
             }
 
             // 응답 데이터 생성

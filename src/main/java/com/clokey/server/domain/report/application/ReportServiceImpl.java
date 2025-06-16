@@ -1,43 +1,45 @@
 package com.clokey.server.domain.report.application;
 
-import com.clokey.server.domain.history.application.CommentRepositoryService;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.domain.entity.History;
+import com.clokey.server.domain.history.domain.repository.CommentRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.application.MemberRepositoryService;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.model.entity.enums.ReportType;
 import com.clokey.server.domain.report.domain.entity.*;
 import com.clokey.server.domain.model.entity.enums.ReportStatus;
 import com.clokey.server.domain.report.converter.ReportConverter;
+import com.clokey.server.domain.report.domain.repository.CommentReportRepository;
+import com.clokey.server.domain.report.domain.repository.HistoryReportRepository;
+import com.clokey.server.domain.report.domain.repository.ProfileReportRepository;
 import com.clokey.server.domain.report.dto.ReportRequestDTO;
 import com.clokey.server.domain.report.dto.ReportResponseDTO;
 import com.clokey.server.domain.report.exception.ReportException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService{
 
-    private final HistoryReportRepositoryService historyReportRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
+    private final HistoryReportRepository historyReportRepository;
     private final MemberRepositoryService memberRepositoryService;
-    private final CommentRepositoryService commentRepositoryService;
-    private final CommentReportRepositoryService commentReportRepositoryService;
-    private final ProfileReportRepositoryService profileReportRepositoryService;
+    private final CommentRepository commentRepository;
+    private final CommentReportRepository commentReportRepository;
+    private final HistoryRepository historyRepository;
+    private final ProfileReportRepository profileReportRepository;
 
     @Override
     @Transactional(readOnly = true)
     public ReportResponseDTO.HistoryReportInfoResult getHistoryReportInfo(Long historyId) {
-        History history = historyRepositoryService.findById(historyId);
+        History history = historyRepository.findById(historyId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
         Member historyWriter = history.getMember();
         return ReportConverter.getHistoryReportInfoResult(historyWriter.getClokeyId(),
                 historyWriter.getNickname(),
@@ -48,7 +50,7 @@ public class ReportServiceImpl implements ReportService{
     @Override
     @Transactional
     public ReportResponseDTO.HistoryReportResult getHistoryReportResult(ReportRequestDTO.HistoryReportRequest historyReportRequest, Long memberId) {
-        History reportedHistory = historyRepositoryService.findById(historyReportRequest.getHistoryId());
+        History reportedHistory = historyRepository.findById(historyReportRequest.getHistoryId()).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
 
         HistoryReport historyReport = HistoryReport.builder()
                 .historyReportType(historyReportRequest.getHistoryReportType())
@@ -58,7 +60,7 @@ public class ReportServiceImpl implements ReportService{
                 .member(memberRepositoryService.findMemberById(memberId))
                 .build();
 
-        Long historyReportId = historyReportRepositoryService.save(historyReport);
+        Long historyReportId = historyReportRepository.save(historyReport).getId();
 
         return ReportConverter.tohistoryReportResult(historyReportId);
     }
@@ -66,7 +68,7 @@ public class ReportServiceImpl implements ReportService{
     @Override
     @Transactional(readOnly = true)
     public ReportResponseDTO.CommentReportInfoResult getCommentReportInfo(Long commentId) {
-        Comment comment = commentRepositoryService.findById(commentId);
+        Comment comment = commentRepository.findById(commentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));
         Member commentWriter = comment.getMember();
         return ReportConverter.getCommentReportInfoResult(commentWriter.getClokeyId(),
                 commentWriter.getNickname(),
@@ -77,7 +79,7 @@ public class ReportServiceImpl implements ReportService{
     @Override
     @Transactional
     public ReportResponseDTO.CommentReportResult getCommentReportResult(ReportRequestDTO.CommentReportRequest commentReportRequest, Long memberId) {
-        Comment reportedComment = commentRepositoryService.findById(commentReportRequest.getCommentId());
+        Comment reportedComment = commentRepository.findById(commentReportRequest.getCommentId()).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
 
         CommentReport commentReport = CommentReport.builder()
                 .commentReportType(commentReportRequest.getCommentReportType())
@@ -87,7 +89,7 @@ public class ReportServiceImpl implements ReportService{
                 .member(memberRepositoryService.findMemberById(memberId))
                 .build();
 
-        Long commentReportId = commentReportRepositoryService.save(commentReport);
+        Long commentReportId = commentReportRepository.save(commentReport).getId();
         return ReportConverter.toCommentReportResult(commentReportId);
     }
 
@@ -119,7 +121,7 @@ public class ReportServiceImpl implements ReportService{
                 .reported(reported)
                 .build();
 
-        Long profileReportId = profileReportRepositoryService.save(profileReport);
+        Long profileReportId = profileReportRepository.save(profileReport).getId();
 
         return ReportConverter.toProfileReportResult(profileReportId);
     }
@@ -164,7 +166,7 @@ public class ReportServiceImpl implements ReportService{
     }
 
     private void processProfile(Long reportId, Boolean ban){
-        ProfileReport profileReport = profileReportRepositoryService.findById(reportId);
+        ProfileReport profileReport = profileReportRepository.findById(reportId).orElseThrow(()-> new ReportException(ErrorStatus.NO_SUCH_MEMBER_REPORT));
         if(ban) {
             profileReport.approveReport();
             Member reported = profileReport.getReported();
@@ -180,7 +182,7 @@ public class ReportServiceImpl implements ReportService{
     }
 
     private void processHistory(Long reportId, Boolean ban){
-        HistoryReport historyReport = historyReportRepositoryService.findById(reportId);
+        HistoryReport historyReport = historyReportRepository.findById(reportId).orElseThrow(()-> new ReportException(ErrorStatus.NO_SUCH_HISTORY_REPORT));
         if(ban) {
             historyReport.approveReport();
             History reported = historyReport.getHistory();
@@ -196,7 +198,7 @@ public class ReportServiceImpl implements ReportService{
     }
 
     private void processComment(Long reportId, Boolean ban){
-        CommentReport commentReport = commentReportRepositoryService.findById(reportId);
+        CommentReport commentReport = commentReportRepository.findById(reportId).orElseThrow(()-> new ReportException(ErrorStatus.NO_SUCH_COMMENT_REPORT));
         if(ban) {
             commentReport.approveReport();
             Comment reportedComment = commentReport.getComment();
@@ -281,13 +283,13 @@ public class ReportServiceImpl implements ReportService{
         }
         if (reportedInstanceId != null) {
             profilePredicate.and(QProfileReport.profileReport.reported.eq(memberRepositoryService.findMemberById(reportedInstanceId)));
-            historyPredicate.and(QHistoryReport.historyReport.history.eq(historyRepositoryService.findById(reportedInstanceId)));
-            commentPredicate.and(QCommentReport.commentReport.comment.eq(commentRepositoryService.findById(reportedInstanceId)));
+            historyPredicate.and(QHistoryReport.historyReport.history.eq(historyRepository.findById(reportedInstanceId).orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))));
+            commentPredicate.and(QCommentReport.commentReport.comment.eq(commentRepository.findById(reportedInstanceId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT))));
         }
 
-        List<ProfileReport> profileReports = profileReportRepositoryService.findAllByPredicate(profilePredicate);
-        List<HistoryReport> historyReports = historyReportRepositoryService.findAllByPredicate(historyPredicate);
-        List<CommentReport> commentReports = commentReportRepositoryService.findAllByPredicate(commentPredicate);
+        List<ProfileReport> profileReports = profileReportRepository.findAll(profilePredicate);
+        List<HistoryReport> historyReports = historyReportRepository.findAll(historyPredicate);
+        List<CommentReport> commentReports = commentReportRepository.findAll(commentPredicate);
 
         // 모든 리포트 데이터 조회
         return ReportConverter.toAllAdminReportViewResults(profileReports,commentReports,historyReports);
@@ -298,13 +300,13 @@ public class ReportServiceImpl implements ReportService{
 
         switch (reportType) {
             case PROFILE:
-                List<ProfileReport> profileReports = profileReportRepositoryService.findAllByPredicate(builder);
+                List<ProfileReport> profileReports = profileReportRepository.findAll(builder);
                 return ReportConverter.toAdminProfileReportViewResults(profileReports);
             case HISTORY:
-                List<HistoryReport> historyReports = historyReportRepositoryService.findAllByPredicate(builder);
+                List<HistoryReport> historyReports = historyReportRepository.findAll(builder);
                 return ReportConverter.toAdminHistoryReportViewResults(historyReports);
             case COMMENT:
-                List<CommentReport> commentReports = commentReportRepositoryService.findAllByPredicate(builder);
+                List<CommentReport> commentReports = commentReportRepository.findAll(builder);
                 return ReportConverter.toAdminCommentReportViewResults(commentReports);
             default:
                 throw new ReportException(ErrorStatus.INVALID_REPORT_TYPE);
@@ -326,11 +328,11 @@ public class ReportServiceImpl implements ReportService{
                 throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
             }
 
-            if (reportType.equals(ReportType.HISTORY) && !historyRepositoryService.existsById(reportedInstanceId)) {
+            if (reportType.equals(ReportType.HISTORY) && !historyRepository.existsById(reportedInstanceId)) {
                 throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
             }
 
-            if (reportType.equals(ReportType.COMMENT) && !commentReportRepositoryService.existsById(reportedInstanceId)) {
+            if (reportType.equals(ReportType.COMMENT) && !commentReportRepository.existsById(reportedInstanceId)) {
                 throw new ReportException(ErrorStatus.NO_SUCH_REPORT_INSTANCE_ID);
             }
         }

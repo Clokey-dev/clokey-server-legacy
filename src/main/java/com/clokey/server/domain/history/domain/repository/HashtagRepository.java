@@ -20,4 +20,6 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
             "(SELECT hh.hashtag.id FROM HashtagHistory hh JOIN hh.history h WHERE h.member.id = :memberId) " +
             "ORDER BY RAND() LIMIT 1")
     Optional<String> findRandomUnusedHashtag(@Param("memberId") Long memberId);
+
+    boolean existsByName(String name);
 }
