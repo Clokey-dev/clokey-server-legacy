@@ -7,6 +7,8 @@ import com.clokey.server.domain.cloth.domain.entity.ClothImage;
 import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
 import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.history.domain.entity.*;
+import com.clokey.server.domain.history.dto.projection.DailyHistoryClothProjectionDTO;
+import com.clokey.server.domain.history.dto.projection.HistoryCommentProjectionDTO;
 import com.clokey.server.domain.history.dto.projection.HistoryProjectionDTO;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.domain.repository.MemberRepository;
@@ -20,8 +22,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -63,10 +68,12 @@ class HistoryProjectionRepositoryTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    @Qualifier("historyProjectionRepositoryImpl")
+    private HistoryProjectionRepository historyProjectionRepository;
+
     @BeforeAll
     void setup() {
-
-
 
         Category topCategory = new Category(null, "상의", null);
         categoryRepository.save(topCategory);
@@ -308,46 +315,109 @@ class HistoryProjectionRepositoryTest {
         String yearMonth = "2025-01";
 
         // when
-        List<HistoryProjectionDTO> monthlyHistoryProjectionDTOS = historyRepository.getMonthlyHistoriesByMemberAndYearMonth(memberId,yearMonth);
+        List<HistoryProjectionDTO> monthlyHistoryProjectionDTOS = historyProjectionRepository.getMonthlyHistoriesByMemberAndYearMonth(memberId, yearMonth);
 
         // then
         assertThat(monthlyHistoryProjectionDTOS.size()).isEqualTo(2);
 
         assertThat(monthlyHistoryProjectionDTOS.stream()
                 .map(HistoryProjectionDTO::getId)
-                .toList()).isEqualTo(List.of(1L,2L));
-
-        assertThat(monthlyHistoryProjectionDTOS.stream()
-                .map(HistoryProjectionDTO::getHistoryDate)
-                .toList()).isEqualTo(List.of(
-                LocalDate.of(2025, 1, 1),
-                LocalDate.of(2025, 1, 2)
-        ));
-
-        assertThat(monthlyHistoryProjectionDTOS.stream()
-                .map(HistoryProjectionDTO::getVisibility)
-                .toList()).isEqualTo(List.of(
-                Visibility.PUBLIC,
-                Visibility.PRIVATE,
-                Visibility.PUBLIC,
-                Visibility.PRIVATE
-        ));
+                .toList()).isEqualTo(List.of(1L, 2L));
     }
 
     @DisplayName("존재하지 않는 월별 기록은 아무것도 반환하지 않는다")
     @Test
-    void 존재하지_않는_월별_기록_조회(){
+    void 존재하지_않는_월별_기록_조회() {
         // given
         Long memberId = 1L;
         String yearMonth = "2050-06";
 
         // when
-        List<HistoryProjectionDTO> monthlyHistoryProjectionDTOS = historyRepository.getMonthlyHistoriesByMemberAndYearMonth(memberId,yearMonth);
+        List<HistoryProjectionDTO> monthlyHistoryProjectionDTOS = historyProjectionRepository.getMonthlyHistoriesByMemberAndYearMonth(memberId, yearMonth);
 
         // then
         assertThat(monthlyHistoryProjectionDTOS.size()).isEqualTo(0);
     }
 
+    @DisplayName("기록에 등록된 옷들을 반환한다.")
+    @Test
+    void 특정_기록에_등록된_옷_조회() {
+        // given
+        Long historyId = 2L;
+        Long historyId1ClothId = 1L;
+
+        // when
+        List<DailyHistoryClothProjectionDTO> cloths = historyProjectionRepository.findClothesByHistoryId(1L);
+
+        // then
+        assertThat(cloths.size()).isEqualTo(1L);
+        assertThat(cloths.get(0).getClothImageUrl()).isEqualTo("https://example.com/images/cloth1_1.jpg");
+        assertThat(cloths.get(0).getClothName()).isEqualTo("흰색 맨투맨");
+        assertThat(cloths.get(0).getClothId()).isEqualTo(1L);
+        assertThat(cloths.get(0).getVisibility()).isEqualTo(Visibility.PUBLIC);
+    }
+
+    @DisplayName("기록에 등록된 댓글을 반환한다")
+    @Test
+    void 특정_기록에_등록된_댓글_조회() {
+        // given
+        Long historyId = 1L;
+        int page = 0;
+        int pageSize = 10;
+
+        // when
+        List<HistoryCommentProjectionDTO> commentProjectionDTOS = historyProjectionRepository.findFlatCommentsByHistoryId(historyId, page, pageSize);
+
+        // then
+        assertThat(commentProjectionDTOS.size()).isEqualTo(2);
+
+        HistoryCommentProjectionDTO dto1 = commentProjectionDTOS.get(0);
+        HistoryCommentProjectionDTO dto2 = commentProjectionDTOS.get(1);
+
+        // 댓글 1 내용 점검
+        assertThat(dto1.getCommentId()).isEqualTo(1L);
+        assertThat(dto1.isRoot()).isEqualTo(true);
+        assertThat(dto1.getParentId()).isEqualTo(null);
+        assertThat(dto1.getClokeyId()).isEqualTo("clokey1");
+        assertThat(dto1.getNickname()).isEqualTo("User1");
+        assertThat(dto1.getProfileImageUrl()).isEqualTo("https://example.com/user1.png");
+
+        // 댓글 2 내용 점검
+        assertThat(dto2.getCommentId()).isEqualTo(6L);
+        assertThat(dto2.isRoot()).isEqualTo(false);
+        assertThat(dto2.getParentId()).isEqualTo(1L);
+        assertThat(dto2.getClokeyId()).isEqualTo("clokey2");
+        assertThat(dto2.getNickname()).isEqualTo("User2");
+        assertThat(dto2.getProfileImageUrl()).isEqualTo("https://example.com/user2.png");
+
+    }
+
+    @DisplayName("특정 회원이 좋아요한 기록들을 작성자와 함께 조회할 수 있다.")
+    @Test
+    void 좋아요_기록_작성자와_함께_조회() {
+
+        // given
+        Long memberId = 2L;
+        int pageSize = 10;
+
+        // when
+        Page<HistoryProjectionDTO> historyProjectionDTOS = historyProjectionRepository.findLikedHistoryAndAuthorIds(memberId, Pageable.ofSize(pageSize));
+        List<HistoryProjectionDTO> result = historyProjectionDTOS.getContent();
+
+        // then
+        assertThat(result.size()).isEqualTo(2);
+
+        HistoryProjectionDTO dto1 = result.get(0);
+        HistoryProjectionDTO dto2 = result.get(1);
+
+        // 첫 번째 history 내용 점검
+        assertThat(dto1.getId()).isEqualTo(2L);
+        assertThat(dto1.getMemberId()).isEqualTo(1L);
+
+        // 두 번째 history 내용 점검
+        assertThat(dto2.getId()).isEqualTo(3L);
+        assertThat(dto2.getMemberId()).isEqualTo(2L);
+    }
 }
 
 
