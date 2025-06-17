@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long> {
 
@@ -16,7 +17,8 @@ public interface HistoryImageRepository extends JpaRepository<HistoryImage, Long
     @Query("SELECT hi.imageUrl FROM HistoryImage hi WHERE hi.history.id = :historyId ORDER BY hi.createdAt ASC")
     List<String> getImageUrlsByHistoryIdOrderByCreatedAtAsc(@Param("historyId") Long historyId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
+    @Transactional
     @Query("DELETE FROM HistoryImage hi WHERE hi.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
 

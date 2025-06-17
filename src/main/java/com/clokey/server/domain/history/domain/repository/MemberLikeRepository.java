@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 import com.clokey.server.domain.history.domain.entity.MemberLike;
-import com.clokey.server.domain.member.domain.entity.Member;
 
 public interface MemberLikeRepository extends JpaRepository<MemberLike, Long> {
 
