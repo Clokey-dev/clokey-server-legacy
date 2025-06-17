@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 import com.clokey.server.domain.history.domain.entity.MemberLike;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface MemberLikeRepository extends JpaRepository<MemberLike, Long> {
 
@@ -24,14 +25,17 @@ public interface MemberLikeRepository extends JpaRepository<MemberLike, Long> {
 
     void deleteByHistoryId(Long historyId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
+    @Transactional
     @Query("DELETE FROM MemberLike ml WHERE ml.member.id = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
+    @Transactional
     @Query("DELETE FROM MemberLike ml WHERE ml.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
     //for test
     boolean existsByHistoryId(Long historyId);
+    boolean existsByMemberId(Long memberId);
 }
