@@ -16,9 +16,7 @@ import com.clokey.server.domain.history.domain.entity.HistoryCloth;
 
 public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long> {
 
-    @Transactional
-    @Modifying
-    void deleteAllByClothId(@Param("clothId") Long clothId);
+    void deleteAllByClothId(Long clothId);
 
     @Transactional
     @Modifying
@@ -34,14 +32,17 @@ public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long
     List<Cloth> findAllClothsByHistoryId(@Param("historyId") Long historyId);
 
     // 특정 HistoryId에 연결된 모든 HistoryClothResult 삭제
-    @Modifying
+    @Transactional
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM HistoryCloth hc WHERE hc.history.id = :historyId")
     void deleteAllByHistoryId(@Param("historyId") Long historyId);
 
-    @Modifying
+    @Transactional
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM HistoryCloth hc WHERE hc.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
+    // 최적화 여부 판단 필요 -> 테스트 코드 작성 안함.
     @Query("SELECT c.cloth.category.name FROM HistoryCloth c WHERE c.cloth.member.id = :memberId " +
             "GROUP BY c.cloth.category.name ORDER BY COUNT(c.id) DESC LIMIT 1")
     Optional<String> findMostWornCategory(@Param("memberId") Long memberId);
@@ -49,5 +50,6 @@ public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long
     //for test
     boolean existsByHistoryIdAndClothId(Long historyId, Long clothId);
     boolean existsByHistoryId(Long historyId);
+    boolean existsByClothId(Long clothId);
 
 }
