@@ -70,7 +70,7 @@ class HistoryImageRepositoryTest {
 
     @DisplayName("기록 Id를 기준으로 기록 사진 List를 반환할 수 있다")
     @Test
-    void 기록의_사진_반환(){
+    void 기록의_사진_반환() {
         // given
         Long historyId = 1L;
 
@@ -80,7 +80,7 @@ class HistoryImageRepositoryTest {
         // then
         assertThat(historyImages.stream()
                 .map(HistoryImage::getId)
-                .toList()).isEqualTo(List.of(1L,2L,3L));
+                .toList()).isEqualTo(List.of(1L, 2L, 3L));
     }
 
     @DisplayName("특정 기록의 사진을 만들어진 순서로 받아올 수 있다.")
@@ -93,12 +93,12 @@ class HistoryImageRepositoryTest {
         List<String> urls = historyImageRepository.getImageUrlsByHistoryIdOrderByCreatedAtAsc(historyId);
 
         // then
-        assertThat(urls).isEqualTo(List.of("https://example.com/h1-img1.png","https://example.com/h1-img2.png","https://example.com/h1-img3.png"));
+        assertThat(urls).isEqualTo(List.of("https://example.com/h1-img1.png", "https://example.com/h1-img2.png", "https://example.com/h1-img3.png"));
     }
 
     @DisplayName("특정 기록의 사진을 모두 지운다.")
     @Test
-    void 특정_기록의_사진_모두_지우기(){
+    void 특정_기록의_사진_모두_지우기() {
         // given
         Long historyId = 1L;
         List<HistoryImage> historyImages = historyImageRepository.findByHistory_Id(historyId);
@@ -115,9 +115,9 @@ class HistoryImageRepositoryTest {
 
     @DisplayName("특정 기록들의 historyImage를 모두 가져온다")
     @Test
-    void 기록들의_사진_모두_가져오기(){
+    void 기록들의_사진_모두_가져오기() {
         // given
-        List<Long> historyIds = List.of(1L,2L);
+        List<Long> historyIds = List.of(1L, 2L);
 
         // when
         List<HistoryImage> images = historyImageRepository.findByHistoryIdIn(historyIds);
@@ -126,14 +126,14 @@ class HistoryImageRepositoryTest {
         Set<Long> imageIds = images.stream()
                 .map(HistoryImage::getId)
                 .collect(Collectors.toSet());
-        assertThat(imageIds).isEqualTo(Set.of(1L,2L,3L,4L,5L,6L));
+        assertThat(imageIds).isEqualTo(Set.of(1L, 2L, 3L, 4L, 5L, 6L));
     }
 
     @DisplayName("기록들의 첫 번째 사진(대표사진)을 가져온다")
     @Test
     void 기록들의_대표사진_가져오기() {
         // given
-        List<Long> ids = List.of(1L,2L);
+        List<Long> ids = List.of(1L, 2L);
         List<Object[]> answer = new ArrayList<>();
         answer.add(new Object[]{1L, "https://example.com/h1-img1.png"});
         answer.add(new Object[]{2L, "https://example.com/h2-img1.png"});

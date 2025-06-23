@@ -37,7 +37,7 @@ public class HistoryRepositoryTest {
     private HistoryRepository historyRepository;
 
     @BeforeAll
-    void setUp(){
+    void setUp() {
         Member member1 = memberRepository.save(Member.builder().email("user1@example.com").nickname("User1").clokeyId("clokey1").bio("안녕하세요, User1입니다.").socialType(SocialType.KAKAO).profileImageUrl("https://example.com/user1.png").status(MemberStatus.ACTIVE).inactiveDate(null).visibility(Visibility.PUBLIC).build());
         Member member2 = memberRepository.save(Member.builder().email("user2@example.com").nickname("User2").clokeyId("clokey2").bio("여행을 좋아하는 User2입니다.").socialType(SocialType.KAKAO).profileImageUrl("https://example.com/user2.png").status(MemberStatus.ACTIVE).visibility(Visibility.PRIVATE).build());
         Member member3 = memberRepository.save(Member.builder().email("user3@example.com").nickname("User3").clokeyId("clokey3").bio("개발자가 되고 싶은 User3입니다.").socialType(SocialType.APPLE).profileImageUrl("https://example.com/user3.png").status(MemberStatus.INACTIVE).inactiveDate(LocalDate.now()).visibility(Visibility.PUBLIC).build());
@@ -61,10 +61,10 @@ public class HistoryRepositoryTest {
     void 특정_유저_특정_날짜_이후_기록() {
         // given
         Long memberId = 1L;
-        LocalDate date = LocalDate.of(2025,1,2);
+        LocalDate date = LocalDate.of(2025, 1, 2);
 
         // when
-        List<History> result = historyRepository.findHistoriesWithinMonth(memberId,date);
+        List<History> result = historyRepository.findHistoriesWithinMonth(memberId, date);
 
         // then
         assertThat(result.size()).isEqualTo(1);
@@ -84,7 +84,7 @@ public class HistoryRepositoryTest {
     void 특정_유저_특정_날짜_이후_기록(int year, int month, int day, Long memberId, boolean exist) {
 
         // given & when
-        boolean result = historyRepository.existsByHistoryDateAndMember_Id(LocalDate.of(year,month,day),memberId);
+        boolean result = historyRepository.existsByHistoryDateAndMember_Id(LocalDate.of(year, month, day), memberId);
 
         // then
         assertThat(result).isEqualTo(exist);
@@ -94,14 +94,14 @@ public class HistoryRepositoryTest {
     @Test
     void 특정_유저들_특정_날짜들_기록_존재_여부() {
         // given
-        LocalDate date = LocalDate.of(2025,1,1);
-        List<Long> memberIds = List.of(1L,2L,3L);
+        LocalDate date = LocalDate.of(2025, 1, 1);
+        List<Long> memberIds = List.of(1L, 2L, 3L);
 
         // when
-        List<Boolean> result = historyRepository.existsByHistoryDateAndMemberIds(date,memberIds);
+        List<Boolean> result = historyRepository.existsByHistoryDateAndMemberIds(date, memberIds);
 
         // then
-        assertThat(result).isEqualTo(List.of(true,true,false));
+        assertThat(result).isEqualTo(List.of(true, true, false));
 
     }
 
@@ -117,7 +117,7 @@ public class HistoryRepositoryTest {
     )
     void 나의_기록_판별(Long historyId, Long memberId, boolean isMine) {
         // given & when
-        boolean result = historyRepository.checkMyHistory(historyId,memberId);
+        boolean result = historyRepository.checkMyHistory(historyId, memberId);
 
         // then
         assertThat(result).isEqualTo(isMine);
@@ -125,15 +125,15 @@ public class HistoryRepositoryTest {
 
     @DisplayName("유저의 Id와 기록의 날짜로 기록을 찾아낸다")
     @Test
-    void 유저_Id_기록_날짜_찿기(){
+    void 유저_Id_기록_날짜_찿기() {
         // given
-        LocalDate existingDate = LocalDate.of(2025,1,1);
-        LocalDate nonExistingDate = LocalDate.of(2500,1,1);
+        LocalDate existingDate = LocalDate.of(2025, 1, 1);
+        LocalDate nonExistingDate = LocalDate.of(2500, 1, 1);
         Long memberId = 1L;
 
         // when
-        Optional<History> existingHistory = historyRepository.findByHistoryDateAndMember_Id(existingDate,memberId);
-        Optional<History> nonExistingHistory = historyRepository.findByHistoryDateAndMember_Id(nonExistingDate,memberId);
+        Optional<History> existingHistory = historyRepository.findByHistoryDateAndMember_Id(existingDate, memberId);
+        Optional<History> nonExistingHistory = historyRepository.findByHistoryDateAndMember_Id(nonExistingDate, memberId);
 
         // then
         assertThat(existingHistory.get().getId()).isEqualTo(1L);
@@ -150,7 +150,7 @@ public class HistoryRepositoryTest {
                     "4,2"
             }
     )
-    void 특정_유저_기록수_반환(Long memberId, Long historyCount){
+    void 특정_유저_기록수_반환(Long memberId, Long historyCount) {
         // given
         Member member = memberRepository.findById(memberId).get();
 
@@ -163,7 +163,7 @@ public class HistoryRepositoryTest {
 
     @DisplayName("기록을 가져올 수 있다")
     @Test
-    void 기록_가져오기(){
+    void 기록_가져오기() {
         // given
         Long historyId = 1L;
 

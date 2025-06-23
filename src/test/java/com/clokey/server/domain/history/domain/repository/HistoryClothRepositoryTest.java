@@ -305,14 +305,14 @@ class HistoryClothRepositoryTest {
         History history = historyRepository.findById(1L).get();
         Cloth cloth = clothRepository.findById(1L).get();
 
-        boolean existCheck = historyClothRepository.existsByHistoryIdAndClothId(1L,1L);
+        boolean existCheck = historyClothRepository.existsByHistoryIdAndClothId(1L, 1L);
         assertThat(existCheck).isTrue();
 
         // when
-        historyClothRepository.deleteByHistoryAndCloth(history,cloth);
+        historyClothRepository.deleteByHistoryAndCloth(history, cloth);
 
         // then
-        boolean newExistCheck = historyClothRepository.existsByHistoryIdAndClothId(1L,1L);
+        boolean newExistCheck = historyClothRepository.existsByHistoryIdAndClothId(1L, 1L);
         assertThat(newExistCheck).isFalse();
     }
 
@@ -364,7 +364,7 @@ class HistoryClothRepositoryTest {
     @Test
     void 기록들에_등록된_기록_옷_전부_삭제() {
         // given
-        List<Long> ids = List.of(1L,2L);
+        List<Long> ids = List.of(1L, 2L);
 
         boolean existCheck1 = historyClothRepository.existsByHistoryId(1L);
         boolean existCheck2 = historyClothRepository.existsByHistoryId(2L);

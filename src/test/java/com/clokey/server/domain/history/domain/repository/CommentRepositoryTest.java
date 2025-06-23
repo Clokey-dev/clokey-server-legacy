@@ -19,15 +19,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -35,9 +31,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import(QuerydslConfig.class)
 class CommentRepositoryTest {
 
-    @Autowired private MemberRepository memberRepository;
-    @Autowired private HistoryRepository historyRepository;
-    @Autowired private CommentRepository commentRepository;
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private HistoryRepository historyRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     @BeforeAll
     void setup() {
@@ -146,7 +145,7 @@ class CommentRepositoryTest {
 
     @DisplayName("특정 기록에 신고 당하지 않은 root 댓글 개수를 반환합니다")
     @Test
-    void 신고당하지_않은_root_댓글_조회(){
+    void 신고당하지_않은_root_댓글_조회() {
 
         // given & when
         int count = commentRepository.countActiveRootComments(1L);
@@ -165,10 +164,10 @@ class CommentRepositoryTest {
                     "10,2,false"
             }
     )
-    void 특정_댓글의_소유권_확인(Long commentId, Long memberId, boolean expected){
+    void 특정_댓글의_소유권_확인(Long commentId, Long memberId, boolean expected) {
 
         // given & when
-        boolean answer = commentRepository.existsByIdAndMemberId(commentId,memberId);
+        boolean answer = commentRepository.existsByIdAndMemberId(commentId, memberId);
 
         // then
         assertThat(answer).isEqualTo(expected);
@@ -184,10 +183,10 @@ class CommentRepositoryTest {
                     "4,10,false"
             }
     )
-    void 특정_댓글이_특정_기록의_댓글(Long commentId,Long historyId, boolean expected){
+    void 특정_댓글이_특정_기록의_댓글(Long commentId, Long historyId, boolean expected) {
 
         // given & when
-        boolean answer = commentRepository.existsByIdAndHistoryId(commentId,historyId);
+        boolean answer = commentRepository.existsByIdAndHistoryId(commentId, historyId);
 
         // then
         assertThat(answer).isEqualTo(expected);
@@ -201,7 +200,7 @@ class CommentRepositoryTest {
                     "2,3",
             }
     )
-    void 특정_기록의_댓글수_조회(Long historyId, Long expected){
+    void 특정_기록의_댓글수_조회(Long historyId, Long expected) {
 
         // given & when
         Long answer = commentRepository.countByHistoryId(historyId);
@@ -217,7 +216,7 @@ class CommentRepositoryTest {
         Long memberId = 1L;
 
         // when
-        Page<Comment> comments = commentRepository.findByMember_Id(memberId,Pageable.ofSize(10));
+        Page<Comment> comments = commentRepository.findByMember_Id(memberId, Pageable.ofSize(10));
 
         // then
         assertThat(comments.getTotalElements()).isEqualTo(3);
