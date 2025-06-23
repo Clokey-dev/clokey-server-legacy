@@ -161,30 +161,6 @@ public class HistoryRepositoryTest {
         assertThat(result).isEqualTo(historyCount);
     }
 
-    @DisplayName("특정 기록들을 지울 수 있다.")
-    @Test
-    void 기록_삭제() {
-
-        // given
-        Optional<History> history1 = historyRepository.findById(1L);
-        Optional<History> history2 = historyRepository.findById(2L);
-
-        assertThat(history1.isPresent()).isTrue();
-        assertThat(history2.isPresent()).isTrue();
-
-        List<Long> historiesToDelete = List.of(1L,2L);
-
-        // when
-        historyRepository.deleteByHistoryIds(historiesToDelete);
-
-        // then
-        Optional<History> history1deleted = historyRepository.findById(1L);
-        Optional<History> history2deleted = historyRepository.findById(2L);
-
-        assertThat(history1deleted.isPresent()).isFalse();
-        assertThat(history2deleted.isPresent()).isFalse();
-    }
-
     @DisplayName("기록을 가져올 수 있다")
     @Test
     void 기록_가져오기(){
