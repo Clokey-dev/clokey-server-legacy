@@ -33,12 +33,12 @@ public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long
 
     // 특정 HistoryId에 연결된 모든 HistoryClothResult 삭제
     @Transactional
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM HistoryCloth hc WHERE hc.history.id = :historyId")
     void deleteAllByHistoryId(@Param("historyId") Long historyId);
 
     @Transactional
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM HistoryCloth hc WHERE hc.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
 

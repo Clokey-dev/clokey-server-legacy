@@ -49,7 +49,7 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
 
     Optional<History> findByHistoryDateAndMember_Id(LocalDate historyDate, Long memberId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Transactional
     @Query("DELETE FROM History h WHERE h.id IN :historyIds")
     void deleteByHistoryIds(@Param("historyIds") List<Long> historyIds);
