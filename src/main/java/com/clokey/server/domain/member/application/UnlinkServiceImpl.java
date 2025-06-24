@@ -1,6 +1,14 @@
 package com.clokey.server.domain.member.application;
 
-import com.clokey.server.domain.member.scheduler.InactiveUserCleanupTask;
+import com.clokey.server.domain.cloth.domain.entity.ClothImage;
+import com.clokey.server.domain.cloth.domain.repository.ClothImageRepository;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.folder.domain.repository.ClothFolderRepository;
+import com.clokey.server.domain.folder.domain.repository.FolderRepository;
+import com.clokey.server.domain.history.domain.repository.*;
+import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
+import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
+import com.clokey.server.global.infra.s3.S3ImageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,22 +27,13 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import com.clokey.server.domain.cloth.application.ClothImageRepositoryService;
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
-import com.clokey.server.domain.folder.application.ClothFolderRepositoryService;
-import com.clokey.server.domain.folder.application.FolderRepositoryService;
-import com.clokey.server.domain.history.application.*;
-import com.clokey.server.domain.history.domain.repository.CommentRepository;
 import com.clokey.server.domain.history.exception.validator.HistoryAccessibleValidator;
 import com.clokey.server.domain.member.domain.entity.Member;
 import com.clokey.server.domain.member.exception.MemberException;
 import com.clokey.server.domain.model.entity.enums.MemberStatus;
 import com.clokey.server.domain.model.entity.enums.SocialType;
-import com.clokey.server.domain.notification.application.NotificationRepositoryService;
 import com.clokey.server.domain.search.application.SearchRepositoryService;
 import com.clokey.server.domain.search.exception.SearchException;
-import com.clokey.server.domain.term.application.MemberTermRepositoryService;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 
 
@@ -43,24 +42,25 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @Service
 public class UnlinkServiceImpl implements UnlinkService {
 
-    private final MemberTermRepositoryService memberTermRepositoryService;
+    private final MemberTermRepository memberTermRepository;
 
     private final FollowRepositoryService followRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
-    private final CommentRepositoryService commentRepositoryService;
+    private final HistoryRepository historyRepository;
     private final MemberRepositoryService memberRepositoryService;
-    private final MemberLikeRepositoryService memberLikeRepositoryService;
-    private final HistoryImageRepositoryService historyImageRepositoryService;
-    private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
-    private final ClothRepositoryService clothRepositoryService;
-    private final HistoryClothRepositoryService historyClothRepositoryService;
+    private final MemberLikeRepository memberLikeRepository;
+    private final HashtagHistoryRepository hashtagHistoryRepository;
+    private final ClothRepository clothRepository;
+    private final HistoryClothRepository historyClothRepository;
     public final HistoryAccessibleValidator historyAccessibleValidator;
-    private final ClothImageRepositoryService clothImageRepositoryService;
-    private final ClothFolderRepositoryService clothFolderRepositoryService;
-    private final FolderRepositoryService folderRepositoryService;
-    private final NotificationRepositoryService notificationRepositoryService;
+    private final ClothImageRepository clothImageRepository;
+    private final ClothFolderRepository clothFolderRepository;
+    private final FolderRepository folderRepository;
+    private final NotificationRepository notificationRepository;
     private final SearchRepositoryService searchRepositoryService;
     private final AuthService authService;
+    private final HistoryImageRepository historyImageRepository;
+    private final CommentRepository commentRepository;
+    private final S3ImageService s3ImageService;
 
     private static final String FAILED_ES_DELETE_SYNC_USER_KEY = "failed_es_delete_sync_user";
 
@@ -168,18 +168,18 @@ public class UnlinkServiceImpl implements UnlinkService {
         }
 
         // 멤버텀 삭제
-        memberTermRepositoryService.deleteByMemberId(memberId);
+        memberTermRepository.deleteByMemberId(memberId);
 
         //기록 삭제
         List<Long> historyIds = memberRepositoryService.findHistoryIdsByMemberId(memberId);
 
-        commentRepositoryService.deleteChildrenByHistoryIds(historyIds);
-        commentRepositoryService.deleteCommentsByHistoryIds(historyIds);
-        historyClothRepositoryService.deleteAllByHistoryIds(historyIds);
-        hashtagHistoryRepositoryService.deleteAllByHistoryIds(historyIds);
-        memberLikeRepositoryService.deleteAllByHistoryIds(historyIds);
-        historyImageRepositoryService.deleteAllByHistoryIds(historyIds);
-        historyRepositoryService.deleteByHistoryIds(historyIds);
+        commentRepository.deleteChildrenByHistoryIds(historyIds);
+        commentRepository.deleteCommentsByHistoryIds(historyIds);
+        historyClothRepository.deleteAllByHistoryIds(historyIds);
+        hashtagHistoryRepository.deleteAllByHistoryIds(historyIds);
+        memberLikeRepository.deleteAllByHistoryIds(historyIds);
+        historyImageRepository.deleteAllByHistoryIds(historyIds);
+        historyRepository.deleteByHistoryIds(historyIds);
 
 
         // 팔로우 삭제
@@ -188,31 +188,31 @@ public class UnlinkServiceImpl implements UnlinkService {
         //옷 삭제
         List<Long> clothIds = memberRepositoryService.findClothIdsByMemberId(memberId);
 
-        clothFolderRepositoryService.deleteAllByClothIds(clothIds);
-        clothImageRepositoryService.deleteAllByClothIds(clothIds);
-        clothRepositoryService.deleteByClothIds(clothIds);
+        clothFolderRepository.deleteAllByClothIds(clothIds);
+        deleteAllByClothIds(clothIds);
+        clothRepository.deleteByClothIds(clothIds);
 
 
         //폴더 삭제
         List<Long> folderIds = memberRepositoryService.findFolderIdsByMemberId(memberId);
-        clothFolderRepositoryService.deleteAllByFolderIds(folderIds);
-        folderRepositoryService.deleteByFolderIds(folderIds);
+        clothFolderRepository.deleteAllByFolderIds(folderIds);
+        folderRepository.deleteByFolderIds(folderIds);
 
 
         //댓글 삭제
         List<Long> commentIds = memberRepositoryService.findCommentIdsByMemberId(memberId);
 
-        commentRepositoryService.deleteChildrenByCommentIds(commentIds);
-        commentRepositoryService.deleteCommentsByCommentIds(commentIds);
+        commentRepository.deleteChildrenByCommentIds(commentIds);
+        commentRepository.deleteCommentsByCommentIds(commentIds);
 
 
         //알람 삭제
         List<Long> notificationIds = memberRepositoryService.findNotificationIdsByMemberId(memberId);
 
-        notificationRepositoryService.deleteByClokeyNotificationIds(notificationIds);
+        notificationRepository.deleteByClokeyNotificationIds(notificationIds);
 
         //좋아요 삭제
-        memberLikeRepositoryService.deleteAllByMemberId(memberId);
+        memberLikeRepository.deleteAllByMemberId(memberId);
 
         memberRepositoryService.deleteMemberById(memberId);  // 최종적으로 회원 삭제
 
@@ -233,6 +233,25 @@ public class UnlinkServiceImpl implements UnlinkService {
         if (member.getStatus() != MemberStatus.ACTIVE) {
             throw new MemberException(ErrorStatus.INACTIVE_MEMBER);
         }
+    }
+
+    private void deleteAllByClothIds(List<Long> ClothIds){
+        // 특정 historyIds에 해당하는 모든 이미지를 조회
+        List<ClothImage> clothImages = clothImageRepository.findByCloth_IdIn(ClothIds);
+
+        if(clothImages == null || clothImages.isEmpty()) {
+            return;
+        }
+
+        // S3 및 데이터베이스에서 이미지 삭제
+        clothImages.forEach(image -> {
+            // S3에서 이미지 삭제
+            s3ImageService.deleteImageFromS3(image.getImageUrl());
+
+            // DB에서 한 번에 삭제
+            clothImageRepository.deleteByClothIds(ClothIds);  // ✅ 직접 삭제하도록 변경
+
+        });
     }
 
 }

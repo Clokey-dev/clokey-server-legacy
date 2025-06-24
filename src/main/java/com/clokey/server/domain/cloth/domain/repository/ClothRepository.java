@@ -111,7 +111,7 @@ public interface ClothRepository extends JpaRepository<Cloth, Long> {
     List<DailyHistoryClothProjectionDTO> getDailyHistoryClothProjectionDTO(@Param("historyId") Long historyId);
 
     @Query("""
-    SELECT c.member.id
+    SELECT DISTINCT c.member.id
     FROM Cloth c
     WHERE c.id IN :clothIds
 """)

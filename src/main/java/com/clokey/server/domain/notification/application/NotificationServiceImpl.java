@@ -1,6 +1,9 @@
 package com.clokey.server.domain.notification.application;
 
-import com.clokey.server.domain.term.application.MemberTermRepositoryService;
+import com.clokey.server.domain.history.domain.repository.CommentRepository;
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
+import com.clokey.server.domain.history.exception.HistoryException;
+import com.clokey.server.domain.notification.domain.repository.NotificationRepository;
 import com.clokey.server.domain.term.domain.repository.MemberTermRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,8 +14,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.history.application.CommentRepositoryService;
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.domain.entity.Comment;
 import com.clokey.server.domain.history.exception.validator.HistoryLikedValidator;
 import com.clokey.server.domain.member.application.FollowRepositoryService;
@@ -37,13 +38,12 @@ import com.google.firebase.messaging.Notification;
 public class NotificationServiceImpl implements NotificationService {
 
     private final HistoryLikedValidator historyLikedValidator;
-    private final HistoryRepositoryService historyRepositoryService;
     private final MemberRepositoryService memberRepositoryService;
     private final FirebaseMessaging firebaseMessaging;
-    private final NotificationRepositoryService notificationRepositoryService;
     private final FollowRepositoryService followRepositoryService;
-    private final CommentRepositoryService commentRepositoryService;
-    private final MemberTermRepositoryService memberTermRepositoryService;
+    private final MemberTermRepository memberTermRepository;
+    private final HistoryRepository historyRepository;
+    private final NotificationRepository notificationRepository;
 
     private static final Long NOTIFICATION_MEMBER_TERM_NUM = 5L;
 
@@ -65,12 +65,13 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String WARMER_THAN_YESTERDAY_NOTIFICATION = "기온이 어제보다 %d도 높아요!\n오늘은 더 얇은 옷을 입어볼까요?";
     private static final String SAME_AS_YESTERDAY_NOTIFICATION = "기온이 어제와 동일해요!\n어제와 비슷하게 입어볼까요?";
     private static final String TODAY_TEMPERATURE_NOTIFICATION_URL = "https://clokeybucket.s3.ap-northeast-2.amazonaws.com/temperature.png";
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional(readOnly = true)
     public NotificationResponseDTO.UnReadNotificationCheckResult checkUnReadNotifications(Long memberId) {
         return NotificationResponseDTO.UnReadNotificationCheckResult.builder()
-                .unReadNotificationExist(notificationRepositoryService.existsByMemberIdAndReadStatus(memberId, ReadStatus.NOT_READ))
+                .unReadNotificationExist(notificationRepository.existsByMemberIdAndReadStatus(memberId, ReadStatus.NOT_READ))
                 .build();
     }
 
@@ -78,18 +79,18 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void readNotification(Long notificationId, Long memberId) {
         checkMyNotification(notificationId, memberId);
-        ClokeyNotification notification = notificationRepositoryService.findById(notificationId);
+        ClokeyNotification notification = notificationRepository.findById(notificationId).orElseThrow(()-> new NotificationException(ErrorStatus.NO_SUCH_NOTIFICATION));
         notification.readNotification();
     }
 
     @Override
     @Transactional
     public void readAllNotification(Long memberId) {
-        notificationRepositoryService.readAllByMemberId(memberId);
+        notificationRepository.readAllByMemberId(memberId);
     }
 
     private void checkMyNotification(Long notificationId, Long memberId) {
-        if (!notificationRepositoryService.findById(notificationId).getMember().getId().equals(memberId)) {
+        if (!notificationRepository.findById(notificationId).orElseThrow(()-> new NotificationException(ErrorStatus.NO_SUCH_NOTIFICATION)).getMember().getId().equals(memberId)) {
             throw new NotificationException(ErrorStatus.NOT_MY_NOTIFICATION);
         }
     }
@@ -100,7 +101,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         historyLikedValidator.validateIsLiked(historyId, memberId, true);
 
-        Member historyWriter = historyRepositoryService.findById(historyId).getMember();
+        Member historyWriter = historyRepository.findById(historyId)
+                .orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))
+                .getMember();
         Member likedMember = memberRepositoryService.findMemberById(memberId);
 
         if (historyWriter.equals(likedMember)) {
@@ -135,7 +138,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.HistoryLikeNotificationResult.builder()
                     .content(content)
@@ -185,7 +188,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.NewFollowerNotificationResult.builder()
                     .content(content)
@@ -210,12 +213,14 @@ public class NotificationServiceImpl implements NotificationService {
         checkMyComment(commentId, memberId);
         checkHistoryComment(commentId, historyId);
 
-        Member historyWriter = historyRepositoryService.findById(historyId).getMember();
+        Member historyWriter = historyRepository.findById(historyId)
+                .orElseThrow(()-> new HistoryException(ErrorStatus.NO_SUCH_HISTORY))
+                .getMember();
         Member commentWriter = memberRepositoryService.findMemberById(memberId);
         if (historyWriter.equals(commentWriter)) {
             return null;
         }
-        Comment writtenComment = commentRepositoryService.findById(commentId);
+        Comment writtenComment = commentRepository.findById(commentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
 
         if (ableToSendNotification(historyWriter)) {
             String content = String.format(HISTORY_COMMENT_NOTIFICATION_CONTENT, commentWriter.getNickname(), writtenComment.getContent());
@@ -246,7 +251,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.HistoryCommentNotificationResult.builder()
                     .content(content)
@@ -261,13 +266,13 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkMyComment(Long commentId, Long memberId) {
-        if (!commentRepositoryService.existsByIdAndMemberId(commentId, memberId)) {
+        if (!commentRepository.existsByIdAndMemberId(commentId, memberId)) {
             throw new NotificationException(ErrorStatus.NOTIFICATION_NOT_MY_COMMENT);
         }
     }
 
     private void checkHistoryComment(Long commentId, Long historyId) {
-        if (!commentRepositoryService.existsByIdAndHistoryId(commentId, historyId)) {
+        if (!commentRepository.existsByIdAndHistoryId(commentId, historyId)) {
             throw new NotificationException(ErrorStatus.NOTIFICATION_COMMENT_NOT_FROM_HISTORY);
         }
     }
@@ -279,9 +284,9 @@ public class NotificationServiceImpl implements NotificationService {
         checkMyComment(replyId, memberId);
         checkParentComment(commentId, replyId);
 
-        Comment writtenComment = commentRepositoryService.findById(commentId);
+        Comment writtenComment = commentRepository.findById(commentId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));
         Member commentWriter = writtenComment.getMember();
-        Comment writtenReply = commentRepositoryService.findById(replyId);
+        Comment writtenReply = commentRepository.findById(replyId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));
         Member replyWriter = writtenReply.getMember();
         if (commentWriter.equals(replyWriter)) {
             return null;
@@ -290,7 +295,9 @@ public class NotificationServiceImpl implements NotificationService {
         if (ableToSendNotification(commentWriter)) {
             String content = String.format(COMMENT_REPLY_CONTENT, replyWriter.getNickname(), writtenReply.getContent());
             String replyWriterProfileUrl = replyWriter.getProfileImageUrl();
-            Long historyId = commentRepositoryService.findById(commentId).getHistory().getId();
+            Long historyId = commentRepository.findById(commentId)
+                    .orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT))
+                    .getHistory().getId();
 
             Notification notification = Notification.builder()
                     .setBody(content)
@@ -317,7 +324,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .readStatus(ReadStatus.NOT_READ)
                     .build();
 
-            notificationRepositoryService.save(clokeyNotification);
+            notificationRepository.save(clokeyNotification);
 
             return NotificationResponseDTO.ReplyNotificationResult.builder()
                     .content(content)
@@ -331,7 +338,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkParentComment(Long commentId, Long replyId) {
-        Comment reply = commentRepositoryService.findById(replyId);
+        Comment reply = commentRepository.findById(replyId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_COMMENT));;
         if (!reply.getComment().getId().equals(commentId)) {
             throw new NotificationException(ErrorStatus.NOTIFICATION_NOT_PARENT_COMMENT_OF_REPLY);
         }
@@ -391,7 +398,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationResponseDTO.GetNotificationResult getNotifications(Long memberId, Integer page) {
         // memberId로 알림을 조회해서 반환
         Pageable pageable = PageRequest.of(page - 1, 30);
-        List<ClokeyNotification> notificationList = notificationRepositoryService.findNotificationsByMemberId(memberId, pageable);
+        List<ClokeyNotification> notificationList = notificationRepository.findNotificationsByMemberId(memberId, pageable);
         return NotificationConverter.toNotificationResult(notificationList, pageable);
     }
 
@@ -413,6 +420,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private boolean ableToSendNotification(Member member) {
-        return member.getStatus() != MemberStatus.INACTIVE && memberTermRepositoryService.existsByMemberIdAndTermId(member.getId(),NOTIFICATION_MEMBER_TERM_NUM) && member.getRefreshToken() != null;
+        return member.getStatus() != MemberStatus.INACTIVE && memberTermRepository.existsByMemberIdAndTermId(member.getId(),NOTIFICATION_MEMBER_TERM_NUM) && member.getRefreshToken() != null;
     }
 }

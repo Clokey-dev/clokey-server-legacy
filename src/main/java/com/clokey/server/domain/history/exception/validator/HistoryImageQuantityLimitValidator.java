@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.exception.validator;
 
+import com.clokey.server.domain.history.domain.repository.HistoryRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,7 +10,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.history.application.HistoryRepositoryService;
 import com.clokey.server.domain.history.exception.annotation.HistoryImageQuantityLimit;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 
@@ -17,7 +17,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class HistoryImageQuantityLimitValidator implements ConstraintValidator<HistoryImageQuantityLimit, List<MultipartFile>> {
 
-    private final HistoryRepositoryService historyRepositoryService;
+    private final HistoryRepository historyRepository;
 
     @Override
     public void initialize(HistoryImageQuantityLimit constraintAnnotation) {

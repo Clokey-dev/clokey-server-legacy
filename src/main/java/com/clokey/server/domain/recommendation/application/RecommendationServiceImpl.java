@@ -1,6 +1,8 @@
 package com.clokey.server.domain.recommendation.application;
 
-import com.clokey.server.domain.history.application.*;
+import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
+import com.clokey.server.domain.history.domain.repository.*;
+import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.application.BlockRepositoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -20,7 +23,7 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.cloth.application.ClothRepositoryService;
+
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
 import com.clokey.server.domain.history.domain.entity.HashtagHistory;
 import com.clokey.server.domain.history.domain.entity.History;
@@ -42,15 +45,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RecommendationServiceImpl implements RecommendationService {
 
+    private final HistoryImageRepository historyImageRepository;
     private final MemberRepositoryService memberRepositoryService;
-    private final ClothRepositoryService clothRepositoryService;
-    private final HistoryRepositoryService historyRepositoryService;
-    private final HistoryImageRepositoryService historyImageRepositoryService;
+    private final ClothRepository clothRepository;
     private final FollowRepositoryService followRepositoryService;
-    private final HashtagHistoryRepositoryService hashtagHistoryRepositoryService;
-    private final HashtagRepositoryService hashtagRepositoryService;
+    private final HashtagHistoryRepository hashtagHistoryRepository;
     private final BlockRepositoryService blockRepositoryService;
-    private final HistoryClothRepositoryService historyClothRepositoryService;
+    private final HistoryClothRepository historyClothRepository;
+    private final HistoryRepository historyRepository;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -60,6 +62,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private static final String REDIS_PREFIX_CLOSET = "cl:";
     private static final String REDIS_PREFIX_CALENDAR = "ca:";
     private static final String REDIS_PREFIX_PEOPLE = "pe:";
+    private final HashtagRepository hashtagRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -69,7 +72,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<Long> cachedClothIds = getFromRedis(cacheKeyRecommend, Long.class);
 
         if (cachedClothIds != null && !cachedClothIds.isEmpty()) {
-            List<Cloth> cachedClothes = clothRepositoryService.findAllById(cachedClothIds);
+            List<Cloth> cachedClothes = clothRepository.findAllById(cachedClothIds);
             if(cachedClothes.size()==3) {
                 List<RecommendationResponseDTO.DailyClothResult> cachedResults = cachedClothes.stream()
                         .map(RecommendationConverter::toDailyClothResult)
@@ -80,7 +83,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             redisTemplate.delete(cacheKeyRecommend);
         }
 
-        List<Cloth> suitableClothes = clothRepositoryService.findBySuitableClothFilters(memberId, nowTemp, minTemp, maxTemp);
+        List<Cloth> suitableClothes = clothRepository.findBySuitableClothFilters(memberId, nowTemp, minTemp, maxTemp);
         Set<Cloth> selectedClothes = new HashSet<>();
 
         Cloth top = findClothByCategory(suitableClothes, 1L, selectedClothes);
@@ -224,7 +227,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private List<RecommendationResponseDTO.RecommendCacheResult> getRecommendList(Member member,  Set<Long> blockingMembers) {
         List<RecommendationResponseDTO.RecommendCacheResult> recommendList = new ArrayList<>();
-        String unusedHashtag = hashtagRepositoryService.findRandomUnusedHashtag(member.getId());
+        String unusedHashtag = hashtagRepository.findRandomUnusedHashtag(member.getId()).orElse(null);
 
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
                 getHistoryImageUrlByHashtagName(unusedHashtag, blockingMembers),
@@ -233,7 +236,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 unusedHashtag
         ));
 
-        String recentHashtag = hashtagHistoryRepositoryService.findLatestTaggedHashtag(member.getId());
+        String recentHashtag = hashtagHistoryRepository.findLatestTaggedHashtag(member.getId()).orElse(null);
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
                 getHistoryImageUrlByHashtagName(recentHashtag, blockingMembers),
                 member.getId(),
@@ -241,7 +244,8 @@ public class RecommendationServiceImpl implements RecommendationService {
                 recentHashtag
         ));
 
-        String frequentCategory = historyClothRepositoryService.findMostWornCategory(member.getId());
+        String frequentCategory = historyClothRepository.findMostWornCategory(member.getId())
+                .orElse(null);
         recommendList.add(RecommendationConverter.toRecommendCacheDTO(
                 getHistoryImageUrlByCategoryName(frequentCategory, blockingMembers),
                 member.getId(),
@@ -253,7 +257,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
     
     private List<RecommendationResponseDTO.ClosetCacheResult> getClosetList(List<Member> followingMembers) {
-        List<Cloth> clothesList = clothRepositoryService.findTop6ByMemberInAndVisibilityOrderByCreatedAtDesc(followingMembers, Visibility.PUBLIC);
+        List<Cloth> clothesList = clothRepository.findTop6ByMemberInAndVisibilityAndCreatedAtBetweenOrderByCreatedAtDesc(followingMembers, Visibility.PUBLIC, LocalDateTime.now().minusWeeks(2), LocalDateTime.now());;
 
         Map<Pair<Member, LocalDate>, List<Cloth>> groupedClothes = clothesList.stream()
                 .collect(Collectors.groupingBy(
@@ -267,7 +271,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private Page<RecommendationResponseDTO.ClosetResult> getClosetPage(int page, List<Member> followingMembers) {
-        Page<Cloth> clothesPage = clothRepositoryService.findByMemberInAndVisibilityOrderByCreatedAtDesc(
+        Page<Cloth> clothesPage = clothRepository.findByMemberInAndVisibilityOrderByCreatedAtDesc(
                 followingMembers, Visibility.PUBLIC, PageRequest.of(page - 1, 6));
 
         List<RecommendationResponseDTO.ClosetResult> closetList = RecommendationConverter.toClosetDTO(
@@ -279,10 +283,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private List<RecommendationResponseDTO.CalendarCacheResult> getCalendarList(List<Member> followingMembers) {
-        List<History> historyList = historyRepositoryService.findTop6ByMemberInAndVisibilityOrderByHistoryDateDesc(
-                followingMembers, Visibility.PUBLIC);
+        List<History> historyList = historyRepository.findTop6ByMemberInAndVisibilityAndHistoryDateAfterOrderByHistoryDateDesc(
+                followingMembers, Visibility.PUBLIC,LocalDate.now().minusWeeks(2));
         List<Long> historyIds = historyList.stream().map(History::getId).toList();
-        Map<History, List<String>> historyImageMap = historyImageRepositoryService.findByHistoryIdIn(historyIds)
+        Map<History, List<String>> historyImageMap = historyImageRepository.findByHistoryIdIn(historyIds)
                 .stream()
                 .collect(Collectors.groupingBy(HistoryImage::getHistory, Collectors.mapping(HistoryImage::getImageUrl, Collectors.toList())));
 
@@ -291,11 +295,11 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private Page<RecommendationResponseDTO.CalendarResult> getCalendarPage(int page, List<Member> followingMembers) {
         Pageable pageable = PageRequest.of(page - 1, 6);
-        Page<History> historyPage = historyRepositoryService.findByMemberInAndVisibilityOrderByHistoryDateDesc(
+        Page<History> historyPage = historyRepository.findByMemberInAndVisibilityOrderByHistoryDateDesc(
                 followingMembers, Visibility.PUBLIC, pageable);
 
         List<Long> historyIds = historyPage.getContent().stream().map(History::getId).toList();
-        Map<History, List<String>> historyImageMap = historyImageRepositoryService.findByHistoryIdIn(historyIds)
+        Map<History, List<String>> historyImageMap = historyImageRepository.findByHistoryIdIn(historyIds)
                 .stream()
                 .collect(Collectors.groupingBy(HistoryImage::getHistory, Collectors.mapping(HistoryImage::getImageUrl, Collectors.toList())));
 
@@ -311,7 +315,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             return List.of();
         }
 
-        List<History> recommendedMemberHistories = historyRepositoryService.findHistoriesByMemberIds(topFollowingMemberIds);
+        List<History> recommendedMemberHistories = historyRepository.findHistoryByMemberIdIn(topFollowingMemberIds);
 
         if (recommendedMemberHistories.isEmpty()) {
             return List.of();
@@ -320,9 +324,24 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .map(History::getId)
                 .toList();
 
-        Map<Long, String> historyImageMap = historyImageRepositoryService.findFirstImagesByHistoryIds(historyIds);
+        Map<Long, String> historyImageMap = findFirstImagesByHistoryIds(historyIds);
 
         return RecommendationConverter.toPeopleCacheDTO(recommendedMemberHistories, historyImageMap);
+    }
+
+    private Map<Long, String> findFirstImagesByHistoryIds(List<Long> historyIds){
+        if (historyIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<HistoryImage> result = historyImageRepository.findByHistoryIdIn(historyIds);
+
+        return result.stream()
+                .collect(Collectors.toMap(
+                        hi -> hi.getHistory().getId(),
+                        HistoryImage::getImageUrl,
+                        (existing, replacement) -> existing
+                ));
     }
 
 
@@ -350,7 +369,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     history.getHistory().getVisibility() == Visibility.PUBLIC &&
                     !blockingMembers.contains(history.getHistory().getMember().getId())) {
 
-                List<HistoryImage> images = historyImageRepositoryService.findByHistoryId(history.getHistory().getId());
+                List<HistoryImage> images = historyImageRepository.findByHistory_Id(history.getHistory().getId());
                 if (!images.isEmpty()) {
                     return images.get(0).getImageUrl();
                 }
@@ -361,11 +380,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     public String getHistoryImageUrlByHashtagName(String hashtagName, Set<Long> blockingMembers) {
-        return getHistoryImageUrl(() -> hashtagHistoryRepositoryService.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName), blockingMembers);
+        return getHistoryImageUrl(() -> hashtagHistoryRepository.findTop5HistoriesByHashtagNameOrderByDateDesc(hashtagName,PageRequest.of(0, 5)), blockingMembers);
     }
 
     public String getHistoryImageUrlByCategoryName(String categoryName, Set<Long> blockingMembers) {
-        return getHistoryImageUrl(() -> hashtagHistoryRepositoryService.findTop5HistoriesByCategoryNameOrderByDateDesc(categoryName), blockingMembers);
+        return getHistoryImageUrl(() -> hashtagHistoryRepository.findTop5HistoriesByCategoryNameOrderByDateDesc("#"+categoryName, categoryName, PageRequest.of(0, 5)), blockingMembers);
     }
 
 
@@ -376,9 +395,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         LocalDate today = LocalDate.now();
         LocalDate oneYearAgo = today.minusYears(1);
 
-        if (historyRepositoryService.checkHistoryExistOfDate(oneYearAgo, memberId)) {
-            History historyOneYearAgo = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberId);
-            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgo.getId()).stream()
+        if (historyRepository.existsByHistoryDateAndMember_Id(oneYearAgo, memberId)) {
+            History historyOneYearAgo = historyRepository.findByHistoryDateAndMember_Id(oneYearAgo, memberId).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
+            List<String> historyUrls = historyImageRepository.findByHistory_Id(historyOneYearAgo.getId()).stream()
                     .map(HistoryImage::getImageUrl)
                     .toList();
             return RecommendationConverter.toLastYearHistoryResult(historyOneYearAgo.getId(), historyOneYearAgo.getHistoryDate(), historyUrls, member, true);
@@ -389,13 +408,13 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .map(Member::getId)
                 .collect(Collectors.toList());
 
-        List<Boolean> membersHaveHistoryOneYearAgo = historyRepositoryService.existsByHistoryDateAndMemberIds(oneYearAgo, followingMembers);
+        List<Boolean> membersHaveHistoryOneYearAgo = historyRepository.existsByHistoryDateAndMemberIds(oneYearAgo, followingMembers);
 
         Long memberPicked = getRandomMemberWithHistory(followingMembers, membersHaveHistoryOneYearAgo);
 
         if (memberPicked != null) {
-            History historyOneYearAgo = historyRepositoryService.getHistoryOfDate(oneYearAgo, memberPicked);
-            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(historyOneYearAgo.getId()).stream()
+            History historyOneYearAgo = historyRepository.findByHistoryDateAndMember_Id(oneYearAgo, memberPicked).orElseThrow(()->new HistoryException(ErrorStatus.NO_SUCH_HISTORY));
+            List<String> historyUrls = historyImageRepository.findByHistory_Id(historyOneYearAgo.getId()).stream()
                     .map(HistoryImage::getImageUrl)
                     .toList();
             return RecommendationConverter.toLastYearHistoryResult(historyOneYearAgo.getId(),historyOneYearAgo.getHistoryDate(), historyUrls, memberRepositoryService.findMemberById(memberPicked), false);
@@ -403,10 +422,10 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         List<Long> members = new ArrayList<>(followingMembers);
         members.add(memberId);
-        List<History> histories = historyRepositoryService.findHistoriesByMemberIdsAndDateRange(members,oneYearAgo,today);
+        List<History> histories = historyRepository.findHistoriesByMemberIdsAndDateRange(members,oneYearAgo,today);
         if(histories != null && !histories.isEmpty()){
             History randomHistory = histories.get(new Random().nextInt(histories.size()));
-            List<String> historyUrls = historyImageRepositoryService.findByHistoryId(randomHistory.getId()).stream()
+            List<String> historyUrls = historyImageRepository.findByHistory_Id(randomHistory.getId()).stream()
                     .map(HistoryImage::getImageUrl)
                     .toList();
             return RecommendationConverter.toLastYearHistoryResult(randomHistory.getId(),randomHistory.getHistoryDate(),historyUrls,randomHistory.getMember(), randomHistory.getMember().equals(member));

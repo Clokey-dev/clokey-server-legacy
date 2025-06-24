@@ -1,5 +1,6 @@
 package com.clokey.server.domain.term.exception.validator;
 
+import com.clokey.server.domain.term.domain.repository.TermRepository;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.ConstraintValidator;
@@ -7,7 +8,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import lombok.RequiredArgsConstructor;
 
-import com.clokey.server.domain.term.application.TermRepositoryService;
 import com.clokey.server.domain.term.dto.TermRequestDTO;
 import com.clokey.server.domain.term.exception.annotation.InvalidTermId;
 import com.clokey.server.global.error.code.status.ErrorStatus;
@@ -16,7 +16,7 @@ import com.clokey.server.global.error.code.status.ErrorStatus;
 @RequiredArgsConstructor
 public class InvalidTermIdValidator implements ConstraintValidator<InvalidTermId, TermRequestDTO.Join> {
 
-    private final TermRepositoryService termRepositoryService;
+    private final TermRepository termRepository;
 
     @Override
     public void initialize(InvalidTermId constraintAnnotation) {
@@ -31,7 +31,7 @@ public class InvalidTermIdValidator implements ConstraintValidator<InvalidTermId
 
         // 요청된 약관 ID가 실제 존재하는지 확인
         boolean allTermsExist = joinRequest.getTerms().stream()
-                .allMatch(term -> term.getTermId() != null && termRepositoryService.existsById(term.getTermId()));
+                .allMatch(term -> term.getTermId() != null && termRepository.existsById(term.getTermId()));
 
         if (!allTermsExist) {
             context.disableDefaultConstraintViolation();

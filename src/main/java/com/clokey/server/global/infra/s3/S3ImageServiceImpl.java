@@ -1,5 +1,6 @@
 package com.clokey.server.global.infra.s3;
 
+import com.amazonaws.services.s3.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,15 +16,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.IOUtils;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import com.clokey.server.global.infra.s3.exception.S3Exception;
@@ -105,6 +103,27 @@ public class S3ImageServiceImpl implements S3ImageService {
             amazonS3.deleteObject(new DeleteObjectRequest(bucketName, key));
         }catch (Exception e){
             throw new S3Exception(ErrorStatus.S3_DELETE_FAIL);
+        }
+    }
+
+    @Override
+    public List<String> uploadAll(List<MultipartFile> images) {
+        return images.stream()
+                .map(this::upload)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteAllFromS3(List<String> imageAddresses) {
+        List<DeleteObjectsRequest.KeyVersion> keys = imageAddresses.stream()
+                .map(this::getKeyFromImageAddress)
+                .map(DeleteObjectsRequest.KeyVersion::new)
+                .collect(Collectors.toList());
+
+        if (!keys.isEmpty()) {
+            DeleteObjectsRequest deleteRequest = new DeleteObjectsRequest(bucketName)
+                    .withKeys(keys);
+            amazonS3.deleteObjects(deleteRequest);
         }
     }
 

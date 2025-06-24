@@ -2,6 +2,8 @@ package com.clokey.server.domain.history.domain.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,11 +16,8 @@ import com.clokey.server.domain.history.domain.entity.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("SELECT c FROM Comment c WHERE c.history.id = :historyId AND c.comment IS NULL AND c.banned = false")
-    Page<Comment> findActiveRootComments(@Param("historyId") Long historyId, PageRequest pageRequest);
-
-
-    List<Comment> findByCommentId(Long parentId);
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.history.id = :historyId AND c.comment IS NULL AND c.banned = false")
+    int countActiveRootComments(@Param("historyId") Long historyId);
 
     //햐나의 댓글을 기준으로 대댓글을 삭제합니다.
     @Transactional
@@ -47,11 +46,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Modifying
     @Transactional
-    @Query("SELECT c.id FROM Comment c WHERE c.history.id IN :historyIds")
-    List<Long> selectCommentsByHistoryIds(@Param("historyIds") List<Long> historyIds);
-
-    @Modifying
-    @Transactional
     @Query("DELETE FROM Comment c WHERE c.history.id IN :historyIds")
     void deleteCommentsByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
@@ -68,7 +62,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("DELETE FROM Comment c WHERE c.id IN :commentIds")
     void deleteCommentsByCommentIds(@Param("commentIds") List<Long> commentIds);
 
-    Page<Comment> findByMember_Id(Long memberId, PageRequest pageRequest);
+    @EntityGraph(attributePaths = {"history", "history.member"})
+    Page<Comment> findByMember_Id(Long memberId, Pageable pageable);
 
     //for test
     boolean existsByHistoryIdAndCommentIsNull(Long historyId);
