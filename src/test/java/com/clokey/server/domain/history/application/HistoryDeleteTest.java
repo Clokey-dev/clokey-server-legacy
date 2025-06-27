@@ -1,8 +1,7 @@
-package com.clokey.server.domain.history.unit;
+package com.clokey.server.domain.history.application;
 
 import com.clokey.server.domain.cloth.domain.repository.ClothRepository;
 import com.clokey.server.domain.history.api.HistoryRestController;
-import com.clokey.server.domain.history.application.HistoryService;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.repository.*;
 import com.clokey.server.domain.history.exception.HistoryException;

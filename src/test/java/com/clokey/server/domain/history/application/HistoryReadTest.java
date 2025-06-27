@@ -1,8 +1,7 @@
-package com.clokey.server.domain.history.unit;
+package com.clokey.server.domain.history.application;
 
 
 import com.clokey.server.domain.history.api.HistoryRestController;
-import com.clokey.server.domain.history.application.HistoryService;
 import com.clokey.server.domain.history.dto.HistoryResponseDTO;
 import com.clokey.server.domain.history.exception.HistoryException;
 import com.clokey.server.domain.member.domain.entity.Member;
