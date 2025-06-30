@@ -52,4 +52,7 @@ public interface HistoryClothRepository extends JpaRepository<HistoryCloth, Long
     boolean existsByHistoryId(Long historyId);
     boolean existsByClothId(Long clothId);
 
+    // fetch join으로 카테고리 포함하여 미리 다 조회
+    @Query("SELECT hc.cloth FROM HistoryCloth hc JOIN FETCH hc.cloth.category WHERE hc.history.id = :historyId")
+    List<Cloth> findAllClothsWithCategoryByHistoryId(@Param("historyId") Long historyId);
 }

@@ -125,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if(member.getSocialType()!=SocialType.KAKAO){
-                // DB에 사용자 정보가 없으면 회원가입
+                // 기존 가입했던 데이터로 카카오 회원가입
                 member = Member.builder().kakaoId(kakaoUser.getId()).nickname(kakaoUser.getKakaoAccount().getProfile().getNickname()).email(kakaoUser.getKakaoAccount().getEmail()).registerStatus(RegisterStatus.NOT_AGREED).socialType(SocialType.KAKAO).deviceToken(deviceToken).build();
                 memberRepositoryService.saveMember(member);
             }
@@ -137,6 +137,13 @@ public class AuthServiceImpl implements AuthService {
             // DB에 사용자 정보가 없으면 회원가입
             member = Member.builder().kakaoId(kakaoUser.getId()).nickname(kakaoUser.getKakaoAccount().getProfile().getNickname()).email(kakaoUser.getKakaoAccount().getEmail()).registerStatus(RegisterStatus.NOT_AGREED).socialType(SocialType.KAKAO).deviceToken(deviceToken).build();
             memberRepositoryService.saveMember(member);
+
+            // 회원가입 시, ES 동기화
+            try {
+                searchRepositoryService.updateMemberDataToElasticsearch(member);
+            } catch (IOException e) {
+                throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
+            }
         }
 
         String accessToken = generateAccessToken(member.getId(), member.getEmail());
@@ -144,13 +151,6 @@ public class AuthServiceImpl implements AuthService {
 
         member.updateToken(accessToken, refreshToken);
         memberRepositoryService.saveMember(member);
-
-        // ES 동기화
-        try {
-            searchRepositoryService.updateMemberDataToElasticsearch(member);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
 
         // 토큰 반환
         AuthDTO.TokenResponse tokenResponse=AuthDTO.TokenResponse.builder()
@@ -371,6 +371,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if(member.getSocialType()!=SocialType.APPLE){
+                // 기존 가입했던 데이터로 애플 회원가입
                 member = Member.builder().email(email).socialType(SocialType.APPLE).registerStatus(RegisterStatus.NOT_AGREED).deviceToken(deviceToken).build();
                 memberRepositoryService.saveMember(member);
             }
@@ -381,6 +382,13 @@ public class AuthServiceImpl implements AuthService {
         } else {
             member = Member.builder().email(email).socialType(SocialType.APPLE).registerStatus(RegisterStatus.NOT_AGREED).deviceToken(deviceToken).build();
             memberRepositoryService.saveMember(member);
+
+            // 회원가입 시, ES 동기화
+            try {
+                searchRepositoryService.updateMemberDataToElasticsearch(member);
+            } catch (IOException e) {
+                throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
+            }
         }
 
         // 토큰 생성
@@ -389,13 +397,6 @@ public class AuthServiceImpl implements AuthService {
 
         member.updateToken(jwtAccessToken, jwtRefreshToken);
         memberRepositoryService.saveMember(member);
-
-        // ES 동기화
-        try {
-            searchRepositoryService.updateMemberDataToElasticsearch(member);
-        } catch (IOException e) {
-            throw new SearchException(ErrorStatus.ELASTIC_SEARCH_SYNC_FAULT);
-        }
 
         // 응답 반환
          AuthDTO.TokenResponse tokenResponse=AuthDTO.TokenResponse.builder()
