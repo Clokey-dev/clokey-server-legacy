@@ -195,7 +195,7 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
 
         List<String> hashtagNames = hashtagHistoryRepository.findHashtagNamesByHistoryId(history.getId());
 
-        List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
+        List<Cloth> clothes = historyClothRepository.findAllClothsWithCategoryByHistoryId(history.getId());
 
         List<String> categoryNames = clothes.stream()
                 .map(cloth -> cloth.getCategory().getName())
@@ -254,14 +254,14 @@ public class SearchRepositoryServiceImpl implements SearchRepositoryService {
     // JPA에서 모든 History 데이터 가져와서 Elasticsearch로 저장하는 메서드
     @Override
     public void syncAllHistoriesDataToElasticsearch() throws IOException {
-        List<History> historyList = historyRepository.findAll();
+        List<History> historyList = historyRepository.findAllWithMember();
 
         List<BulkOperation> bulkOperations = historyList.stream()
                 .map(history -> {
 
                     List<String> hashtagNames = hashtagHistoryRepository.findHashtagNamesByHistoryId(history.getId());
 
-                    List<Cloth> clothes = historyClothRepository.findAllClothsByHistoryId(history.getId());
+                    List<Cloth> clothes = historyClothRepository.findAllClothsWithCategoryByHistoryId(history.getId());
 
                     List<String> categoryNames = clothes.stream()
                             .map(cloth -> cloth.getCategory().getName())

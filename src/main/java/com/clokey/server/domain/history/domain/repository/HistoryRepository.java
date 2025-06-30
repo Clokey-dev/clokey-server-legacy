@@ -100,4 +100,8 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
 
     @Query("SELECT h FROM History h JOIN FETCH h.member WHERE h.id = :id")
     Optional<History> findByIdWithWriter(@Param("id") Long id);
+
+    // fetch join으로 옷 포함하여 미리 다 조회
+    @Query("SELECT h FROM History h JOIN FETCH h.member")
+    List<History> findAllWithMember();
 }
