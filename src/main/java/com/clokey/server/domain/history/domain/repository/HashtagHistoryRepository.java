@@ -21,6 +21,7 @@ public interface HashtagHistoryRepository extends JpaRepository<HashtagHistory, 
     @Query("SELECT h.name FROM HashtagHistory hh JOIN hh.hashtag h WHERE hh.history.id = :historyId")
     List<String> findHashtagNamesByHistoryId(@Param("historyId") Long historyId);
 
+    // modifying도 어떻게 처리해얄지 고민중이어서 아직 작성 x
     @Transactional
     @Modifying
     @Query("DELETE FROM HashtagHistory hh WHERE hh.hashtag = :hashtag AND hh.history = :history")
@@ -36,13 +37,8 @@ public interface HashtagHistoryRepository extends JpaRepository<HashtagHistory, 
     @Query("DELETE FROM HashtagHistory hh WHERE hh.history.id IN :historyIds")
     void deleteAllByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
-    @Query("SELECT hh.hashtag.id FROM HashtagHistory hh " +
-            "JOIN hh.history h " +
-            "WHERE h.member.id = :memberId " +
-            "ORDER BY h.member.clokeyId DESC " +
-            "LIMIT 10")
-    List<Long> findHashtagIdsByMemberIdOrderByHistoryDateDesc(@Param("memberId") Long memberId);
 
+    // 이 아래로 테스트 코드 작성하지 않았음.
     @Query("SELECT hh.hashtag.name FROM HashtagHistory hh " +
             "JOIN hh.history h WHERE h.member.id = :memberId " +
             "ORDER BY h.historyDate DESC LIMIT 1")

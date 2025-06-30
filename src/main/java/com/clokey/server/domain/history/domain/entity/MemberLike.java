@@ -17,8 +17,8 @@ import com.clokey.server.domain.model.entity.BaseEntity;
                 @UniqueConstraint(name = "uk_member_history", columnNames = {"member_id", "history_id"})
         },
         indexes = {
-                @Index(name = "idx_member_id", columnList = "member_id"),
-                @Index(name = "idx_history_id", columnList = "history_id")
+                @Index(name = "idx_member_like_member_id", columnList = "member_id"),
+                @Index(name = "idx_member_like_history_id", columnList = "history_id")
         }
 )
 public class MemberLike extends BaseEntity {

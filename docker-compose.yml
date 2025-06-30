@@ -1,4 +1,3 @@
-name: clokey_project
 
 services:
   app_blue:

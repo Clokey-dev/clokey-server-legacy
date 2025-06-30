@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface HistoryRepository extends JpaRepository<History, Long>,HistoryProjectionRepository{
 
-
     @Query("SELECT h FROM History h WHERE h.member.id = :memberId AND h.historyDate >= :monthAgo")
     List<History> findHistoriesWithinMonth(@Param("memberId") Long memberId, @Param("monthAgo") LocalDate monthAgo);
 
@@ -51,31 +50,21 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
     Optional<History> findByHistoryDateAndMember_Id(LocalDate historyDate, Long memberId);
 
     @Modifying
+    @Transactional
     @Query("DELETE FROM History h WHERE h.id IN :historyIds")
     void deleteByHistoryIds(@Param("historyIds") List<Long> historyIds);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     Page<History> findByMemberInAndVisibilityOrderByHistoryDateDesc(List<Member> member, Visibility visibility, Pageable pageable);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     List<History> findTop6ByMemberInAndVisibilityAndHistoryDateAfterOrderByHistoryDateDesc(
             List<Member> members, Visibility visibility, LocalDate startDate);
-
-    @Query("SELECT DISTINCT h FROM History h " +
-            "JOIN HashtagHistory hh ON hh.history.id = h.id " +
-            "LEFT JOIN Follow f ON f.following.id = h.member.id AND f.followed.id = :currentMemberId " +  // follow 관계 조인
-            "WHERE hh.hashtag.id IN :hashtagIds " +
-            "AND h.member.id <> :currentMemberId " +
-            "AND f.id IS NULL " +  // 팔로우한 사람 제외
-            "ORDER BY h.likes DESC, h.historyDate DESC")
-    List<History> findTop10MembersByHashtagIdsOrderByLikes(
-            @Param("hashtagIds") List<Long> hashtagIds,
-            @Param("currentMemberId") Long currentMemberId,
-            Pageable pageable);
-
-    List<History> findAll();
 
     @Query("SELECT COUNT(h) FROM History h WHERE h.member = :member")
     Long countHistoryByMember(@Param("member") Member member);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     @Query("""
     SELECT h FROM History h
     WHERE h.member.id IN :memberIds
@@ -91,6 +80,7 @@ public interface HistoryRepository extends JpaRepository<History, Long>,HistoryP
     """)
     List<History> findHistoryByMemberIdIn(@Param("memberIds") List<Long> memberIds);
 
+    // 최적화 여부 판단 필요 -> 아직 테스트 코드 작성 안함
     @Query("SELECT h FROM History h WHERE h.member.id IN :memberIds " +
             "AND h.historyDate BETWEEN :from AND :to")
     List<History> findHistoriesByMemberIdsAndDateRange(

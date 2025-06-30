@@ -88,9 +88,8 @@ public class Member extends BaseEntity {
     @Column(unique = true)
     private String kakaoId;
 
-    //default가 false입니다.
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-    private boolean banned;
+    @Column(nullable = false)
+    private boolean banned = false;
 
     //필요한 양방향 매핑을 제외하고 삭제해주세요.
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)

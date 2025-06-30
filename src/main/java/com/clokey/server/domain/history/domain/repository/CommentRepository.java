@@ -1,7 +1,6 @@
 package com.clokey.server.domain.history.domain.repository;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -55,10 +54,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     void deleteChildrenByHistoryIds(@Param("commentIds") List<Long> commentIds);
 
     @Modifying
+    @Transactional
     @Query("DELETE FROM Comment c WHERE c.comment.id IN :commentIds")
     void deleteChildrenByCommentIds(@Param("commentIds") List<Long> commentIds);
 
     @Modifying
+    @Transactional
     @Query("DELETE FROM Comment c WHERE c.id IN :commentIds")
     void deleteCommentsByCommentIds(@Param("commentIds") List<Long> commentIds);
 
