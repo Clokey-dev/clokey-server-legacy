@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.history.domain.entity.Hashtag;
 import com.clokey.server.domain.history.domain.entity.HashtagHistory;
 import com.clokey.server.domain.history.domain.entity.History;
@@ -20,11 +21,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class HashtagHistoryRepositoryTest {
+class HashtagHistoryRepositoryTest extends JpaIntegrationTestSupport {
 
 
     @Autowired

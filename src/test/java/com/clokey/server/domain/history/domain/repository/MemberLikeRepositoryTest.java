@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.entity.MemberLike;
 import com.clokey.server.domain.member.domain.entity.Member;
@@ -21,11 +22,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class MemberLikeRepositoryTest {
+class MemberLikeRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     MemberLikeRepository memberLikeRepository;

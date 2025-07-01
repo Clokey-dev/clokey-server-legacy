@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
 import com.clokey.server.domain.member.domain.entity.Member;
@@ -24,11 +25,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class HistoryImageRepositoryTest {
+class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     HistoryImageRepository historyImageRepository;

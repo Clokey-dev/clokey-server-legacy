@@ -1,5 +1,6 @@
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.category.domain.entity.Category;
 import com.clokey.server.domain.category.domain.repostiory.CategoryRepository;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
@@ -26,11 +27,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class HistoryClothRepositoryTest {
+class HistoryClothRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     private MemberRepository memberRepository;
