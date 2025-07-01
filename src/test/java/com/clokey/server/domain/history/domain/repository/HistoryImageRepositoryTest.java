@@ -77,6 +77,7 @@ class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
                 .toList()).isEqualTo(List.of(1L, 2L, 3L));
     }
 
+
     @DisplayName("특정 기록의 사진을 만들어진 순서로 받아올 수 있다.")
     @Test
     void 특정_기록_사진_생성순() {
