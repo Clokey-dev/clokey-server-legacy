@@ -9,10 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    env:
-      GRADLE_BUILD_CACHE_URL: ${{ secrets.GRADLE_BUILD_CACHE_URL }}
-      GRADLE_BUILD_CACHE_USERNAME: ${{ secrets.GRADLE_BUILD_CACHE_USERNAME }}
-      GRADLE_BUILD_CACHE_PASSWORD: ${{ secrets.GRADLE_BUILD_CACHE_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +18,15 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Gradle Caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
@@ -66,9 +71,6 @@ jobs:
             --file Dockerfile \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache \
             --cache-to type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache,mode=max \
-            --secret type=env,id=GRADLE_BUILD_CACHE_URL,env=GRADLE_BUILD_CACHE_URL \
-            --secret type=env,id=GRADLE_BUILD_CACHE_USERNAME,env=GRADLE_BUILD_CACHE_USERNAME \
-            --secret type=env,id=GRADLE_BUILD_CACHE_PASSWORD,env=GRADLE_BUILD_CACHE_PASSWORD \
             .
 
       - name: Build & Push Application Image
@@ -81,9 +83,6 @@ jobs:
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:1.0.0 \
             --build-arg DEPENDENCY_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache \
             --cache-from type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/clokey-docker:dependency-cache \
-            --secret type=env,id=GRADLE_BUILD_CACHE_URL,env=GRADLE_BUILD_CACHE_URL \
-            --secret type=env,id=GRADLE_BUILD_CACHE_USERNAME,env=GRADLE_BUILD_CACHE_USERNAME \
-            --secret type=env,id=GRADLE_BUILD_CACHE_PASSWORD,env=GRADLE_BUILD_CACHE_PASSWORD \
             .
 
       - name: Create application-secret.yml from Secret
