@@ -119,6 +119,7 @@ sonarqube {
 	}
 }
 
+
 tasks.processResources {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
