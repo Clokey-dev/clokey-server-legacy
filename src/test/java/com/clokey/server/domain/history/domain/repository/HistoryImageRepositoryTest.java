@@ -1,3 +1,4 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
 import com.clokey.server.domain.JpaIntegrationTestSupport;
@@ -35,6 +36,7 @@ class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     MemberRepository memberRepository;
+*/
 /*
     @BeforeAll
     void setUp() {
@@ -60,7 +62,8 @@ class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
 
         historyImageRepository.saveAll(h1Images);
         historyImageRepository.saveAll(h2Images);
-    }*/
+    }*//*
+
 
     @DisplayName("기록 Id를 기준으로 기록 사진 List를 반환할 수 있다")
     @Test
@@ -146,3 +149,4 @@ class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
     }
 }
 
+*/

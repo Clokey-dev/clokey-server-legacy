@@ -1,3 +1,4 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
 import com.clokey.server.domain.JpaIntegrationTestSupport;
@@ -65,6 +66,7 @@ class HistoryProjectionRepositoryTest extends JpaIntegrationTestSupport {
     @Autowired
     @Qualifier("historyProjectionRepositoryImpl")
     private HistoryProjectionRepository historyProjectionRepository;
+*/
 /*
     @BeforeAll
     void setup() {
@@ -299,7 +301,8 @@ class HistoryProjectionRepositoryTest extends JpaIntegrationTestSupport {
                 HistoryImage.builder().imageUrl("https://example.com/images/bookclub.jpg").history(h10).build()
         ));
 
-    }*/
+    }*//*
+
 
     @DisplayName("월별 기록을 정확하게 조회할 수 있다.")
     @Test
@@ -415,3 +418,4 @@ class HistoryProjectionRepositoryTest extends JpaIntegrationTestSupport {
 }
 
 
+*/

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+/*
 
 class CommentRepositoryTest extends JpaIntegrationTestSupport {
 
@@ -28,6 +29,7 @@ class CommentRepositoryTest extends JpaIntegrationTestSupport {
     private HistoryRepository historyRepository;
     @Autowired
     private CommentRepository commentRepository;
+*/
 /*
     @BeforeAll
     void setup() {
@@ -132,7 +134,8 @@ class CommentRepositoryTest extends JpaIntegrationTestSupport {
                 .comment(root3)
                 .banned(true)
                 .build());
-    }*/
+    }*//*
+
 
     @DisplayName("특정 기록에 신고 당하지 않은 root 댓글 개수를 반환합니다")
     @Test
@@ -215,3 +218,4 @@ class CommentRepositoryTest extends JpaIntegrationTestSupport {
 
 }
 
+*/

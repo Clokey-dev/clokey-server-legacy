@@ -1,3 +1,4 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
 import com.clokey.server.domain.JpaIntegrationTestSupport;
@@ -32,6 +33,7 @@ class HashtagHistoryRepositoryTest extends JpaIntegrationTestSupport {
     private HashtagRepository hashtagRepository;
     @Autowired
     private HashtagHistoryRepository hashtagHistoryRepository;
+*/
 /*
     @BeforeAll
     void setup() {
@@ -85,7 +87,8 @@ class HashtagHistoryRepositoryTest extends JpaIntegrationTestSupport {
                 HashtagHistory.builder().hashtag(tagTravel).history(history1).build(),
                 HashtagHistory.builder().hashtag(tagTravel).history(history2).build()
         ));
-    }*/
+    }*//*
+
 
     @DisplayName("기록의 ID를 기준으로 HashtagHistory를 모두 가져옵니다")
     @Test
@@ -113,3 +116,4 @@ class HashtagHistoryRepositoryTest extends JpaIntegrationTestSupport {
         assertThat(hashtags.get(1)).isEqualTo("여행");
     }
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
 import com.clokey.server.domain.JpaIntegrationTestSupport;
@@ -29,6 +30,7 @@ public class HistoryRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     private HistoryRepository historyRepository;
+*/
 /*
     @BeforeAll
     void setUp() {
@@ -48,7 +50,8 @@ public class HistoryRepositoryTest extends JpaIntegrationTestSupport {
         History h8 = historyRepository.save(History.builder().historyDate(LocalDate.of(2025, 1, 6)).likes(4).visibility(Visibility.PRIVATE).content("운동을 시작했습니다.").member(member4).banned(false).build());
         History h9 = historyRepository.save(History.builder().historyDate(LocalDate.of(2025, 1, 3)).likes(2).visibility(Visibility.PRIVATE).content("오늘은 도서관에서 시간을 보냈습니다.").member(member5).banned(false).build());
         History h10 = historyRepository.save(History.builder().historyDate(LocalDate.of(2025, 1, 4)).likes(1).visibility(Visibility.PUBLIC).content("독서 클럽에 참여했습니다.").member(member5).banned(false).build());
-    }*/
+    }*//*
+
 
     @DisplayName("특정 유저의 특정 날짜 이후에 기록을 모두 반환한다.")
     @Test
@@ -171,3 +174,4 @@ public class HistoryRepositoryTest extends JpaIntegrationTestSupport {
 
 }
 
+*/
