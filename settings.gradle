@@ -1,22 +1,7 @@
 rootProject.name = 'server'
 
-def buildCacheUrl = System.getenv('GRADLE_BUILD_CACHE_URL')
-def buildCacheUsername = System.getenv('GRADLE_BUILD_CACHE_USERNAME')
-def buildCachePassword = System.getenv('GRADLE_BUILD_CACHE_PASSWORD')
-
 buildCache {
     local {
         enabled = true
-    }
-    if (buildCacheUrl) {
-        remote(HttpBuildCache) {
-            url = buildCacheUrl
-            push = true
-            allowInsecureProtocol = true
-            credentials {
-                username = buildCacheUsername
-                password = buildCachePassword
-            }
-        }
     }
 }
