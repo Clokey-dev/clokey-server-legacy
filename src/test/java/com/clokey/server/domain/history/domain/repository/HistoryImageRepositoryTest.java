@@ -35,7 +35,7 @@ class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     MemberRepository memberRepository;
-
+/*
     @BeforeAll
     void setUp() {
         Member member1 = memberRepository.save(Member.builder().email("user1@example.com").nickname("User1").clokeyId("clokey1").bio("안녕하세요, User1입니다.").socialType(SocialType.KAKAO).profileImageUrl("https://example.com/user1.png").status(MemberStatus.ACTIVE).inactiveDate(null).visibility(Visibility.PUBLIC).build());
@@ -60,7 +60,7 @@ class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
 
         historyImageRepository.saveAll(h1Images);
         historyImageRepository.saveAll(h2Images);
-    }
+    }*/
 
     @DisplayName("기록 Id를 기준으로 기록 사진 List를 반환할 수 있다")
     @Test

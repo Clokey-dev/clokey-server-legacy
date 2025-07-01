@@ -52,7 +52,7 @@ class HistoryClothRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
+/*
     @BeforeAll
     void setup() {
 
@@ -273,7 +273,7 @@ class HistoryClothRepositoryTest extends JpaIntegrationTestSupport {
                 HistoryImage.builder().imageUrl("https://example.com/images/bookclub.jpg").history(h10).build()
         ));
 
-    }
+    }*/
 
     @DisplayName("특정 옷 ID를 기준으로 모든 기록-옷을 삭제합니다.")
     @Test

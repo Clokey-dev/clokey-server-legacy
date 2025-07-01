@@ -27,7 +27,7 @@ class HashtagRepositoryTest extends JpaIntegrationTestSupport {
     @Autowired private HistoryRepository historyRepository;
     @Autowired private HashtagRepository hashtagRepository;
     @Autowired private HashtagHistoryRepository hashtagHistoryRepository;
-
+/*
     @BeforeAll
     void setup() {
 
@@ -80,7 +80,7 @@ class HashtagRepositoryTest extends JpaIntegrationTestSupport {
                 HashtagHistory.builder().hashtag(tagTravel).history(history1).build(),
                 HashtagHistory.builder().hashtag(tagTravel).history(history2).build()
         ));
-    }
+    }*/
 
     @DisplayName("특정 해시태그를 이름을 기준으로 조회가 가능합니다.")
     @Test

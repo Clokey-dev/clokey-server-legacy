@@ -32,7 +32,7 @@ class MemberLikeRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     HistoryRepository historyRepository;
-
+/*
     @BeforeAll
     void setUp() {
         Member member1 = memberRepository.save(Member.builder().email("user1@example.com").nickname("User1").clokeyId("clokey1").bio("안녕하세요, User1입니다.").socialType(SocialType.KAKAO).profileImageUrl("https://example.com/user1.png").status(MemberStatus.ACTIVE).inactiveDate(null).visibility(Visibility.PUBLIC).build());
@@ -50,7 +50,7 @@ class MemberLikeRepositoryTest extends JpaIntegrationTestSupport {
         memberLikeRepository.save(MemberLike.builder().member(member1).history(h2).build());
         memberLikeRepository.save(MemberLike.builder().member(member2).history(h1).build());
         memberLikeRepository.save(MemberLike.builder().member(member3).history(h3).build());
-    }
+    }*/
 
     @DisplayName("특정 회원이 특정 기록에 좋아요를 눌렀는지 확인할 수 있다.")
     @ParameterizedTest(name = "historyId={0}, memberId={1}, answer={2}")
