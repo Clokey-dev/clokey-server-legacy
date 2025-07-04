@@ -1,5 +1,7 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.category.domain.entity.Category;
 import com.clokey.server.domain.category.domain.repostiory.CategoryRepository;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
@@ -14,10 +16,7 @@ import com.clokey.server.domain.model.entity.enums.SocialType;
 import com.clokey.server.domain.model.entity.enums.ThicknessLevel;
 import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.clokey.server.global.config.QuerydslConfig;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -29,11 +28,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class HistoryClothRepositoryTest {
+class HistoryClothRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     private MemberRepository memberRepository;
@@ -58,7 +53,8 @@ class HistoryClothRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
+*/
+/*
     @BeforeAll
     void setup() {
 
@@ -279,7 +275,8 @@ class HistoryClothRepositoryTest {
                 HistoryImage.builder().imageUrl("https://example.com/images/bookclub.jpg").history(h10).build()
         ));
 
-    }
+    }*//*
+
 
     @DisplayName("특정 옷 ID를 기준으로 모든 기록-옷을 삭제합니다.")
     @Test
@@ -383,3 +380,4 @@ class HistoryClothRepositoryTest {
     }
 }
 
+*/

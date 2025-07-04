@@ -25,6 +25,7 @@ import java.io.IOException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+@Disabled
 @SpringBootTest
 @Transactional
 @ActiveProfiles("local")

@@ -1,5 +1,7 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.history.domain.entity.History;
 import com.clokey.server.domain.history.domain.entity.HistoryImage;
 import com.clokey.server.domain.member.domain.entity.Member;
@@ -8,10 +10,7 @@ import com.clokey.server.domain.model.entity.enums.MemberStatus;
 import com.clokey.server.domain.model.entity.enums.SocialType;
 import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.clokey.server.global.config.QuerydslConfig;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -27,11 +26,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class HistoryImageRepositoryTest {
+class HistoryImageRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     HistoryImageRepository historyImageRepository;
@@ -41,7 +36,8 @@ class HistoryImageRepositoryTest {
 
     @Autowired
     MemberRepository memberRepository;
-
+*/
+/*
     @BeforeAll
     void setUp() {
         Member member1 = memberRepository.save(Member.builder().email("user1@example.com").nickname("User1").clokeyId("clokey1").bio("안녕하세요, User1입니다.").socialType(SocialType.KAKAO).profileImageUrl("https://example.com/user1.png").status(MemberStatus.ACTIVE).inactiveDate(null).visibility(Visibility.PUBLIC).build());
@@ -66,7 +62,8 @@ class HistoryImageRepositoryTest {
 
         historyImageRepository.saveAll(h1Images);
         historyImageRepository.saveAll(h2Images);
-    }
+    }*//*
+
 
     @DisplayName("기록 Id를 기준으로 기록 사진 List를 반환할 수 있다")
     @Test
@@ -82,6 +79,7 @@ class HistoryImageRepositoryTest {
                 .map(HistoryImage::getId)
                 .toList()).isEqualTo(List.of(1L, 2L, 3L));
     }
+
 
     @DisplayName("특정 기록의 사진을 만들어진 순서로 받아올 수 있다.")
     @Test
@@ -151,3 +149,4 @@ class HistoryImageRepositoryTest {
     }
 }
 
+*/

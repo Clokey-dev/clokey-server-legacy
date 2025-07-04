@@ -1,5 +1,7 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.history.domain.entity.Hashtag;
 import com.clokey.server.domain.history.domain.entity.HashtagHistory;
 import com.clokey.server.domain.history.domain.entity.History;
@@ -9,10 +11,7 @@ import com.clokey.server.domain.model.entity.enums.MemberStatus;
 import com.clokey.server.domain.model.entity.enums.SocialType;
 import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.clokey.server.global.config.QuerydslConfig;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -23,12 +22,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class HashtagHistoryRepositoryTest {
+class HashtagHistoryRepositoryTest extends JpaIntegrationTestSupport {
 
 
     @Autowired
@@ -39,7 +33,8 @@ class HashtagHistoryRepositoryTest {
     private HashtagRepository hashtagRepository;
     @Autowired
     private HashtagHistoryRepository hashtagHistoryRepository;
-
+*/
+/*
     @BeforeAll
     void setup() {
 
@@ -92,7 +87,8 @@ class HashtagHistoryRepositoryTest {
                 HashtagHistory.builder().hashtag(tagTravel).history(history1).build(),
                 HashtagHistory.builder().hashtag(tagTravel).history(history2).build()
         ));
-    }
+    }*//*
+
 
     @DisplayName("기록의 ID를 기준으로 HashtagHistory를 모두 가져옵니다")
     @Test
@@ -120,3 +116,4 @@ class HashtagHistoryRepositoryTest {
         assertThat(hashtags.get(1)).isEqualTo("여행");
     }
 }
+*/

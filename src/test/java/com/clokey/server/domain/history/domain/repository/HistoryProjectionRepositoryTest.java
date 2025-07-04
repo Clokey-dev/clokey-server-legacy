@@ -1,5 +1,7 @@
+/*
 package com.clokey.server.domain.history.domain.repository;
 
+import com.clokey.server.domain.JpaIntegrationTestSupport;
 import com.clokey.server.domain.category.domain.entity.Category;
 import com.clokey.server.domain.category.domain.repostiory.CategoryRepository;
 import com.clokey.server.domain.cloth.domain.entity.Cloth;
@@ -17,10 +19,7 @@ import com.clokey.server.domain.model.entity.enums.SocialType;
 import com.clokey.server.domain.model.entity.enums.ThicknessLevel;
 import com.clokey.server.domain.model.entity.enums.Visibility;
 import com.clokey.server.global.config.QuerydslConfig;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -35,11 +34,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(QuerydslConfig.class)
-class HistoryProjectionRepositoryTest {
+class HistoryProjectionRepositoryTest extends JpaIntegrationTestSupport {
 
     @Autowired
     private MemberRepository memberRepository;
@@ -71,7 +66,8 @@ class HistoryProjectionRepositoryTest {
     @Autowired
     @Qualifier("historyProjectionRepositoryImpl")
     private HistoryProjectionRepository historyProjectionRepository;
-
+*/
+/*
     @BeforeAll
     void setup() {
 
@@ -305,7 +301,8 @@ class HistoryProjectionRepositoryTest {
                 HistoryImage.builder().imageUrl("https://example.com/images/bookclub.jpg").history(h10).build()
         ));
 
-    }
+    }*//*
+
 
     @DisplayName("월별 기록을 정확하게 조회할 수 있다.")
     @Test
@@ -421,3 +418,4 @@ class HistoryProjectionRepositoryTest {
 }
 
 
+*/

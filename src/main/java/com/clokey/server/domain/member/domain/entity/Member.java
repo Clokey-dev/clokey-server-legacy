@@ -168,4 +168,5 @@ public class Member extends BaseEntity {
         this.banned = false;
     }
 
+
 }

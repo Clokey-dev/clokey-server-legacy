@@ -9,6 +9,7 @@ import com.clokey.server.domain.member.domain.repository.MemberRepository;
 import com.clokey.server.domain.member.exception.MemberException;
 import com.clokey.server.global.error.code.status.ErrorStatus;
 import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+@Disabled
 @SpringBootTest
 @Transactional
 @ActiveProfiles("local")

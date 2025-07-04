@@ -33,7 +33,6 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
     public List<HistoryProjectionDTO> getMonthlyHistoriesByMemberAndYearMonth(Long memberId, String yearMonth) {
         QHistory history = QHistory.history;
 
-        //입력 YYYY-MM을 기준으로 해당 달의 1일 부터 다음 달의 1일 전까지 범위 쿼리 수행
         YearMonth ym = YearMonth.parse(yearMonth);
         LocalDate startDate = ym.atDay(1);
         LocalDate endDate = ym.plusMonths(1).atDay(1);
@@ -66,10 +65,9 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
                 .fetch();
 
         if (clothIds.isEmpty()) {
-            return List.of(); // 조기 반환 : 에러로 대체해야함. -> 버그 데이터 거든요.
+            return List.of();
         }
 
-        // 2단계: cloth + clothImage 조회
         return queryFactory
                 .select(Projections.constructor(
                         DailyHistoryClothProjectionDTO.class,
@@ -108,7 +106,7 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
                         comment.banned.isFalse()
                 )
                 .orderBy(comment.createdAt.asc())
-                .offset(page * size)
+                .offset((long) page * size)
                 .limit(size)
                 .fetch();
     }
@@ -152,5 +150,4 @@ public class HistoryProjectionRepositoryImpl implements HistoryProjectionReposit
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
-
 }
