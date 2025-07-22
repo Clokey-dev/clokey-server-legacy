@@ -19,3 +19,6 @@ Dockerfile
 
 # 깃허브 파일
 .github/
+
+# README.md 전용 동영상
+video/
