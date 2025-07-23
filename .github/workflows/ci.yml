@@ -60,7 +60,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+
+      - name: Check Dockerfile or Dependency Changes
+        id: check_changes
+        run: |
+          git fetch origin ${{ github.event.before }}
+          echo "Changed files between commits:"
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "$changed_files"
+
+          if echo "$changed_files" | grep -qE 'Dockerfile|build\.gradle|settings\.gradle|gradle\.properties|gradlew|gradle/wrapper/gradle-wrapper\.properties'; then
+            echo "changed=true" >> $GITHUB_ENV
+          else
+            echo "changed=false" >> $GITHUB_ENV
+          fi
+
       - name: Build & Push Dependency Cache
+        if: env.changed == 'true'
         run: |
           docker buildx build \
             --builder mybuilder \
