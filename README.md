@@ -1,29 +1,29 @@
 ## 👗 Clokey: 스마트한 옷장 관리 서비스 (1.0 Legacy)
 
----
-<br/>
-<div align="center">
-  <img src="video/main.png" alt="설명 텍스트" width="900" style="border-radius: 8px; margin-bottom: 24px;" />
-</div>
-<div align="center" style="background-color: #2b2b2b; padding: 24px 32px; border-radius: 12px; max-width: 900px; margin: 0 auto; color: #f0f0f0; font-family: sans-serif;">
-  <h3 style="margin-top: 0;">👕 당신만을 위한 <span style="color: #ffffff;"><strong>스마트한 옷장 관리 서비스, Clokey</strong></span> 입니다.</h3>
+<p align="center">
+  <img src="video/main.png" alt="설명 텍스트" width="900" />
+</p>
 
-  <p style="margin: 10px 0 20px;">
-    나의 옷장을 등록해서 관리하고 <strong>남들과 마음껏 공유</strong>해보세요!
-  </p>
+<h3 align="center">👕 당신만을 위한 <strong>스마트한 옷장 관리 서비스, Clokey</strong> 입니다.</h3>
 
-  <ul style="text-align: left; display: inline-block; margin: 0 auto 20px; padding-left: 20px; line-height: 1.8;">
-    <li> 2025년 5월부터 iOS 앱스토어에서 서비스중입니다!</li>
-    <li> (리팩토링 완료 시점에 맞춰) <strong>새로워진 Clokey 2.0</strong>을 만나보세요!</li>
-  </ul>
+<p align="center">
+  나의 옷장을 등록해서 관리하고 <strong>남들과 마음껏 공유</strong>해보세요!
+</p>
 
-  <p style="margin: 16px 0;">
-    🔗 <a href="https://github.com/your-repo/clokey-v2" style="color: #4ea1ff; text-decoration: none;"><strong>Clokey 2.0 Repository</strong></a><br>
-    📲 <a href="https://apps.apple.com/app/id000000000" style="color: #4ea1ff; text-decoration: none;"><strong>앱 스토어에서 Clokey 만나보기</strong></a>
-  </p>
-</div>
+<p align="center">
+  - 2025년 5월부터 iOS 앱스토어에서 서비스 중입니다!<br/>
+  - (리팩토링 완료 시점에 맞춰) <strong>새로워진 Clokey 2.0</strong>을 만나보세요!
+</p>
 
-<br/>
+<p align="center">
+  🔗 <a href="https://github.com/your-repo/clokey-v2">Clokey 2.0 Repository</a><br/>
+  📲 <a href="https://apps.apple.com/app/id000000000">앱 스토어에서 Clokey 만나보기</a>
+</p>
+
+
+
+
+
 <br/>
 <h3 align="center">🧑‍💻 <strong>Clokey Backend Team</strong></h3>
 
