@@ -16,10 +16,9 @@
 </p>
 
 <p align="center">
-  🔗 <a href="https://github.com/your-repo/clokey-v2">Clokey 2.0 Repository</a><br/>
-  📲 <a href="https://apps.apple.com/app/id000000000">앱 스토어에서 Clokey 만나보기</a>
+  🔗 <a href="https://github.com/Clokey-dev/clokey-server">Clokey 2.0 Repository</a><br/>
+  📲 <a href="https://apps.apple.com/kr/app/clokey-%EC%8A%A4%EB%A7%88%ED%8A%B8%ED%95%9C-%EC%98%B7%EC%9E%A5-%EA%B4%80%EB%A6%AC-%EC%84%9C%EB%B9%84%EC%8A%A4/id6741714676">앱 스토어에서 Clokey 만나보기</a>
 </p>
-
 
 <h3 align="center">🧑‍💻 <strong>Clokey Backend Team</strong></h3>
 
